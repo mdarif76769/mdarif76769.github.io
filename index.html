@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>W8 Apps Store</title>
+    <title>Apps Store</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=VT323&display=swap');
         :root{--green:#00ff9f;--green-soft:rgba(0,255,159,.28);--cyan:#25dfff;--panel:rgba(3,15,12,.82);--text:#d9fff0;--danger:#ff4770;--gold:#ffd700}
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{min-height:100%;touch-action:manipulation;overscroll-behavior:none;-webkit-text-size-adjust:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}body{margin:0;color:var(--text);font-family:'Fira Code',Consolas,monospace;background:radial-gradient(circle at 50% 0%,rgba(0,255,159,.18),transparent 34%),radial-gradient(circle at 15% 86%,rgba(37,223,255,.12),transparent 30%),linear-gradient(180deg,#020303 0%,#06110e 54%,#010202 100%);overflow-x:hidden}
         
-        /* পারফেক্ট ফুল স্ক্রিন ম্যাট্রিক্স রেইন */
         .matrix{
             position:fixed;
             inset:-20% 0;
@@ -205,7 +204,9 @@
         const NAMESPACE = `w8_store_${GITHUB_USER}`; 
 
         let cachedFetchedApps = [];
-        let globalDownloadStats = {};
+        
+        // ডাবল-লেয়ার ডেটা সলিউশন: লোকাল স্টোরেজ থেকে ব্যাকআপ লোড করা
+        let globalDownloadStats = JSON.parse(localStorage.getItem('w8_stats_backup')) || {};
 
         function formatAppName(filename) {
             return filename.replace(/\.(apk|txt)$/i, '').replace(/[-_]/g, ' ');
@@ -225,30 +226,38 @@
                     const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}`);
                     if (res.ok) {
                         const json = await res.json();
-                        globalDownloadStats[item.name] = json.count || 0;
-                    } else {
-                        globalDownloadStats[item.name] = 0;
+                        globalDownloadStats[item.name] = json.count || globalDownloadStats[item.name] || 0;
                     }
                 } catch(e) {
-                    globalDownloadStats[item.name] = 0;
+                    console.log("Stats fetching delayed, using local backup.");
                 }
             }
+            // ব্যাকআপ সেভ করা যাতে রিফ্রেশ দিলেও ০ না হয়
+            localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
             renderRankingDashboard();
             updateCardCounters();
         }
 
         async function incrementCloudCounter(filename) {
             const itemCleanKey = filename.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
+            
+            // ইনস্ট্যান্ট লোকাল আপডেট (রিফ্রেশের পর ডাটা ধরে রাখতে)
+            globalDownloadStats[filename] = (globalDownloadStats[filename] || 0) + 1;
+            localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
+            renderRankingDashboard();
+            updateCardCounters();
+
             try {
                 const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}/up`);
                 if (res.ok) {
                     const json = await res.json();
-                    globalDownloadStats[filename] = json.count || (globalDownloadStats[filename] + 1);
+                    globalDownloadStats[filename] = json.count || globalDownloadStats[filename];
+                    localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
                     renderRankingDashboard();
                     updateCardCounters();
                 }
             } catch(e) {
-                console.error("Stats server lookup fail", e);
+                console.error("Stats cloud server sync fail", e);
             }
         }
 
@@ -287,7 +296,6 @@
             });
         }
 
-        /* মোস্ট অপ্টিমাইজড ডাউনলোড মেকানিজম - APK ও TEXT ফাইল সরাসরি সেভ হবে */
         async function forceDownloadFile(buttonElement, filename) {
             buttonElement.classList.add('downloading');
             const counterLabel = buttonElement.querySelector('.download-count');
@@ -296,7 +304,6 @@
             try {
                 const fileUrl = `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
                 
-                // ১. ভ্যানিলা জাভাস্ক্রিপ্ট ব্লব ডাউনলোডার (যা টেক্সট ফাইল স্ক্রিনে ওপেন না করে সরাসরি স্টোরেজে সেভ করতে বাধ্য করে)
                 const response = await fetch(fileUrl);
                 if (!response.ok) throw new Error("Network capture failed.");
                 
@@ -306,7 +313,7 @@
                 const tempAnchor = document.createElement('a');
                 tempAnchor.style.display = 'none';
                 tempAnchor.href = blobUrl;
-                tempAnchor.setAttribute('download', filename); // ব্রাউজারকে ডাউনলোড পপআপ ট্রিগার করায়
+                tempAnchor.setAttribute('download', filename);
                 
                 document.body.appendChild(tempAnchor);
                 tempAnchor.click();
@@ -314,12 +321,10 @@
                 document.body.removeChild(tempAnchor);
                 window.URL.revokeObjectURL(blobUrl);
 
-                // ২. ক্লাউড ডাটাবেজ কাউন্টার আপ করা
                 await incrementCloudCounter(filename);
 
             } catch (error) {
                 console.error("Download fallback mode activated:", error);
-                // ফলব্যাক মেথড যদি সিকিউরিটি পলিসি ব্লক করে
                 const altAnchor = document.createElement('a');
                 altAnchor.href = `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
                 altAnchor.setAttribute('download', filename);
@@ -344,6 +349,9 @@
                 return;
             }
 
+            // ক্যাশ সমস্যা এড়াতে প্রতিটি রেন্ডারে ইউনিক বাস-টাইম জেনারেট করা
+            const cacheBuster = new Date().getTime();
+
             items.forEach((item, index) => {
                 const displayName = formatAppName(item.name);
                 const itemBadge = assignBadge(item.name);
@@ -357,8 +365,11 @@
                     ? "https://i.postimg.cc/85zXpD7m/text-icon.png" 
                     : "https://i.postimg.cc/mD3fzq4Y/apk-icon.png";
 
-                const pngUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.png`;
-                const jpgUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.jpg`;
+                // ইউআরএল-এর শেষে ক্যাশবাস্টার (?v=) দেওয়া হলো যাতে ইমেজ রিফ্রেশ বা মিস না হয়
+                const pngUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.png?v=${cacheBuster}`;
+                const jpgUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.jpg?v=${cacheBuster}`;
+
+                const count = globalDownloadStats[item.name] || 0;
 
                 const cardHtml = `
                     <button class="card" type="button" onclick="forceDownloadFile(this, '${item.name.replace(/'/g, "\\'")}')">
@@ -371,7 +382,7 @@
                                  alt="${displayName}">
                         </div>
                         <p class="app-name">${displayName}</p>
-                        <div class="download-count" id="count-label-${uniqueId}">0 Downloads</div>
+                        <div class="download-count" id="count-label-${uniqueId}">${count} Downloads</div>
                     </button>
                 `;
                 container.innerHTML += cardHtml;
@@ -392,8 +403,12 @@
                 });
 
                 document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
-                displayApps(cachedFetchedApps);
                 
+                // প্রথমে লোকাল ব্যাকআপ ডেটা দিয়ে দ্রুত ইউজার ইন্টারফেস রেন্ডার করা
+                displayApps(cachedFetchedApps);
+                renderRankingDashboard();
+                
+                // এরপর ব্যাকগ্রাউন্ডে ক্লাউড থেকে লেটেস্ট ডেটা সিঙ্ক করা
                 await fetchRealTimeStats(cachedFetchedApps);
 
             } catch (error) {

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>W8 Apps Store</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=VT323&display=swap');
+        :root{--green:#00ff9f;--green-soft:rgba(0,255,159,.28);--cyan:#25dfff;--panel:rgba(3,15,12,.82);--text:#d9fff0;--danger:#ff4770;--gold:#ffd700}
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{min-height:100%;touch-action:manipulation;overscroll-behavior:none;-webkit-text-size-adjust:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}body{margin:0;color:var(--text);font-family:'Fira Code',Consolas,monospace;background:radial-gradient(circle at 50% 0%,rgba(0,255,159,.18),transparent 34%),radial-gradient(circle at 15% 86%,rgba(37,223,255,.12),transparent 30%),linear-gradient(180deg,#020303 0%,#06110e 54%,#010202 100%);overflow-x:hidden}
+        
+        /* পারফেক্ট ফুল স্ক্রিন ম্যাট্রিক্স রেইন */
+        .matrix{
+            position:fixed;
+            inset:-20% 0;
+            z-index:0;
+            pointer-events:none;
+            overflow:hidden;
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(16px, 1fr));
+            gap:8px;
+            width: 100vw;
+            opacity:.18;
+        }
+        .matrix span{
+            color:var(--green);
+            font-family:'VT323',monospace;
+            font-size:20px;
+            line-height:.9;
+            writing-mode:vertical-rl;
+            text-orientation:upright;
+            text-shadow:0 0 9px var(--green);
+            animation:matrixFall 7s linear infinite;
+        }
+        .matrix span:nth-child(2n){color:var(--cyan);animation-duration:10s;opacity:.72}
+        .matrix span:nth-child(3n){animation-duration:12s;animation-delay:-4s}
+        
+        .particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(circle at 18% 20%,rgba(0,255,159,.28) 0 1px,transparent 2px),radial-gradient(circle at 72% 36%,rgba(37,223,255,.2) 0 1px,transparent 2px),radial-gradient(circle at 48% 76%,rgba(0,255,159,.18) 0 1px,transparent 2px);background-size:120px 160px,180px 220px,150px 190px;animation:particleDrift 16s linear infinite;opacity:.62}
+        .app-shell{position:relative;z-index:1;width:min(430px,100%);min-height:100vh;margin:0 auto;padding:26px 14px 32px}.app-shell:before,.app-shell:after{content:"";position:fixed;inset:0;pointer-events:none}.app-shell:before{background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px),linear-gradient(90deg,transparent,rgba(0,255,159,.06),transparent);mix-blend-mode:screen;opacity:.85}.app-shell:after{background:radial-gradient(circle at 50% 30%,transparent 0 48%,rgba(0,0,0,.44) 100%),radial-gradient(circle at 52% 18%,rgba(0,255,159,.11),transparent 18%)}
+        .top{position:relative;z-index:2;display:grid;justify-items:center;gap:16px;margin-bottom:18px}.avatar{position:relative;width:118px;height:118px;border-radius:50%;border:2px solid var(--green);background:radial-gradient(circle,rgba(0,255,159,.2),transparent 44%),repeating-linear-gradient(90deg,transparent 0 8px,rgba(0,255,159,.09) 8px 10px),rgba(0,0,0,.62);box-shadow:0 0 18px var(--green-soft),0 0 48px rgba(0,255,159,.22),inset 0 0 22px rgba(0,255,159,.18);animation:avatarFlicker 3s infinite steps(2,end);overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover;display:block}.avatar:before,.avatar:after{content:"";position:absolute;border-radius:50%;inset:14px;border:1px dashed rgba(37,223,255,.62);animation:rotateRing 11s linear infinite}.avatar:after{inset:35px;border-style:solid;border-color:rgba(0,255,159,.76);animation-duration:7s;animation-direction:reverse}
+        .title-panel,.detail-panel,.status-panel,.rank-panel{position:relative;overflow:hidden;border:1px solid var(--green);border-radius:8px;background:linear-gradient(90deg,transparent,rgba(0,255,159,.08),transparent),var(--panel);box-shadow:0 0 18px rgba(0,255,159,.28),0 0 42px rgba(37,223,255,.12),inset 0 0 24px rgba(0,255,159,.11)}.title-panel{width:100%;min-height:82px;display:grid;place-items:center}.title-panel:before,.detail-panel:before,.status-panel:before,.rank-panel:before,.card:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 12px,rgba(0,255,159,.1) 12px 13px),repeating-linear-gradient(90deg,transparent 0 18px,rgba(37,223,255,.07) 18px 19px);opacity:.46}.bot-name{position:relative;z-index:1;margin:0;color:var(--green);font-family:'VT323',monospace;font-size:clamp(44px,14vw,66px);font-weight:400;letter-spacing:0;line-height:1;text-align:center;text-shadow:0 0 8px var(--green),2px 0 0 rgba(37,223,255,.5),-2px 0 0 rgba(0,255,159,.38);animation:textGlitch 3.2s infinite steps(2,end)}
+        .status-panel{z-index:2;margin-bottom:14px;padding:13px;display:grid;gap:8px}.status-title{position:relative;z-index:1;color:var(--cyan);font-size:12px;text-transform:uppercase}.status-row{position:relative;z-index:1;display:flex;justify-content:space-between;gap:10px;font-size:13px}.status-row strong{color:var(--green);overflow-wrap:anywhere;text-align:right}.filter-panel{z-index:2;margin-bottom:14px;padding:13px;display:grid;gap:10px}.filter-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:10px}.filter-input{width:100%;min-height:44px;padding:10px 12px;border:1px solid rgba(0,255,159,.35);border-radius:8px;background:rgba(0,0,0,.28);color:var(--text);font:inherit}.card-grid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.card{position:relative;min-height:156px;display:grid;justify-items:center;align-content:center;gap:10px;overflow:hidden;padding:16px 10px;border:1px solid var(--green);border-radius:8px;color:var(--text);background:radial-gradient(circle at 50% 10%,rgba(0,255,159,.14),transparent 42%),linear-gradient(145deg,rgba(0,255,159,.08),rgba(37,223,255,.03)),rgba(1,8,6,.82);box-shadow:0 0 15px rgba(0,255,159,.22),inset 0 0 24px rgba(0,255,159,.08);cursor:pointer;font-family:inherit;width:100%}.card:after{content:"";position:absolute;inset:18% 0 auto;height:24px;background:linear-gradient(90deg,transparent,rgba(37,223,255,.34),transparent 38%,rgba(0,255,159,.28),transparent);opacity:0;animation:cardNoise 3.8s infinite steps(2,end)}.card:nth-child(2n):after{animation-delay:-1.3s;top:52%}.card:nth-child(3n):after{animation-delay:-2.1s;top:33%}.card:hover,.card:focus-visible{outline:none;transform:translateY(-2px);box-shadow:0 0 22px rgba(0,255,159,.36),0 0 34px rgba(37,223,255,.15),inset 0 0 26px rgba(0,255,159,.1)}
+        .icon{position:relative;z-index:1;width:62px;height:62px;display:grid;place-items:center;overflow:hidden;border:1px solid var(--green);border-radius:50%;background:radial-gradient(circle,rgba(37,223,255,.18),transparent 58%),rgba(0,255,159,.08);box-shadow:0 0 16px rgba(0,255,159,.35),inset 0 0 15px rgba(0,255,159,.16);animation:logoPulse 2.6s infinite}.icon:before{content:"";width:26px;height:26px;border:2px solid var(--green);border-radius:50%;box-shadow:0 0 12px rgba(0,255,159,.55)}.icon:after{content:"";position:absolute;width:130%;height:1px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);transform:rotate(-22deg);animation:iconScan 2.8s infinite}.icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;pointer-events:none;-webkit-user-drag:none;animation:logoShine 3.2s infinite}.app-name{position:relative;z-index:1;width:100%;margin:0;color:var(--text);font-size:13px;font-weight:700;text-align:center;overflow-wrap:anywhere;text-shadow:0 0 10px rgba(0,255,159,.54)}.download-count{position:relative;z-index:1;color:var(--cyan);font-size:11px}.badge-chip{position:absolute;top:10px;right:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(37,223,255,.16);border:1px solid rgba(37,223,255,.45);color:var(--cyan);font-size:10px;text-transform:uppercase;letter-spacing:.08em}.rank-badge{position:absolute;top:10px;left:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(0,255,159,.12);border:1px solid rgba(0,255,159,.35);color:var(--green);font-size:10px;font-weight:700}
+        .card.downloading{border-color:var(--cyan);box-shadow:0 0 20px var(--cyan);opacity:.8;}
+        
+        .rank-panel{margin-bottom:14px;padding:13px}.rank-list{position:relative;z-index:1;display:flex;flex-direction:column;gap:8px;margin-top:8px}
+        .rank-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 12px;background:rgba(0,255,159,.04);border:1px dashed rgba(0,255,159,.25);border-radius:6px;font-size:12px}
+        .rank-item .meta{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;padding-right:10px}
+        .rank-num{font-family:'Fira Code',monospace;font-size:13px;font-weight:700;white-space:nowrap;color:var(--text)}
+        .rank-num.top3{color:var(--gold);text-shadow:0 0 8px var(--gold)}
+        .rank-name{font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .rank-score{color:var(--cyan);font-size:11px;white-space:nowrap;flex-shrink:0}
+
+        #auth-gate-panel {
+            display: none;
+            margin-bottom: 14px;
+            padding: 16px;
+            border: 1px solid var(--danger);
+            box-shadow: 0 0 15px rgba(255,71,112,.2);
+        }
+        .gate-title-inline { color: var(--danger); font-size: 14px; text-transform: uppercase; margin-bottom: 12px; font-weight: bold; }
+        .gate-input-wrapper { display: flex; gap: 10px; }
+        .gate-field { flex: 1; min-height: 44px; padding: 10px; border: 1px solid var(--danger); border-radius: 6px; background: rgba(0,0,0,.4); color: #fff; font-size: 16px; text-align: center; font-family: inherit; }
+        .gate-field:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+        .gate-action-btn { min-height: 44px; padding: 0 18px; background: var(--danger); border: none; border-radius: 6px; color: #000; font-weight: 700; font-family: inherit; cursor: pointer; text-transform: uppercase; }
+        .gate-action-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+        #protected-store-area { display: block; }
+
+        @media(max-width:360px){.app-shell{padding-inline:10px}.card-grid{gap:10px}.card{min-height:142px;padding-inline:8px}.icon{width:54px;height:54px}}@keyframes matrixFall{from{transform:translateY(-18%)}to{transform:translateY(22%)}}@keyframes rotateRing{to{transform:rotate(360deg)}}@keyframes avatarFlicker{0%,86%,100%{filter:brightness(1)}88%{filter:brightness(1.55) hue-rotate(10deg)}90%{filter:brightness(.82)}}@keyframes textGlitch{0%,90%,100%{transform:translate(0)}92%{transform:translate(2px,-1px)}94%{transform:translate(-2px,1px)}}@keyframes cardNoise{0%,72%,100%{opacity:0;transform:translateX(-18%)}74%,78%{opacity:.92;transform:translateX(8%)}80%{opacity:.32;transform:translateX(-4%)}}@keyframes iconScan{0%,62%{transform:translateY(-42px) rotate(-22deg);opacity:0}70%{opacity:1}100%{transform:translateY(42px) rotate(-22deg);opacity:0}}@keyframes logoPulse{0%,100%{box-shadow:0 0 16px rgba(0,255,159,.35),inset 0 0 15px rgba(0,255,159,.16)}50%{box-shadow:0 0 28px rgba(0,255,159,.58),0 0 40px rgba(37,223,255,.24),inset 0 0 20px rgba(0,255,159,.28)}}@keyframes logoShine{0%,100%{filter:brightness(1) saturate(1)}50%{filter:brightness(1.16) saturate(1.2)}}@keyframes particleDrift{to{background-position:120px 160px,-180px 220px,150px -190px}}
+    </style>
+</head>
+<body>
+    <div class="matrix" aria-hidden="true">
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+    </div>
+    
+    <div class="particles" aria-hidden="true"></div>
+    
+    <main class="app-shell" id="main-store">
+        <div id="store-content">
+            <section class="top">
+                <div class="avatar"><img loading="lazy" src="https://i.postimg.cc/yYJtCxqd/image.png" alt="Bot Logo"></div>
+                <div class="title-panel"><h1 class="bot-name">W8AppsStore</h1></div>
+            </section>
+
+            <section class="status-panel" id="auth-gate-panel">
+                <div class="gate-title-inline" id="gate-title-text">🔒 Terminal Crypt-Lock Enabled</div>
+                <div class="gate-input-wrapper">
+                    <input type="password" id="gate-pin-field" class="gate-field" placeholder="Enter Security PIN" maxlength="6">
+                    <button type="button" id="gate-submit-btn" class="gate-action-btn" onclick="unlockTerminalData()">Unlock</button>
+                </div>
+            </section>
+
+            <div id="protected-store-area">
+                <section class="rank-panel">
+                    <div class="status-title">🔥 Top Installed (Real-Time)</div>
+                    <div class="rank-list" id="ranking-container">
+                        <div style="text-align: center; color: var(--cyan); font-size:11px; padding:10px;">Syncing download stats...</div>
+                    </div>
+                </section>
+
+                <section class="status-panel">
+                    <div class="status-title">System Status</div>
+                    <div class="status-row"><span>Total Synced Items</span><strong id="total-apps">Syncing...</strong></div>
+                </section>
+
+                <section class="filter-panel">
+                    <div class="status-title">Find Apps</div>
+                    <div class="filter-grid">
+                        <input class="filter-input" id="app-search" type="search" placeholder="Search synced apps...">
+                    </div>
+                </section>
+
+                <section class="card-grid" id="apps-container" aria-label="Apps">
+                    <p style="grid-column: span 2; text-align: center; color: var(--cyan);">Connecting to GitHub DATA repository...</p>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ENCODED_TOKEN = "NDUzNQ=="; 
+        
+        let attemptCount = 0;
+        let isTelegramTerminal = false;
+
+        if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData && window.Telegram.WebApp.initData !== "") {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+            isTelegramTerminal = true;
+            document.getElementById("auth-gate-panel").style.display = "none";
+            document.getElementById("protected-store-area").style.display = "block";
+        } else {
+            document.getElementById("auth-gate-panel").style.display = "block";
+            document.getElementById("protected-store-area").style.none = "none";
+            
+            const currentGate = document.getElementById("auth-gate-panel");
+            if(currentGate) currentGate.style.display = "block";
+            const currentStore = document.getElementById("protected-store-area");
+            if(currentStore) currentStore.style.display = "none";
+        }
+
+        function unlockTerminalData() {
+            const pinField = document.getElementById("gate-pin-field");
+            const submitBtn = document.getElementById("gate-submit-btn");
+            const titleText = document.getElementById("gate-title-text");
+            const inputVal = pinField.value.trim();
+
+            if(inputVal === atob(ENCODED_TOKEN)) {
+                attemptCount = 0; 
+                document.getElementById("auth-gate-panel").style.display = "none";
+                document.getElementById("protected-store-area").style.display = "block";
+            } else {
+                attemptCount++;
+                if (attemptCount >= 5) {
+                    let timeLeft = 60; 
+                    pinField.disabled = true;
+                    submitBtn.disabled = true;
+                    pinField.value = "";
+                    titleText.style.color = "var(--danger)";
+
+                    const countdownInterval = setInterval(() => {
+                        timeLeft--;
+                        titleText.innerText = `🛑 Too many attempts. Try again in ${timeLeft}s`;
+                        
+                        if (timeLeft <= 0) {
+                            clearInterval(countdownInterval);
+                            attemptCount = 0; 
+                            pinField.disabled = false;
+                            submitBtn.disabled = false;
+                            titleText.innerText = "🔒 Terminal Crypt-Lock Enabled";
+                            titleText.style.color = "var(--danger)";
+                        }
+                    }, 1000);
+
+                    alert("CRITICAL ERROR: Terminal Locked for 60 Seconds.");
+                } else {
+                    alert(`ACCESS DENIED: Unauthorized Token. (${5 - attemptCount} attempts remaining)`);
+                    pinField.value = "";
+                }
+            }
+        }
+
+        const GITHUB_USER = "mdarif76769";
+        const GITHUB_REPO = "mdarif76769.github.io";
+        const DATA_FOLDER = "DATA";
+        const IMAGE_FOLDER = "IMAGE";
+        
+        const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FOLDER}?nocache=${new Date().getTime()}`;
+        const RAW_CDN_BASE = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/${DATA_FOLDER}/`;
+
+        const COUNTER_API_BASE = "https://api.counterapi.dev/v1";
+        const NAMESPACE = `w8_store_${GITHUB_USER}`; 
+
+        let cachedFetchedApps = [];
+        let globalDownloadStats = {};
+
+        function formatAppName(filename) {
+            return filename.replace(/\.(apk|txt)$/i, '').replace(/[-_]/g, ' ');
+        }
+
+        function assignBadge(filename) {
+            if (filename.toLowerCase().endsWith('.txt')) return 'list';
+            if (filename.toLowerCase().includes('bomber')) return 'hot';
+            if (filename.toLowerCase().includes('hack') || filename.toLowerCase().includes('brute')) return 'audit';
+            return 'app';
+        }
+
+        async function fetchRealTimeStats(items) {
+            for (let item of items) {
+                const itemCleanKey = item.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
+                try {
+                    const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}`);
+                    if (res.ok) {
+                        const json = await res.json();
+                        globalDownloadStats[item.name] = json.count || 0;
+                    } else {
+                        globalDownloadStats[item.name] = 0;
+                    }
+                } catch(e) {
+                    globalDownloadStats[item.name] = 0;
+                }
+            }
+            renderRankingDashboard();
+            updateCardCounters();
+        }
+
+        async function incrementCloudCounter(filename) {
+            const itemCleanKey = filename.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
+            try {
+                const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}/up`);
+                if (res.ok) {
+                    const json = await res.json();
+                    globalDownloadStats[filename] = json.count || (globalDownloadStats[filename] + 1);
+                    renderRankingDashboard();
+                    updateCardCounters();
+                }
+            } catch(e) {
+                console.error("Stats server lookup fail", e);
+            }
+        }
+
+        function renderRankingDashboard() {
+            const rankingContainer = document.getElementById("ranking-container");
+            rankingContainer.innerHTML = "";
+
+            const ranked = [...cachedFetchedApps].sort((a, b) => {
+                const countA = globalDownloadStats[a.name] || 0;
+                const countB = globalDownloadStats[b.name] || 0;
+                return countB - countA;
+            }).slice(0, 3);
+
+            ranked.forEach((item, index) => {
+                const displayName = formatAppName(item.name);
+                const count = globalDownloadStats[item.name] || 0;
+                rankingContainer.innerHTML += `
+                    <div class="rank-item">
+                        <div class="meta">
+                            <span class="rank-num top3">🏆 0${index + 1}</span>
+                            <span class="rank-name">${displayName}</span>
+                        </div>
+                        <span class="rank-score">${count} Downloads</span>
+                    </div>
+                `;
+            });
+        }
+
+        function updateCardCounters() {
+            cachedFetchedApps.forEach(item => {
+                const count = globalDownloadStats[item.name] || 0;
+                const element = document.getElementById(`count-label-${btoa(item.name).replace(/=/g, '')}`);
+                if(element) {
+                    element.innerText = `${count} Downloads`;
+                }
+            });
+        }
+
+        /* মোস্ট অপ্টিমাইজড ডাউনলোড মেকানিজম - APK ও TEXT ফাইল সরাসরি সেভ হবে */
+        async function forceDownloadFile(buttonElement, filename) {
+            buttonElement.classList.add('downloading');
+            const counterLabel = buttonElement.querySelector('.download-count');
+            counterLabel.innerText = "Processing...";
+
+            try {
+                const fileUrl = `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
+                
+                // ১. ভ্যানিলা জাভাস্ক্রিপ্ট ব্লব ডাউনলোডার (যা টেক্সট ফাইল স্ক্রিনে ওপেন না করে সরাসরি স্টোরেজে সেভ করতে বাধ্য করে)
+                const response = await fetch(fileUrl);
+                if (!response.ok) throw new Error("Network capture failed.");
+                
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                const tempAnchor = document.createElement('a');
+                tempAnchor.style.display = 'none';
+                tempAnchor.href = blobUrl;
+                tempAnchor.setAttribute('download', filename); // ব্রাউজারকে ডাউনলোড পপআপ ট্রিগার করায়
+                
+                document.body.appendChild(tempAnchor);
+                tempAnchor.click();
+                
+                document.body.removeChild(tempAnchor);
+                window.URL.revokeObjectURL(blobUrl);
+
+                // ২. ক্লাউড ডাটাবেজ কাউন্টার আপ করা
+                await incrementCloudCounter(filename);
+
+            } catch (error) {
+                console.error("Download fallback mode activated:", error);
+                // ফলব্যাক মেথড যদি সিকিউরিটি পলিসি ব্লক করে
+                const altAnchor = document.createElement('a');
+                altAnchor.href = `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
+                altAnchor.setAttribute('download', filename);
+                altAnchor.setAttribute('target', '_blank');
+                document.body.appendChild(altAnchor);
+                altAnchor.click();
+                document.body.removeChild(altAnchor);
+            } finally {
+                setTimeout(() => {
+                    buttonElement.classList.remove('downloading');
+                    updateCardCounters(); 
+                }, 1000);
+            }
+        }
+
+        function displayApps(items) {
+            const container = document.getElementById("apps-container");
+            container.innerHTML = "";
+            
+            if(items.length === 0) {
+                container.innerHTML = `<p style="grid-column: span 2; text-align: center; color: var(--danger);">No items verified.</p>`;
+                return;
+            }
+
+            items.forEach((item, index) => {
+                const displayName = formatAppName(item.name);
+                const itemBadge = assignBadge(item.name);
+                const uniqueId = btoa(item.name).replace(/=/g, '');
+                
+                const cleanNameWithoutExt = item.name.replace(/\.(apk|txt)$/i, '');
+                const safeImageName = encodeURIComponent(cleanNameWithoutExt);
+
+                const isTextFile = item.name.toLowerCase().endsWith('.txt');
+                const fallbackIcon = isTextFile 
+                    ? "https://i.postimg.cc/85zXpD7m/text-icon.png" 
+                    : "https://i.postimg.cc/mD3fzq4Y/apk-icon.png";
+
+                const pngUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.png`;
+                const jpgUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.jpg`;
+
+                const cardHtml = `
+                    <button class="card" type="button" onclick="forceDownloadFile(this, '${item.name.replace(/'/g, "\\'")}')">
+                        <div class="badge-chip">${itemBadge}</div>
+                        <div class="rank-badge">#${index + 1}</div>
+                        <div class="icon">
+                            <img loading="lazy" width="62" height="62" 
+                                 src="${pngUrl}" 
+                                 onerror="this.onerror=null; this.src='${jpgUrl}'; this.onerror=function(){this.src='${fallbackIcon}';};" 
+                                 alt="${displayName}">
+                        </div>
+                        <p class="app-name">${displayName}</p>
+                        <div class="download-count" id="count-label-${uniqueId}">0 Downloads</div>
+                    </button>
+                `;
+                container.innerHTML += cardHtml;
+            });
+        }
+
+        async function fetchRepositoryData() {
+            try {
+                const response = await fetch(API_URL);
+                if(!response.ok) throw new Error("Repository path parsing failed.");
+                
+                const files = await response.json();
+                
+                cachedFetchedApps = files.filter(file => {
+                    if (file.type !== "file") return false;
+                    const nameLower = file.name.toLowerCase();
+                    return nameLower.endsWith('.apk') || nameLower.endsWith('.txt');
+                });
+
+                document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
+                displayApps(cachedFetchedApps);
+                
+                await fetchRealTimeStats(cachedFetchedApps);
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById("apps-container").innerHTML = `
+                    <p style="grid-column: span 2; text-align: center; color: var(--danger);">
+                        Synchronization Error.<br>Please verify repo access structures.
+                    </p>`;
+            }
+        }
+
+        document.getElementById("app-search").addEventListener("input", (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const filtered = cachedFetchedApps.filter(item => 
+                item.name.toLowerCase().includes(query)
+            );
+            displayApps(filtered);
+            updateCardCounters();
+        });
+
+        fetchRepositoryData();
+    </script>
+</body>
+</html>

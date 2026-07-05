@@ -143,7 +143,7 @@
             document.getElementById("protected-store-area").style.display = "block";
         } else {
             document.getElementById("auth-gate-panel").style.display = "block";
-            document.getElementById("protected-store-area").style.none = "none";
+            document.getElementById("protected-store-area").style.display = "none";
             
             const currentGate = document.getElementById("auth-gate-panel");
             if(currentGate) currentGate.style.display = "block";
@@ -197,16 +197,15 @@
         const DATA_FOLDER = "DATA";
         const IMAGE_FOLDER = "IMAGE";
         
-        const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FOLDER}?nocache=${new Date().getTime()}`;
-        const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?nocache=${new Date().getTime()}`;
-        const RAW_CDN_BASE = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/${DATA_FOLDER}/`;
+        // এপিআই কল অপ্টিমাইজড করা হলো (WebView ব্লকিং এড়ানোর জন্য)
+        const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FOLDER}`;
+        const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases`;
+        const RAW_CDN_BASE = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/`;
 
         const COUNTER_API_BASE = "https://api.counterapi.dev/v1";
         const NAMESPACE = `w8_store_${GITHUB_USER}`; 
 
         let cachedFetchedApps = [];
-        
-        // ডাবল-লেয়ার ডেটা সলিউশন: লোকাল স্টোরেজ থেকে ব্যাকআপ লোড করা
         let globalDownloadStats = JSON.parse(localStorage.getItem('w8_stats_backup')) || {};
 
         function formatAppName(filename) {
@@ -221,183 +220,137 @@
         }
 
         async function fetchRealTimeStats(items) {
+            // পূর্বের ব্রোকেন লাইন কোডটি এখানে ফিক্স করা হয়েছে
             for (let item of items) {
                 const itemCleanKey = item.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
                 try {
                     const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}`);
                     if (res.ok) {
                         const json = await res.json();
-                        globalDownloadStats[item.name] = json.count || globalDownloadStats[item.name] || 0;
+                        globalDownloadStats[item.name] = json.count || 0;
+                    } else {
+                        if(!globalDownloadStats[item.name]) globalDownloadStats[item.name] = 0;
                     }
                 } catch(e) {
-                    console.log("Stats fetching delayed, using local backup.");
+                    if(!globalDownloadStats[item.name]) globalDownloadStats[item.name] = 0;
                 }
             }
-            // ব্যাকআপ সেভ করা যাতে রিফ্রেশ দিলেও ০ না হয়
             localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
-            renderRankingDashboard();
-            updateCardCounters();
-        }
-
-        async function incrementCloudCounter(filename) {
-            const itemCleanKey = filename.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
-            
-            // ইনস্ট্যান্ট লোকাল আপডেট (রিফ্রেশের পর ডাটা ধরে রাখতে)
-            globalDownloadStats[filename] = (globalDownloadStats[filename] || 0) + 1;
-            localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
-            renderRankingDashboard();
-            updateCardCounters();
-
-            try {
-                const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}/up`);
-                if (res.ok) {
-                    const json = await res.json();
-                    globalDownloadStats[filename] = json.count || globalDownloadStats[filename];
-                    localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
-                    renderRankingDashboard();
-                    updateCardCounters();
-                }
-            } catch(e) {
-                console.error("Stats cloud server sync fail", e);
-            }
         }
 
         function renderRankingDashboard() {
-            const rankingContainer = document.getElementById("ranking-container");
-            rankingContainer.innerHTML = "";
+            const container = document.getElementById("ranking-container");
+            if (!container) return;
 
-            const ranked = [...cachedFetchedApps].sort((a, b) => {
+            const sorted = [...cachedFetchedApps].sort((a, b) => {
                 const countA = globalDownloadStats[a.name] || 0;
                 const countB = globalDownloadStats[b.name] || 0;
                 return countB - countA;
-            }).slice(0, 3);
-
-            ranked.forEach((item, index) => {
-                const displayName = formatAppName(item.name);
-                const count = globalDownloadStats[item.name] || 0;
-                rankingContainer.innerHTML += `
-                    <div class="rank-item">
-                        <div class="meta">
-                            <span class="rank-num top3">🏆 0${index + 1}</span>
-                            <span class="rank-name">${displayName}</span>
-                        </div>
-                        <span class="rank-score">${count} Downloads</span>
-                    </div>
-                `;
             });
-        }
 
-        function updateCardCounters() {
-            cachedFetchedApps.forEach(item => {
-                const count = globalDownloadStats[item.name] || 0;
-                const element = document.getElementById(`count-label-${btoa(item.name).replace(/=/g, '')}`);
-                if(element) {
-                    element.innerText = `${count} Downloads`;
-                }
-            });
-        }
-
-        async function forceDownloadFile(buttonElement, filename, isRelease = false, releaseUrl = '') {
-            buttonElement.classList.add('downloading');
-            const counterLabel = buttonElement.querySelector('.download-count');
-            counterLabel.innerText = "Processing...";
-
-            try {
-                const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
-                
-                const response = await fetch(fileUrl);
-                if (!response.ok) throw new Error("Network capture failed.");
-                
-                const blob = await response.blob();
-                const blobUrl = window.URL.createObjectURL(blob);
-                
-                const tempAnchor = document.createElement('a');
-                tempAnchor.style.display = 'none';
-                tempAnchor.href = blobUrl;
-                tempAnchor.setAttribute('download', filename);
-                
-                document.body.appendChild(tempAnchor);
-                tempAnchor.click();
-                
-                document.body.removeChild(tempAnchor);
-                window.URL.revokeObjectURL(blobUrl);
-
-                await incrementCloudCounter(filename);
-
-            } catch (error) {
-                console.error("Download fallback mode activated:", error);
-                const altAnchor = document.createElement('a');
-                altAnchor.href = isRelease ? releaseUrl : `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
-                altAnchor.setAttribute('download', filename);
-                altAnchor.setAttribute('target', '_blank');
-                document.body.appendChild(altAnchor);
-                altAnchor.click();
-                document.body.removeChild(altAnchor);
-                await incrementCloudCounter(filename);
-            } finally {
-                setTimeout(() => {
-                    buttonElement.classList.remove('downloading');
-                    updateCardCounters(); 
-                }, 1000);
-            }
-        }
-
-        function displayApps(items) {
-            const container = document.getElementById("apps-container");
-            container.innerHTML = "";
-            
-            if(items.length === 0) {
-                container.innerHTML = `<p style="grid-column: span 2; text-align: center; color: var(--danger);">No items verified.</p>`;
+            const top3 = sorted.slice(0, 3);
+            if (top3.length === 0) {
+                container.innerHTML = `<div style="text-align: center; color: var(--text); font-size:11px; padding:6px;">No dynamic items synchronized yet.</div>`;
                 return;
             }
 
-            // ক্যাশ সমস্যা এড়াতে প্রতিটি রেন্ডারে ইউনিক বাস-টাইম জেনারেট করা
-            const cacheBuster = new Date().getTime();
+            container.innerHTML = "";
+            top3.forEach((item, index) => {
+                const count = globalDownloadStats[item.name] || 0;
+                const rankDiv = document.createElement("div");
+                rankDiv.className = "rank-item";
+                rankDiv.innerHTML = `
+                    <div class="meta">
+                        <span class="rank-num ${index < 3 ? 'top3' : ''}">#0${index + 1}</span>
+                        <span class="rank-name">${formatAppName(item.name)}</span>
+                    </div>
+                    <span class="rank-score">${count} hits</span>
+                `;
+                container.appendChild(rankDiv);
+            });
+        }
 
-            items.forEach((item, index) => {
-                const displayName = formatAppName(item.name);
-                const itemBadge = assignBadge(item.name);
-                const uniqueId = btoa(item.name).replace(/=/g, '');
-                
+        function displayApps(apps) {
+            const container = document.getElementById("apps-container");
+            container.innerHTML = "";
+
+            if(apps.length === 0) {
+                container.innerHTML = `<p style="grid-column: span 2; text-align: center; color: var(--danger);">No matching components deployed.</p>`;
+                return;
+            }
+
+            apps.forEach((item, index) => {
                 const cleanNameWithoutExt = item.name.replace(/\.(apk|txt)$/i, '');
                 const safeImageName = encodeURIComponent(cleanNameWithoutExt);
-
-                const isTextFile = item.name.toLowerCase().endsWith('.txt');
-                const fallbackIcon = isTextFile 
-                    ? "https://i.postimg.cc/85zXpD7m/text-icon.png" 
-                    : "https://i.postimg.cc/mD3fzq4Y/apk-icon.png";
-
-                // ইউআরএল-এর শেষে ক্যাশবাস্টার (?v=) দেওয়া হলো যাতে ইমেজ রিফ্রেশ বা মিস না হয়
+                const cacheBuster = new Date().getTime();
+                
+                // ইমেজের সঠিক গিটহাব পাথ রেন্ডারিং লজিক
                 const pngUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.png?v=${cacheBuster}`;
-                const jpgUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.jpg?v=${cacheBuster}`;
+                
+                const card = document.createElement("button");
+                card.type = "button";
+                card.className = "card";
+                card.setAttribute("onclick", `triggerDownloadProcess('${encodeURIComponent(item.name)}', this)`);
 
                 const count = globalDownloadStats[item.name] || 0;
+                const badge = assignBadge(item.name);
 
-                const isRelease = item.isRelease ? true : false;
-                const downloadUrl = item.downloadUrl || '';
-
-                const cardHtml = `
-                    <button class="card" type="button" onclick="forceDownloadFile(this, '${item.name.replace(/'/g, "\\'")}', ${isRelease}, '${downloadUrl}')">
-                        <div class="badge-chip">${itemBadge}</div>
-                        <div class="rank-badge">#${index + 1}</div>
-                        <div class="icon">
-                            <img loading="lazy" width="62" height="62" 
-                                 src="${pngUrl}" 
-                                 onerror="this.onerror=null; this.src='${jpgUrl}'; this.onerror=function(){this.src='${fallbackIcon}';};" 
-                                 alt="${displayName}">
-                        </div>
-                        <p class="app-name">${displayName}</p>
-                        <div class="download-count" id="count-label-${uniqueId}">${count} Downloads</div>
-                    </button>
+                card.innerHTML = `
+                    <span class="rank-badge">ID:${String(index+1).padStart(2, '0')}</span>
+                    <span class="badge-chip">${badge}</span>
+                    <div class="icon">
+                        <img loading="lazy" src="${pngUrl}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/226/226770.png';" alt="App Icon">
+                    </div>
+                    <h2 class="app-name">${formatAppName(item.name)}</h2>
+                    <span class="download-count" id="count-${item.name.replace(/[^a-zA-Z0-9]/g, '_')}">${count} down</span>
                 `;
-                container.innerHTML += cardHtml;
+                container.appendChild(card);
             });
+        }
+
+        async function triggerDownloadProcess(encName, btnElement) {
+            const filename = decodeURIComponent(encName);
+            if (btnElement.classList.contains("downloading")) return;
+
+            btnElement.classList.add("downloading");
+            const itemCleanKey = filename.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
+
+            try {
+                await fetch(`${COUNTER_API_BASE}/hit/${NAMESPACE}/${itemCleanKey}`);
+            } catch(e){}
+
+            if(globalDownloadStats[filename] !== undefined) {
+                globalDownloadStats[filename]++;
+            } else {
+                globalDownloadStats[filename] = 1;
+            }
+            localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
+
+            const countEl = document.getElementById(`count-${filename.replace(/[^a-zA-Z0-9]/g, '_')}`);
+            if(countEl) countEl.innerText = `${globalDownloadStats[filename]} down`;
+            renderRankingDashboard();
+
+            const targetApp = cachedFetchedApps.find(a => a.name === filename);
+            let targetUrl = `${RAW_CDN_BASE}${DATA_FOLDER}/${filename}`;
+            if(targetApp && targetApp.isRelease && targetApp.downloadUrl) {
+                targetUrl = targetApp.downloadUrl;
+            }
+
+            setTimeout(() => {
+                btnElement.classList.remove("downloading");
+                window.location.href = targetUrl;
+            }, 1200);
         }
 
         async function fetchRepositoryData() {
             try {
-                // ১. DATA ফোল্ডারের ছোট সাইজের ফাইল নিয়ে আসা
-                const response = await fetch(API_URL);
+                const requestHeaders = {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                };
+
+                // ১. DATA ফোল্ডারের ফাইল রিড
+                const response = await fetch(API_URL, { headers: requestHeaders });
                 let folderFiles = [];
                 if(response.ok) {
                     const files = await response.json();
@@ -407,11 +360,11 @@
                         return nameLower.endsWith('.apk') || nameLower.endsWith('.txt');
                     }).map(file => ({ name: file.name, isRelease: false }));
                 }
-                
-                // ২. Releases সেকশনের বড় সাইজের ফাইলগুলো নিয়ে আসা
+
+                // ২. Releases ডাটা রিড
                 let releaseFiles = [];
                 try {
-                    const relResponse = await fetch(RELEASES_API_URL);
+                    const relResponse = await fetch(RELEASES_API_URL, { headers: requestHeaders });
                     if(relResponse.ok) {
                         const releases = await relResponse.json();
                         releases.forEach(rel => {
@@ -429,41 +382,40 @@
                             }
                         });
                     }
-                } catch(e) {
-                    console.log("No releases found or error loading release data.");
-                }
+                } catch(e){}
 
-                // দুটি ডাটা সোর্সকে একসাথে যুক্ত করা
-                cachedFetchedApps = [...folderFiles, ...releaseFiles];
+                // ডাটা কম্বাইন ও ফিল্টারিং (ডুপ্লিকেট রিমুভ)
+                const uniqueMap = new Map();
+                folderFiles.forEach(f => uniqueMap.set(f.name, f));
+                releaseFiles.forEach(f => uniqueMap.set(f.name, f));
+                cachedFetchedApps = Array.from(uniqueMap.values());
 
                 document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
                 
-                // প্রথমে লোকাল ব্যাকআপ ডেটা দিয়ে দ্রুত ইউজার ইন্টারফেস রেন্ডার করা
+                await fetchRealTimeStats(cachedFetchedApps);
                 displayApps(cachedFetchedApps);
                 renderRankingDashboard();
-                
-                // এরপর ব্যাকগ্রাউন্ডে ক্লাউড থেকে লেটেস্ট ডেটা সিঙ্ক করা
-                await fetchRealTimeStats(cachedFetchedApps);
 
             } catch (error) {
-                console.error(error);
                 document.getElementById("apps-container").innerHTML = `
                     <p style="grid-column: span 2; text-align: center; color: var(--danger);">
-                        Synchronization Error.<br>Please verify repo access structures.
+                        Terminal Sync Fail. Check Network or API Permissions.
                     </p>`;
             }
         }
 
         document.getElementById("app-search").addEventListener("input", (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            const filtered = cachedFetchedApps.filter(item => 
-                item.name.toLowerCase().includes(query)
-            );
+            const val = e.target.value.toLowerCase().trim();
+            const filtered = cachedFetchedApps.filter(app => app.name.toLowerCase().includes(val));
             displayApps(filtered);
-            updateCardCounters();
         });
 
-        fetchRepositoryData();
+        // ইনিশিয়াল এক্সিকিউশন রানার
+        if(isTelegramTerminal) {
+            fetchRepositoryData();
+        } else {
+            fetchRepositoryData();
+        }
     </script>
 </body>
 </html>

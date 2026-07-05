@@ -227,4 +227,243 @@
                     const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}`);
                     if (res.ok) {
                         const json = await res.json();
-                        globalDownloadStats[item.name] = json.count || glo
+                        globalDownloadStats[item.name] = json.count || globalDownloadStats[item.name] || 0;
+                    }
+                } catch(e) {
+                    console.log("Stats fetching delayed, using local backup.");
+                }
+            }
+            // ব্যাকআপ সেভ করা যাতে রিফ্রেশ দিলেও ০ না হয়
+            localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
+            renderRankingDashboard();
+            updateCardCounters();
+        }
+
+        async function incrementCloudCounter(filename) {
+            const itemCleanKey = filename.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
+            
+            // ইনস্ট্যান্ট লোকাল আপডেট (রিফ্রেশের পর ডাটা ধরে রাখতে)
+            globalDownloadStats[filename] = (globalDownloadStats[filename] || 0) + 1;
+            localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
+            renderRankingDashboard();
+            updateCardCounters();
+
+            try {
+                const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}/up`);
+                if (res.ok) {
+                    const json = await res.json();
+                    globalDownloadStats[filename] = json.count || globalDownloadStats[filename];
+                    localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
+                    renderRankingDashboard();
+                    updateCardCounters();
+                }
+            } catch(e) {
+                console.error("Stats cloud server sync fail", e);
+            }
+        }
+
+        function renderRankingDashboard() {
+            const rankingContainer = document.getElementById("ranking-container");
+            rankingContainer.innerHTML = "";
+
+            const ranked = [...cachedFetchedApps].sort((a, b) => {
+                const countA = globalDownloadStats[a.name] || 0;
+                const countB = globalDownloadStats[b.name] || 0;
+                return countB - countA;
+            }).slice(0, 3);
+
+            ranked.forEach((item, index) => {
+                const displayName = formatAppName(item.name);
+                const count = globalDownloadStats[item.name] || 0;
+                rankingContainer.innerHTML += `
+                    <div class="rank-item">
+                        <div class="meta">
+                            <span class="rank-num top3">🏆 0${index + 1}</span>
+                            <span class="rank-name">${displayName}</span>
+                        </div>
+                        <span class="rank-score">${count} Downloads</span>
+                    </div>
+                `;
+            });
+        }
+
+        function updateCardCounters() {
+            cachedFetchedApps.forEach(item => {
+                const count = globalDownloadStats[item.name] || 0;
+                const element = document.getElementById(`count-label-${btoa(item.name).replace(/=/g, '')}`);
+                if(element) {
+                    element.innerText = `${count} Downloads`;
+                }
+            });
+        }
+
+        async function forceDownloadFile(buttonElement, filename, isRelease = false, releaseUrl = '') {
+            buttonElement.classList.add('downloading');
+            const counterLabel = buttonElement.querySelector('.download-count');
+            counterLabel.innerText = "Processing...";
+
+            try {
+                const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
+                
+                const response = await fetch(fileUrl);
+                if (!response.ok) throw new Error("Network capture failed.");
+                
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                const tempAnchor = document.createElement('a');
+                tempAnchor.style.display = 'none';
+                tempAnchor.href = blobUrl;
+                tempAnchor.setAttribute('download', filename);
+                
+                document.body.appendChild(tempAnchor);
+                tempAnchor.click();
+                
+                document.body.removeChild(tempAnchor);
+                window.URL.revokeObjectURL(blobUrl);
+
+                await incrementCloudCounter(filename);
+
+            } catch (error) {
+                console.error("Download fallback mode activated:", error);
+                const altAnchor = document.createElement('a');
+                altAnchor.href = isRelease ? releaseUrl : `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
+                altAnchor.setAttribute('download', filename);
+                altAnchor.setAttribute('target', '_blank');
+                document.body.appendChild(altAnchor);
+                altAnchor.click();
+                document.body.removeChild(altAnchor);
+                await incrementCloudCounter(filename);
+            } finally {
+                setTimeout(() => {
+                    buttonElement.classList.remove('downloading');
+                    updateCardCounters(); 
+                }, 1000);
+            }
+        }
+
+        function displayApps(items) {
+            const container = document.getElementById("apps-container");
+            container.innerHTML = "";
+            
+            if(items.length === 0) {
+                container.innerHTML = `<p style="grid-column: span 2; text-align: center; color: var(--danger);">No items verified.</p>`;
+                return;
+            }
+
+            // ক্যাশ সমস্যা এড়াতে প্রতিটি রেন্ডারে ইউনিক বাস-টাইম জেনারেট করা
+            const cacheBuster = new Date().getTime();
+
+            items.forEach((item, index) => {
+                const displayName = formatAppName(item.name);
+                const itemBadge = assignBadge(item.name);
+                const uniqueId = btoa(item.name).replace(/=/g, '');
+                
+                const cleanNameWithoutExt = item.name.replace(/\.(apk|txt)$/i, '');
+                const safeImageName = encodeURIComponent(cleanNameWithoutExt);
+
+                const isTextFile = item.name.toLowerCase().endsWith('.txt');
+                const fallbackIcon = isTextFile 
+                    ? "https://i.postimg.cc/85zXpD7m/text-icon.png" 
+                    : "https://i.postimg.cc/mD3fzq4Y/apk-icon.png";
+
+                // ইউআরএল-এর শেষে ক্যাশবাস্টার (?v=) দেওয়া হলো যাতে ইমেজ রিফ্রেশ বা মিস না হয়
+                const pngUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.png?v=${cacheBuster}`;
+                const jpgUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.jpg?v=${cacheBuster}`;
+
+                const count = globalDownloadStats[item.name] || 0;
+
+                const isRelease = item.isRelease ? true : false;
+                const downloadUrl = item.downloadUrl || '';
+
+                const cardHtml = `
+                    <button class="card" type="button" onclick="forceDownloadFile(this, '${item.name.replace(/'/g, "\\'")}', ${isRelease}, '${downloadUrl}')">
+                        <div class="badge-chip">${itemBadge}</div>
+                        <div class="rank-badge">#${index + 1}</div>
+                        <div class="icon">
+                            <img loading="lazy" width="62" height="62" 
+                                 src="${pngUrl}" 
+                                 onerror="this.onerror=null; this.src='${jpgUrl}'; this.onerror=function(){this.src='${fallbackIcon}';};" 
+                                 alt="${displayName}">
+                        </div>
+                        <p class="app-name">${displayName}</p>
+                        <div class="download-count" id="count-label-${uniqueId}">${count} Downloads</div>
+                    </button>
+                `;
+                container.innerHTML += cardHtml;
+            });
+        }
+
+        async function fetchRepositoryData() {
+            try {
+                // ১. DATA ফোল্ডারের ছোট সাইজের ফাইল নিয়ে আসা
+                const response = await fetch(API_URL);
+                let folderFiles = [];
+                if(response.ok) {
+                    const files = await response.json();
+                    folderFiles = files.filter(file => {
+                        if (file.type !== "file") return false;
+                        const nameLower = file.name.toLowerCase();
+                        return nameLower.endsWith('.apk') || nameLower.endsWith('.txt');
+                    }).map(file => ({ name: file.name, isRelease: false }));
+                }
+                
+                // ২. Releases সেকশনের বড় সাইজের ফাইলগুলো নিয়ে আসা
+                let releaseFiles = [];
+                try {
+                    const relResponse = await fetch(RELEASES_API_URL);
+                    if(relResponse.ok) {
+                        const releases = await relResponse.json();
+                        releases.forEach(rel => {
+                            if(rel.assets && rel.assets.length > 0) {
+                                rel.assets.forEach(asset => {
+                                    const nameLower = asset.name.toLowerCase();
+                                    if(nameLower.endsWith('.apk') || nameLower.endsWith('.txt')) {
+                                        releaseFiles.push({
+                                            name: asset.name,
+                                            isRelease: true,
+                                            downloadUrl: asset.browser_download_url
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                } catch(e) {
+                    console.log("No releases found or error loading release data.");
+                }
+
+                // দুটি ডাটা সোর্সকে একসাথে যুক্ত করা
+                cachedFetchedApps = [...folderFiles, ...releaseFiles];
+
+                document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
+                
+                // প্রথমে লোকাল ব্যাকআপ ডেটা দিয়ে দ্রুত ইউজার ইন্টারফেস রেন্ডার করা
+                displayApps(cachedFetchedApps);
+                renderRankingDashboard();
+                
+                // এরপর ব্যাকগ্রাউন্ডে ক্লাউড থেকে লেটেস্ট ডেটা সিঙ্ক করা
+                await fetchRealTimeStats(cachedFetchedApps);
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById("apps-container").innerHTML = `
+                    <p style="grid-column: span 2; text-align: center; color: var(--danger);">
+                        Synchronization Error.<br>Please verify repo access structures.
+                    </p>`;
+            }
+        }
+
+        document.getElementById("app-search").addEventListener("input", (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const filtered = cachedFetchedApps.filter(item => 
+                item.name.toLowerCase().includes(query)
+            );
+            displayApps(filtered);
+            updateCardCounters();
+        });
+
+        fetchRepositoryData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+name: Targeted Multi-Repo Smart Sync
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # প্রতি ৬ ঘণ্টা পর পর অটোমেটিক রান হবে
+  workflow_dispatch: # যখন ইচ্ছা ম্যানুয়ালি রান করার অপশন
+
+jobs:
+  sync-external-apps:
+    runs-on: ubuntu-latest
+    steps:
+      # ১. আপনার নিজের রিপোজিটরি ক্লোন করা
+      - name: Checkout My Target Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.MY_SYNC_TOKEN }}
+
+      # ২. W8SOJIB এর মেইন রিপোজিটরি ক্লোন করা (রুট লেভেল স্ক্যান করার জন্য)
+      - name: Checkout W8SOJIB Source Repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'W8SOJIB/W8AppStore'
+          path: 'source-external-repo'
+
+      # ৩. রুট ফাইলের সাথে আপনার DATA ফোল্ডার ম্যাচ করে শুধু নতুন ফাইল কপি করা
+      - name: Filter Unknown Files and Copy to DATA
+        run: |
+          mkdir -p DATA/
+          
+          # উৎস রিপোজিটরির রুট লেভেলের সব ফাইল চেক করার লুপ
+          for file in source-external-repo/*; do
+            # শুধুমাত্র ফাইল হলে এবং এক্সটেনশন .apk বা .txt হলে প্রসেস করবে
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              
+              # এক্সটেনশন ফিল্টার (.apk বা .txt)
+              if [[ "$filename" == *.apk || "$filename" == *.txt ]]; then
+                
+                # আপনার DATA/ ফোল্ডারে এই ফাইলটি অলরেডি আছে কি না পরীক্ষা
+                if [ ! -f "DATA/$filename" ]; then
+                  echo "🚀 New/Unknown file detected: $filename. Syncing to DATA..."
+                  cp "$file" "DATA/"
+                else
+                  echo "✅ Already exists: $filename. Skipping."
+                fi
+                
+              fi
+            fi
+          done
+
+      # ৪. টেম্পোরারি ফোল্ডার ক্লিন করা
+      - name: Purge External Workspace Template
+        run: rm -rf source-external-repo
+
+      # ৫. শুধু নতুন ফাইল অ্যাড হলে আপনার রিপোতে পুশ করা
+      - name: Commit and Push Updates
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add DATA/
+          
+          # কোনো পরিবর্তন না থাকলে ফালতু কমিট করা থেকে বিরত থাকবে
+          if git diff --cached --quiet; then
+            echo "No unknown or new files found today."
+          else
+            git commit -m "Auto-sync: Imported missing files from W8SOJIB/W8AppStore"
+            git push origin main
+          fi

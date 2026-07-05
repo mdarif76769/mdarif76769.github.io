@@ -8,7 +8,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=VT323&display=swap');
         :root{--green:#00ff9f;--green-soft:rgba(0,255,159,.28);--cyan:#25dfff;--panel:rgba(3,15,12,.82);--text:#d9fff0;--danger:#ff4770;--gold:#ffd700}
-        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{min-height:100%;touch-action:manipulation;overscroll-behavior:none;-webkit-text-size-adjust:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}body{margin:0;color:var(--text);font-family:'Fira Code',Consolas,monospace;background:radial-gradient(circle at 50% 0%,rgba(0,255,159,.18),transparent 34%),radial-gradient(circle at 15% 86%,rgba(37,223,255,.12),transparent 30%),linear-gradient(180deg,#020303 0%,#06110e 54%,#010202 100%);overflow-x:hidden}
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{min-height:100%;touch-action:manipulation;oversample-behavior:none;-webkit-text-size-adjust:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}body{margin:0;color:var(--text);font-family:'Fira Code',Consolas,monospace;background:radial-gradient(circle at 50% 0%,rgba(0,255,159,.18),transparent 34%),radial-gradient(circle at 15% 86%,rgba(37,223,255,.12),transparent 30%),linear-gradient(180deg,#020303 0%,#06110e 54%,#010202 100%);overflow-x:hidden}
         
         .matrix{
             position:fixed;
@@ -198,6 +198,7 @@
         const IMAGE_FOLDER = "IMAGE";
         
         const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FOLDER}?nocache=${new Date().getTime()}`;
+        const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?nocache=${new Date().getTime()}`;
         const RAW_CDN_BASE = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/${DATA_FOLDER}/`;
 
         const COUNTER_API_BASE = "https://api.counterapi.dev/v1";
@@ -296,13 +297,13 @@
             });
         }
 
-        async function forceDownloadFile(buttonElement, filename) {
+        async function forceDownloadFile(buttonElement, filename, isRelease = false, releaseUrl = '') {
             buttonElement.classList.add('downloading');
             const counterLabel = buttonElement.querySelector('.download-count');
             counterLabel.innerText = "Processing...";
 
             try {
-                const fileUrl = `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
+                const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
                 
                 const response = await fetch(fileUrl);
                 if (!response.ok) throw new Error("Network capture failed.");
@@ -326,12 +327,13 @@
             } catch (error) {
                 console.error("Download fallback mode activated:", error);
                 const altAnchor = document.createElement('a');
-                altAnchor.href = `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
+                altAnchor.href = isRelease ? releaseUrl : `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
                 altAnchor.setAttribute('download', filename);
                 altAnchor.setAttribute('target', '_blank');
                 document.body.appendChild(altAnchor);
                 altAnchor.click();
                 document.body.removeChild(altAnchor);
+                await incrementCloudCounter(filename);
             } finally {
                 setTimeout(() => {
                     buttonElement.classList.remove('downloading');
@@ -371,8 +373,11 @@
 
                 const count = globalDownloadStats[item.name] || 0;
 
+                const isRelease = item.isRelease ? true : false;
+                const downloadUrl = item.downloadUrl || '';
+
                 const cardHtml = `
-                    <button class="card" type="button" onclick="forceDownloadFile(this, '${item.name.replace(/'/g, "\\'")}')">
+                    <button class="card" type="button" onclick="forceDownloadFile(this, '${item.name.replace(/'/g, "\\'")}', ${isRelease}, '${downloadUrl}')">
                         <div class="badge-chip">${itemBadge}</div>
                         <div class="rank-badge">#${index + 1}</div>
                         <div class="icon">
@@ -391,16 +396,45 @@
 
         async function fetchRepositoryData() {
             try {
+                // ১. DATA ফোল্ডারের ছোট সাইজের ফাইল নিয়ে আসা
                 const response = await fetch(API_URL);
-                if(!response.ok) throw new Error("Repository path parsing failed.");
+                let folderFiles = [];
+                if(response.ok) {
+                    const files = await response.json();
+                    folderFiles = files.filter(file => {
+                        if (file.type !== "file") return false;
+                        const nameLower = file.name.toLowerCase();
+                        return nameLower.endsWith('.apk') || nameLower.endsWith('.txt');
+                    }).map(file => ({ name: file.name, isRelease: false }));
+                }
                 
-                const files = await response.json();
-                
-                cachedFetchedApps = files.filter(file => {
-                    if (file.type !== "file") return false;
-                    const nameLower = file.name.toLowerCase();
-                    return nameLower.endsWith('.apk') || nameLower.endsWith('.txt');
-                });
+                // ২. Releases সেকশনের বড় সাইজের ফাইলগুলো নিয়ে আসা
+                let releaseFiles = [];
+                try {
+                    const relResponse = await fetch(RELEASES_API_URL);
+                    if(relResponse.ok) {
+                        const releases = await relResponse.json();
+                        releases.forEach(rel => {
+                            if(rel.assets && rel.assets.length > 0) {
+                                rel.assets.forEach(asset => {
+                                    const nameLower = asset.name.toLowerCase();
+                                    if(nameLower.endsWith('.apk') || nameLower.endsWith('.txt')) {
+                                        releaseFiles.push({
+                                            name: asset.name,
+                                            isRelease: true,
+                                            downloadUrl: asset.browser_download_url
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                } catch(e) {
+                    console.log("No releases found or error loading release data.");
+                }
+
+                // দুটি ডাটা সোর্সকে একসাথে যুক্ত করা
+                cachedFetchedApps = [...folderFiles, ...releaseFiles];
 
                 document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
                 

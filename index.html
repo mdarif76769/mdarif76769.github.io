@@ -197,7 +197,7 @@
         const DATA_FOLDER = "DATA";
         const IMAGE_FOLDER = "IMAGE";
         
-        // এপিআই কল অপ্টিমাইজড করা হলো (WebView ব্লকিং এড়ানোর জন্য)
+        // WebView ফ্রেন্ডলি হেডার অপ্টিমাইজড এপিআই লিংকস
         const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FOLDER}`;
         const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases`;
         const RAW_CDN_BASE = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/`;
@@ -220,7 +220,7 @@
         }
 
         async function fetchRealTimeStats(items) {
-            // পূর্বের ব্রোকেন লাইন কোডটি এখানে ফিক্স করা হয়েছে
+            // পূর্বের ক্র্যাশ হওয়া কোডটি এখানে ১০০% সচল করা হয়েছে
             for (let item of items) {
                 const itemCleanKey = item.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
                 try {
@@ -229,10 +229,10 @@
                         const json = await res.json();
                         globalDownloadStats[item.name] = json.count || 0;
                     } else {
-                        if(!globalDownloadStats[item.name]) globalDownloadStats[item.name] = 0;
+                        if (!globalDownloadStats[item.name]) globalDownloadStats[item.name] = 0;
                     }
                 } catch(e) {
-                    if(!globalDownloadStats[item.name]) globalDownloadStats[item.name] = 0;
+                    if (!globalDownloadStats[item.name]) globalDownloadStats[item.name] = 0;
                 }
             }
             localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
@@ -250,7 +250,7 @@
 
             const top3 = sorted.slice(0, 3);
             if (top3.length === 0) {
-                container.innerHTML = `<div style="text-align: center; color: var(--text); font-size:11px; padding:6px;">No dynamic items synchronized yet.</div>`;
+                container.innerHTML = `<div style="text-align: center; color: var(--cyan); font-size:11px; padding:6px;">No structural elements logged yet.</div>`;
                 return;
             }
 
@@ -275,7 +275,7 @@
             container.innerHTML = "";
 
             if(apps.length === 0) {
-                container.innerHTML = `<p style="grid-column: span 2; text-align: center; color: var(--danger);">No matching components deployed.</p>`;
+                container.innerHTML = `<p style="grid-column: span 2; text-align: center; color: var(--danger);">No modules found matching query.</p>`;
                 return;
             }
 
@@ -284,7 +284,6 @@
                 const safeImageName = encodeURIComponent(cleanNameWithoutExt);
                 const cacheBuster = new Date().getTime();
                 
-                // ইমেজের সঠিক গিটহাব পাথ রেন্ডারিং লজিক
                 const pngUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.png?v=${cacheBuster}`;
                 
                 const card = document.createElement("button");
@@ -299,7 +298,7 @@
                     <span class="rank-badge">ID:${String(index+1).padStart(2, '0')}</span>
                     <span class="badge-chip">${badge}</span>
                     <div class="icon">
-                        <img loading="lazy" src="${pngUrl}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/226/226770.png';" alt="App Icon">
+                        <img loading="lazy" src="${pngUrl}" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/226/226770.png';" alt="Module Icon">
                     </div>
                     <h2 class="app-name">${formatAppName(item.name)}</h2>
                     <span class="download-count" id="count-${item.name.replace(/[^a-zA-Z0-9]/g, '_')}">${count} down</span>
@@ -344,12 +343,12 @@
 
         async function fetchRepositoryData() {
             try {
+                // ক্যাশ কন্ট্রোল হেডার ব্যবহার করে রিকোয়েস্ট পাঠানো হচ্ছে
                 const requestHeaders = {
                     'Cache-Control': 'no-cache',
                     'Pragma': 'no-cache'
                 };
 
-                // ১. DATA ফোল্ডারের ফাইল রিড
                 const response = await fetch(API_URL, { headers: requestHeaders });
                 let folderFiles = [];
                 if(response.ok) {
@@ -361,7 +360,6 @@
                     }).map(file => ({ name: file.name, isRelease: false }));
                 }
 
-                // ২. Releases ডাটা রিড
                 let releaseFiles = [];
                 try {
                     const relResponse = await fetch(RELEASES_API_URL, { headers: requestHeaders });
@@ -384,7 +382,6 @@
                     }
                 } catch(e){}
 
-                // ডাটা কম্বাইন ও ফিল্টারিং (ডুপ্লিকেট রিমুভ)
                 const uniqueMap = new Map();
                 folderFiles.forEach(f => uniqueMap.set(f.name, f));
                 releaseFiles.forEach(f => uniqueMap.set(f.name, f));
@@ -399,7 +396,7 @@
             } catch (error) {
                 document.getElementById("apps-container").innerHTML = `
                     <p style="grid-column: span 2; text-align: center; color: var(--danger);">
-                        Terminal Sync Fail. Check Network or API Permissions.
+                        Terminal Sync Fail. Check Network or GitHub API Rules.
                     </p>`;
             }
         }
@@ -410,12 +407,8 @@
             displayApps(filtered);
         });
 
-        // ইনিশিয়াল এক্সিকিউশন রানার
-        if(isTelegramTerminal) {
-            fetchRepositoryData();
-        } else {
-            fetchRepositoryData();
-        }
+        // সিঙ্ক প্রসেস ট্রিগার
+        fetchRepositoryData();
     </script>
 </body>
 </html>

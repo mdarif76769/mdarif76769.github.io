@@ -1,153 +1,92 @@
-// GitHub Configuration
+// ==========================================
+// SECURITY & TERMINAL CONFIGURATION
+// ==========================================
+const ENCODED_TOKEN = "NDUzNQ==";
+let attemptCount = 0;
+let isTelegramTerminal = false;
+
+const isAlreadyUnlocked = sessionStorage.getItem("terminal_session_active") === "true";
+
+// টেলিগ্রাম ওয়েব অ্যাপ ও সেশন ভ্যালিডেশন লজিক
+if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData && window.Telegram.WebApp.initData !== "") {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+    isTelegramTerminal = true;
+    document.getElementById("auth-gate-panel").style.display = "none";
+    document.getElementById("protected-store-area").style.display = "block";
+} else if (isAlreadyUnlocked) {
+    document.getElementById("auth-gate-panel").style.display = "none";
+    document.getElementById("protected-store-area").style.display = "block";
+} else {
+    document.getElementById("auth-gate-panel").style.display = "block";
+    document.getElementById("protected-store-area").style.display = "none";
+}
+
+// তোর আসল ব্রুট-ফোর্স প্রোটেকশন ও আনলক মেথড
+function unlockTerminalData() {
+    const pinField = document.getElementById("gate-pin-field");
+    const submitBtn = document.getElementById("gate-submit-btn");
+    const titleText = document.getElementById("gate-title-text");
+    const inputVal = pinField.value.trim();
+
+    if(inputVal === atob(ENCODED_TOKEN)) {
+        attemptCount = 0; 
+        sessionStorage.setItem("terminal_session_active", "true");
+        document.getElementById("auth-gate-panel").style.display = "none";
+        document.getElementById("protected-store-area").style.display = "block";
+    } else {
+        attemptCount++;
+        if (attemptCount >= 5) {
+            let timeLeft = 60; 
+            pinField.disabled = true;
+            submitBtn.disabled = true;
+            pinField.value = "";
+            titleText.style.color = "var(--danger)";
+
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                titleText.innerText = `🛑 Too many attempts. Try again in ${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    attemptCount = 0; 
+                    pinField.disabled = false;
+                    submitBtn.disabled = false;
+                    titleText.innerText = "🔒 Terminal Crypt-Lock Enabled";
+                    titleText.style.color = "var(--danger)";
+                }
+            }, 1000);
+
+            alert("CRITICAL ERROR: Terminal Locked for 60 Seconds.");
+        } else {
+            alert(`ACCESS DENIED: Unauthorized Token. (${5 - attemptCount} attempts remaining)`);
+            pinField.value = "";
+        }
+    }
+}
+
+// এন্টার প্রেসের মাধ্যমে আনলক করার সুবিধা (অপশনাল বাইন্ডিং)
+document.getElementById("gate-pin-field").addEventListener("keypress", (e) => {
+    if (e.key === "Enter") unlockTerminalData();
+});
+
+// ==========================================
+// GITHUB REPOSITORY & STORE LOGIC
+// ==========================================
 const GITHUB_USER = "mdarif76769";
 const GITHUB_REPO = "mdarif76769.github.io";
-const BASE_CDN = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/DATA/`;
-const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/DATA`;
+const DATA_FOLDER = "DATA";
+const IMAGE_FOLDER = "IMAGE";
+
+const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FOLDER}?nocache=${new Date().getTime()}`;
+const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?nocache=${new Date().getTime()}`;
+const RAW_CDN_BASE = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/`;
+
 const COUNTER_API_BASE = "https://api.counterapi.dev/v1";
-const NAMESPACE = `RS5_store_production_${GITHUB_USER}`;
+const NAMESPACE = `w8_store_${GITHUB_USER}`; 
 
 let cachedFetchedApps = [];
-let globalDownloadStats = JSON.parse(localStorage.getItem('RS5_stats_backup')) || {};
-
-// ================= [ ব্রুট-ফোর্স প্রোটেকশন ও সিকিউরিটি কনফিগারেশন ] =================
-const MAX_ATTEMPTS = 5;
-const COOLDOWN_TIME = 60000; // ১ মিনিট (মিলিসেকেন্ডে)
-
-// আপনার Base64 বা এনক্রিপ্টেড ভ্যালু এখানে বসাবেন (যেমন: "Y2hhbmdlbWU=")
-const ENCRYPTED_VAULT = "NDUzNQ=="; 
-let sessionAuthenticated = sessionStorage.getItem("RS5_auth_token") === "granted";
-
-function verifyTerminalPasscode() {
-    const inputField = document.getElementById("terminal-pass-input");
-    const errField = document.getElementById("terminal-error-log");
-    const loginBtn = document.getElementById("decrypt-btn");
-    if (!inputField) return;
-
-    // ব্লকড আছে কিনা চেক
-    let attempts = parseInt(localStorage.getItem("login_attempts") || "0");
-    let lastAttemptTime = parseInt(localStorage.getItem("last_attempt_time") || "0");
-    const currentTime = Date.now();
-
-    if (attempts >= MAX_ATTEMPTS && (currentTime - lastAttemptTime) < COOLDOWN_TIME) {
-        return; // এখনো কোল্ডডাউন পিরিয়ডে আছে
-    }
-
-    const rawInput = inputField.value.trim();
-
-    // পাসওয়ার্ড ভেরিফিকেশন (এখানে আপনি আপনার পছন্দমতো ভ্যালিডেশন লজিক বা ডিক্রিপশন মেলাতে পারবেন)
-    // উদাহরণস্বরূপ: btoa(rawInput) === ENCRYPTED_VAULT অথবা সরাসরি rawInput ভেরিফিকেশন
-    let isCorrect = false;
-    try {
-        // যদি Base64 ম্যাচিং করতে চান
-        if (btoa(rawInput) === ENCRYPTED_VAULT || rawInput === ENCRYPTED_VAULT) {
-            isCorrect = true;
-        } else {
-            // আপনার পূর্বের CryptoJS মেথড ফলব্যাক
-            const decryptedBytes = CryptoJS.AES.decrypt(ENCRYPTED_VAULT, rawInput);
-            const originalPayload = decryptedBytes.toString(CryptoJS.enc.Utf8);
-            if (originalPayload && originalPayload.includes("ACCESS_GRANTED_VERIFIED")) {
-                isCorrect = true;
-            }
-        }
-    } catch (e) {
-        isCorrect = false;
-    }
-
-    if (isCorrect) {
-        // সফল লগইন
-        sessionAuthenticated = true;
-        sessionStorage.setItem("RS5_auth_token", "granted");
-        localStorage.removeItem("login_attempts");
-        localStorage.removeItem("last_attempt_time");
-
-        document.getElementById("terminal-lock-panel").style.display = "none";
-        document.getElementById("protected-store-area").style.display = "block";
-        
-        fetchRepositoryData();
-    } else {
-        // ভুল পাসওয়ার্ড ট্রাই
-        attempts++;
-        localStorage.setItem("login_attempts", attempts);
-        localStorage.setItem("last_attempt_time", currentTime);
-
-        if (attempts >= MAX_ATTEMPTS) {
-            startCooldown(COOLDOWN_TIME);
-        } else {
-            if (errField) {
-                errField.innerText = `❌ ACCESS DENIED. Attempts left: ${MAX_ATTEMPTS - attempts}`;
-                errField.style.color = "var(--danger)";
-                setTimeout(() => { errField.innerText = ""; }, 3000);
-            }
-            inputField.value = "";
-        }
-    }
-}
-
-function startCooldown(remainingTime) {
-    const inputField = document.getElementById("terminal-pass-input");
-    const errField = document.getElementById("terminal-error-log");
-    const loginBtn = document.getElementById("decrypt-btn");
-    
-    if(inputField) inputField.disabled = true;
-    if(loginBtn) loginBtn.disabled = true;
-
-    let timeLeft = Math.ceil(remainingTime / 1000);
-
-    const countdownInterval = setInterval(() => {
-        timeLeft--;
-        if (errField) {
-            errField.innerText = `🚨 SYSTEM LOCKED! Try again in ${timeLeft}s`;
-            errField.style.color = "var(--danger)";
-        }
-
-        if (timeLeft <= 0) {
-            clearInterval(countdownInterval);
-            if(inputField) inputField.disabled = false;
-            if(loginBtn) loginBtn.disabled = false;
-            if(errField) errField.innerText = "";
-            localStorage.removeItem("login_attempts");
-            localStorage.removeItem("last_attempt_time");
-        }
-    }, 1000);
-}
-
-// পেজ লোড হওয়ার সময় সিকিউরিটি ও সেশন চেক
-document.addEventListener("DOMContentLoaded", () => {
-    const passInput = document.getElementById("terminal-pass-input");
-    if (passInput) {
-        passInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") verifyTerminalPasscode();
-        });
-    }
-
-    let attempts = parseInt(localStorage.getItem("login_attempts") || "0");
-    let lastAttemptTime = parseInt(localStorage.getItem("last_attempt_time") || "0");
-    const currentTime = Date.now();
-
-    if (attempts >= MAX_ATTEMPTS && (currentTime - lastAttemptTime) < COOLDOWN_TIME) {
-        startCooldown(COOLDOWN_TIME - (currentTime - lastAttemptTime));
-    }
-
-    const lockPanel = document.getElementById("terminal-lock-panel");
-    const storeArea = document.getElementById("protected-store-area");
-    
-    if (sessionAuthenticated) {
-        if (lockPanel) lockPanel.style.display = "none";
-        if (storeArea) storeArea.style.display = "block";
-        fetchRepositoryData();
-    } else {
-        if (lockPanel) lockPanel.style.display = "grid";
-        if (storeArea) storeArea.style.display = "none";
-    }
-});
-// ========================================================================
-
-// ইমেজ হ্যান্ডলিং
-const mainLogo = document.getElementById("main-logo");
-if(mainLogo) {
-    mainLogo.src = `${BASE_CDN}IMAGE/image.png`;
-    mainLogo.onerror = function() { this.src = "https://i.postimg.cc/mD3fzq4Y/apk-icon.png"; };
-}
+let globalDownloadStats = JSON.parse(localStorage.getItem('w8_stats_backup')) || {};
 
 function formatAppName(filename) {
     return filename.replace(/\.(apk|txt)$/i, '').replace(/[-_]/g, ' ');
@@ -160,117 +99,137 @@ function assignBadge(filename) {
     return 'app';
 }
 
-async function fetchRealTimeStats() {
-    cachedFetchedApps.forEach(async (item) => {
+async function fetchRealTimeStats(items) {
+    for (let item of items) {
         const itemCleanKey = item.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
         try {
             const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}`);
             if (res.ok) {
                 const json = await res.json();
-                globalDownloadStats[item.name] = json.count || 0;
-                localStorage.setItem('RS5_stats_backup', JSON.stringify(globalDownloadStats));
-                updateSingleCounter(item.name);
+                globalDownloadStats[item.name] = json.count || globalDownloadStats[item.name] || 0;
             }
-        } catch(e) {}
-    });
-    setTimeout(renderRankingDashboard, 1000);
+        } catch(e) {
+            console.log("Stats fetching delayed, using local backup.");
+        }
+    }
+    localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
+    renderRankingDashboard();
+    updateCardCounters();
 }
 
 async function incrementCloudCounter(filename) {
     const itemCleanKey = filename.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
+    
     globalDownloadStats[filename] = (globalDownloadStats[filename] || 0) + 1;
     localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
-    updateSingleCounter(filename);
     renderRankingDashboard();
+    updateCardCounters();
 
     try {
-        await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}/up`);
-    } catch(e) {}
-}
-
-function updateSingleCounter(filename) {
-    const uniqueId = btoa(filename).replace(/=/g, '');
-    const element = document.getElementById(`count-label-${uniqueId}`);
-    if(element) {
-        element.innerText = `${globalDownloadStats[filename] || 0} Downloads`;
+        const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}/up`);
+        if (res.ok) {
+            const json = await res.json();
+            globalDownloadStats[filename] = json.count || globalDownloadStats[filename];
+            localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
+            renderRankingDashboard();
+            updateCardCounters();
+        }
+    } catch(e) {
+        console.error("Stats cloud server sync fail", e);
     }
 }
 
 function renderRankingDashboard() {
     const rankingContainer = document.getElementById("ranking-container");
     if (!rankingContainer) return;
-    
+    rankingContainer.innerHTML = "";
+
     const ranked = [...cachedFetchedApps].sort((a, b) => {
-        return (globalDownloadStats[b.name] || 0) - (globalDownloadStats[a.name] || 0);
+        const countA = globalDownloadStats[a.name] || 0;
+        const countB = globalDownloadStats[b.name] || 0;
+        return countB - countA;
     }).slice(0, 3);
 
-    rankingContainer.innerHTML = "";
     if (ranked.length === 0) {
-        rankingContainer.innerHTML = `<div style="text-align:center;color:var(--cyan);font-size:11px;">No stats available.</div>`;
+        rankingContainer.innerHTML = `<div style="text-align: center; color: var(--cyan); font-size:11px; padding:10px;">Syncing download stats...</div>`;
         return;
     }
 
     ranked.forEach((item, index) => {
+        const displayName = formatAppName(item.name);
+        const count = globalDownloadStats[item.name] || 0;
         rankingContainer.innerHTML += `
             <div class="rank-item">
                 <div class="meta">
                     <span class="rank-num top3">🏆 0${index + 1}</span>
-                    <span class="rank-name">${formatAppName(item.name)}</span>
+                    <span class="rank-name">${displayName}</span>
                 </div>
-                <span class="rank-score">${globalDownloadStats[item.name] || 0} Downloads</span>
-            </div>`;
+                <span class="rank-score">${count} Downloads</span>
+            </div>
+        `;
     });
 }
 
-// কাস্টম ডাউনলোড পপআপ মডাল ওপেন
-function forceDownloadFile(buttonElement, filename) {
-    const displayName = formatAppName(filename);
-    const currentDownloads = globalDownloadStats[filename] || 0;
-
-    document.getElementById("RS5ModalTitle").innerText = displayName;
-    document.getElementById("RS5ModalStats").innerText = `Total Downloads: ${currentDownloads}`;
-    
-    const downloadBtn = document.getElementById("RS5ModalDownloadBtn");
-    downloadBtn.onclick = function() {
-        executeSilentDownload(filename);
-        closeW8Modal();
-    };
-
-    document.getElementById("RS5ModalOverlay").classList.add("active");
-}
-
-function closeW8Modal() {
-    document.getElementById("RS6ModalOverlay").classList.remove("active");
-}
-
-// সেম-ট্যাব সাইলেন্ট ডাউনলোডার
-function executeSilentDownload(filename) {
-    const targetUrl = `${BASE_CDN}${encodeURIComponent(filename)}`;
-    incrementCloudCounter(filename);
-
-    let silentFrame = document.getElementById('silent-download-frame');
-    if (!silentFrame) {
-        silentFrame = document.createElement('iframe');
-        silentFrame.id = 'silent-download-frame';
-        silentFrame.style.display = 'none';
-        document.body.appendChild(silentFrame);
-    }
-    silentFrame.src = targetUrl;
-
-    setTimeout(() => {
-        try {
-            if (!silentFrame.contentWindow || silentFrame.contentWindow.location.href === 'about:blank') {
-                window.location.assign(targetUrl);
-            }
-        } catch (e) {
-            window.location.href = targetUrl;
+function updateCardCounters() {
+    cachedFetchedApps.forEach(item => {
+        const count = globalDownloadStats[item.name] || 0;
+        const element = document.getElementById(`count-label-${btoa(item.name).replace(/=/g, '')}`);
+        if(element) {
+            element.innerText = `${count} Downloads`;
         }
-    }, 300);
+    });
+}
+
+// তোর আসল ইন-অ্যাপ সাইলেন্ট হাইব্রিড ডাউনলোডার মেথড
+async function forceDownloadFile(buttonElement, filename, isRelease = false, releaseUrl = '') {
+    if (buttonElement.classList.contains('downloading')) return;
+    
+    buttonElement.classList.add('downloading');
+    const counterLabel = buttonElement.querySelector('.download-count');
+    counterLabel.innerText = "Processing...";
+
+    const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
+
+    try {
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error("CORS or Network issue.");
+        
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const tempAnchor = document.createElement('a');
+        tempAnchor.style.display = 'none';
+        tempAnchor.href = blobUrl;
+        tempAnchor.setAttribute('download', filename);
+        
+        document.body.appendChild(tempAnchor);
+        tempAnchor.click();
+        
+        document.body.removeChild(tempAnchor);
+        window.URL.revokeObjectURL(blobUrl);
+        await incrementCloudCounter(filename);
+    } catch (error) {
+        console.log("Blob fetch blocked or failed. Activating secure iframe injection fallback...");
+        
+        let downloadFrame = document.getElementById('silent-download-frame');
+        if (!downloadFrame) {
+            downloadFrame = document.createElement('iframe');
+            downloadFrame.id = 'silent-download-frame';
+            downloadFrame.style.display = 'none';
+            document.body.appendChild(downloadFrame);
+        }
+        downloadFrame.src = fileUrl;
+        await incrementCloudCounter(filename);
+    } finally {
+        setTimeout(() => {
+            buttonElement.classList.remove('downloading');
+            updateCardCounters(); 
+        }, 1500);
+    }
 }
 
 function displayApps(items) {
     const container = document.getElementById("apps-container");
-    if(!container) return;
     container.innerHTML = "";
     
     if(items.length === 0) {
@@ -278,74 +237,121 @@ function displayApps(items) {
         return;
     }
 
+    const cacheBuster = new Date().getTime();
+
     items.forEach((item, index) => {
         const displayName = formatAppName(item.name);
         const itemBadge = assignBadge(item.name);
         const uniqueId = btoa(item.name).replace(/=/g, '');
-        const safeImageName = encodeURIComponent(item.name.replace(/\.(apk|txt)$/i, ''));
-        const fallbackIcon = item.name.toLowerCase().endsWith('.txt') 
+        
+        const cleanNameWithoutExt = item.name.replace(/\.(apk|txt)$/i, '');
+        const safeImageName = encodeURIComponent(cleanNameWithoutExt);
+
+        const isTextFile = item.name.toLowerCase().endsWith('.txt');
+        const fallbackIcon = isTextFile 
             ? "https://i.postimg.cc/85zXpD7m/text-icon.png" 
             : "https://i.postimg.cc/mD3fzq4Y/apk-icon.png";
 
-        const mainImageUrl = `${BASE_CDN}IMAGE/${safeImageName}`;
-        const count = globalDownloadStats[item.name] || 0;
+        const pngUrl = `${RAW_CDN_BASE}${DATA_FOLDER}/${IMAGE_FOLDER}/${safeImageName}.png?v=${cacheBuster}`;
+        const jpgUrl = `${RAW_CDN_BASE}${DATA_FOLDER}/${IMAGE_FOLDER}/${safeImageName}.jpg?v=${cacheBuster}`;
 
-        container.innerHTML += `
-            <button class="card" type="button" onclick="forceDownloadFile(this, '${item.name.replace(/'/g, "\\'")}')">
+        const count = globalDownloadStats[item.name] || 0;
+        const isRelease = item.isRelease ? true : false;
+        const downloadUrl = item.downloadUrl || '';
+
+        const cardHtml = `
+            <button class="card" type="button" onclick="forceDownloadFile(this, '${item.name.replace(/'/g, "\\'")}', ${isRelease}, '${downloadUrl}')">
                 <div class="badge-chip">${itemBadge}</div>
                 <div class="rank-badge">#${index + 1}</div>
                 <div class="icon">
                     <img loading="lazy" width="62" height="62" 
-                         src="${mainImageUrl}.png" 
-                         onerror="this.onerror=null; this.src='${mainImageUrl}.jpg'; this.onerror=function(){this.src='${fallbackIcon}';};" 
+                         src="${pngUrl}" 
+                         onerror="this.onerror=null; this.src='${jpgUrl}'; this.onerror=function(){this.src='${fallbackIcon}';};" 
                          alt="${displayName}">
                 </div>
                 <p class="app-name">${displayName}</p>
                 <div class="download-count" id="count-label-${uniqueId}">${count} Downloads</div>
-            </button>`;
+            </button>
+        `;
+        container.innerHTML += cardHtml;
     });
 }
 
 async function fetchRepositoryData() {
-    if (!sessionAuthenticated) return;
-    
-    const backupData = localStorage.getItem('RS5_apps_backup_list');
-    if(backupData) {
-        cachedFetchedApps = JSON.parse(backupData);
-        const totalAppsEl = document.getElementById("total-apps");
-        if(totalAppsEl) totalAppsEl.innerText = `${cachedFetchedApps.length} Items`;
+    const localBackupApps = localStorage.getItem('w8_apps_list_backup');
+    if (localBackupApps) {
+        cachedFetchedApps = JSON.parse(localBackupApps);
+        document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
         displayApps(cachedFetchedApps);
         renderRankingDashboard();
     }
 
     try {
         const response = await fetch(API_URL);
+        let folderFiles = [];
         if(response.ok) {
             const files = await response.json();
-            const filtered = files.filter(f => f.type === "file" && (f.name.endsWith('.apk') || f.name.endsWith('.txt')));
-            
-            if(filtered.length > 0) {
-                cachedFetchedApps = filtered;
-                localStorage.setItem('RS5_apps_backup_list', JSON.stringify(filtered));
-                const totalAppsEl = document.getElementById("total-apps");
-                if(totalAppsEl) totalAppsEl.innerText = `${filtered.length} Items`;
-                displayApps(filtered);
-            }
+            folderFiles = files.filter(file => {
+                if (file.type !== "file") return false;
+                const nameLower = file.name.toLowerCase();
+                return nameLower.endsWith('.apk') || nameLower.endsWith('.txt');
+            }).map(file => ({ name: file.name, isRelease: false }));
         }
+        
+        let releaseFiles = [];
+        try {
+            const relResponse = await fetch(RELEASES_API_URL);
+            if(relResponse.ok) {
+                const releases = await relResponse.json();
+                releases.forEach(rel => {
+                    if(rel.assets && rel.assets.length > 0) {
+                        rel.assets.forEach(asset => {
+                            const nameLower = asset.name.toLowerCase();
+                            if(nameLower.endsWith('.apk') || nameLower.endsWith('.txt')) {
+                                releaseFiles.push({
+                                    name: asset.name,
+                                    isRelease: true,
+                                    downloadUrl: asset.browser_download_url
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        } catch(e) {
+            console.log("Release data fetch bypass.");
+        }
+
+        if (folderFiles.length > 0 || releaseFiles.length > 0) {
+            cachedFetchedApps = [...folderFiles, ...releaseFiles];
+            localStorage.setItem('w8_apps_list_backup', JSON.stringify(cachedFetchedApps));
+            
+            document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
+            displayApps(cachedFetchedApps);
+            renderRankingDashboard();
+        }
+
+        await fetchRealTimeStats(cachedFetchedApps);
+
     } catch (error) {
-        console.log("Using fallback storage.");
+        console.error("Network interface connection delayed:", error);
+        if (!localBackupApps) {
+            document.getElementById("apps-container").innerHTML = `
+                <p style="grid-column: span 2; text-align: center; color: var(--danger);">
+                    Synchronization Error.<br>Please verify repo access structures.
+                </p>`;
+        }
     }
-    fetchRealTimeStats();
 }
 
-// সার্চ ফিল্টার
-document.addEventListener("DOMContentLoaded", () => {
-    const searchInput = document.getElementById("app-search");
-    if(searchInput) {
-        searchInput.addEventListener("input", (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            const filtered = cachedFetchedApps.filter(item => item.name.toLowerCase().includes(query));
-            displayApps(filtered);
-        });
-    }
+document.getElementById("app-search").addEventListener("input", (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    const filtered = cachedFetchedApps.filter(item => 
+        item.name.toLowerCase().includes(query)
+    );
+    displayApps(filtered);
+    updateCardCounters();
 });
+
+// ইনিশিয়াল এক্সিকিউশন
+fetchRepositoryData();

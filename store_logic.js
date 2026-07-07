@@ -182,7 +182,12 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
     modalIcon.src = iconUrl;
     modalMeta.innerText = `Type: [${badgeType.toUpperCase()}] • Ext: ${filename.split('.').pop().toUpperCase()}`;
 
-    downloadBtn.onclick = async function() {
+    // ডাবল ট্রিগার আটকাতে অন-ক্লিক মেথড একদম ফ্রেশ করা হচ্ছে
+    downloadBtn.onclick = null;
+    downloadBtn.onclick = async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
         downloadBtn.disabled = true;
         const btnText = downloadBtn.querySelector('span');
         btnText.innerText = "Downloading...";
@@ -205,28 +210,38 @@ function closeDownloadModal(event) {
     }
 }
 
-// পারফেক্ট হাইব্রিড ডাউনলোডার (ব্রাউজার এবং অ্যান্ড্রয়েড অ্যাপ ওয়েবভিউ উভয়ের জন্য)
+// একুরেট ইউনিভার্সাল হাইব্রিড ডাউনলোডার (কাউন্টার এবং ব্রাউজার জাম্প ফিক্সড)
 async function executeSecureStorageDownload(filename, isRelease, releaseUrl, btnTextField) {
     const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
     
-    // ইউজার কি সাধারণ ব্রাউজারে আছে নাকি অ্যান্ড্রয়েড অ্যাপের (WebView) ভেতর আছে তা ডিটেক্ট করা হচ্ছে
+    // ইউজার কি অ্যান্ড্রয়েড অ্যাপের (WebView) ভেতর আছে কিনা তা নিখুঁতভাবে ডিটেক্ট করা হচ্ছে
     const isWebView = /Android.*wv/.test(navigator.userAgent) || (!window.chrome && /Android/.test(navigator.userAgent));
 
+    // ১. অ্যাপ (WebView Interface) এর ভেতরের লজিক
     if (isWebView) {
-        // ১. অ্যাপের ভেতরের জন্য লজিক: সরাসরি অ্যান্ড্রয়েড সিস্টেম ম্যানেজারকে কল করা (যাতে নোটিফিকেশনে প্রোগ্রেস বার দেখায়)
         try {
+            // কাউন্টার শুধুমাত্র একবারই বাড়বে
             await incrementCloudCounter(filename);
-            window.location.href = fileUrl; // কোনো আলাদা উইন্ডো খুলবে না, অ্যাপের ভেতর থেকেই সিস্টেম ডাউনলোড ট্রিগার হবে
+            
+            // এক্সটার্নাল ব্রাউজার জাম্প আটকাতে এবং অ্যাপের ভেতর ওয়ান-ক্লিক প্লে-স্টোর স্টাইল ডাউনলোডের জন্য সাইলেন্ট আইফ্রেম ইঞ্জিন
+            let downloadFrame = document.getElementById('silent-download-frame');
+            if (!downloadFrame) {
+                downloadFrame = document.createElement('iframe');
+                downloadFrame.id = 'silent-download-frame';
+                downloadFrame.style.display = 'none';
+                document.body.appendChild(downloadFrame);
+            }
+            downloadFrame.src = fileUrl; // অ্যাপের স্যান্ডবক্স ইন্টারফেস থেকে রিকোয়েস্ট পাস হবে
             return;
         } catch (err) {
-            console.log("Direct Intent redirection failed, trying iframe backup...");
+            console.log("App inside download interface error, dropping to alternative injection.");
         }
     }
 
-    // ২. ব্রাউজারের জন্য লজিক: ১-ক্লিকে ডিরেক্ট ডিফল্ট Download ফোল্ডারে ফাইল পাঠানো (কোনো পাথ বা উইন্ডো সিলেকশন আসবে না)
+    // ২. পিসি বা মোবাইল সাধারণ ব্রাউজারের (Chrome/Safari) জন্য লজিক
     try {
         const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error("Fetch restricted.");
+        if (!response.ok) throw new Error("Fetch stream restricted.");
         
         const blob = await response.blob();
         const blobUrl = window.URL.createObjectURL(blob);
@@ -237,15 +252,17 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl, btn
         tempAnchor.setAttribute('download', filename);
         
         document.body.appendChild(tempAnchor);
-        tempAnchor.click(); 
+        tempAnchor.click(); // ব্রাউজারের কোনো পাথ উইন্ডো ছাড়া ওয়ান-ক্লিক ডিফল্ট ফোল্ডারে যাবে
         
         document.body.removeChild(tempAnchor);
         window.URL.revokeObjectURL(blobUrl);
+        
+        // সাকসেসফুল ডাউনলোডের পর কাউন্টার ১ বার প্লাস হবে
         await incrementCloudCounter(filename);
 
     } catch (error) {
-        console.log("Blob failed in browser, triggering iframe fall-through...", error);
-        // সর্বজনীন ফলব্যাক
+        console.log("Blob restriction detected in browser, running universal fallback...", error);
+        
         let downloadFrame = document.getElementById('silent-download-frame');
         if (!downloadFrame) {
             downloadFrame = document.createElement('iframe');
@@ -321,7 +338,7 @@ function displayApps(items) {
 }
 
 // ========================================================
-// গিটহাব ডাটা এবং রিলিজ (Releases) যাচাইকরণ লজিক
+// গิตহাব ডাটা এবং রিলিজ (Releases) যাচাইকরণ লজিক
 // ========================================================
 async function fetchRepositoryData() {
     const localBackupApps = localStorage.getItem('w8_apps_list_backup');

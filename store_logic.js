@@ -4,103 +4,114 @@ const GITHUB_REPO = "mdarif76769.github.io";
 const BASE_CDN = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/DATA/`;
 const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/DATA`;
 const COUNTER_API_BASE = "https://api.counterapi.dev/v1";
-const NAMESPACE = `w8_store_production_${GITHUB_USER}`;
+const NAMESPACE = `RS5_store_production_${GITHUB_USER}`;
 
 let cachedFetchedApps = [];
-let globalDownloadStats = JSON.parse(localStorage.getItem('w8_stats_backup')) || {};
+let globalDownloadStats = JSON.parse(localStorage.getItem('RS5_stats_backup')) || {};
 
-// ইনজেক্টেড কাস্টম পপআপ এবং লক প্যানেল থিম (CSS)
-const style = document.createElement('style');
-style.innerHTML = `
-    .w8-modal-overlay {
-        position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
-        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-        display: flex; align-items: center; justify-content: center;
-        z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-    }
-    .w8-modal-overlay.active { opacity: 1; pointer-events: auto; }
-    .w8-modal {
-        background: rgba(3, 15, 12, 0.95); border: 2px solid var(--green);
-        border-radius: 12px; width: min(340px, 90%); padding: 24px;
-        box-shadow: 0 0 30px rgba(0, 255, 159, 0.4), inset 0 0 15px rgba(0, 255, 159, 0.1);
-        text-align: center; transform: scale(0.85); transition: transform 0.3s ease;
-        position: relative; font-family: 'Fira Code', monospace;
-    }
-    .w8-modal-overlay.active .w8-modal { transform: scale(1); }
-    .w8-modal-title { color: var(--green); font-size: 18px; margin: 0 0 10px 0; text-shadow: 0 0 8px var(--green); font-weight: 700; }
-    .w8-modal-stats { color: var(--cyan); font-size: 13px; margin-bottom: 20px; }
-    .w8-btn-container { display: flex; flex-direction: column; gap: 12px; }
-    .w8-download-btn {
-        background: linear-gradient(135deg, #00ff9f, #00b36b); color: #010806;
-        border: none; padding: 12px 20px; font-size: 14px; font-weight: 700;
-        border-radius: 8px; cursor: pointer; text-transform: uppercase;
-        font-family: inherit; box-shadow: 0 0 15px rgba(0, 255, 159, 0.4);
-        transition: all 0.2s ease;
-    }
-    .w8-download-btn:active { transform: scale(0.98); box-shadow: 0 0 5px rgba(0, 255, 159, 0.2); }
-    .w8-close-btn {
-        background: transparent; color: var(--danger); border: 1px solid var(--danger);
-        padding: 8px 16px; font-size: 12px; font-weight: 600; border-radius: 6px;
-        cursor: pointer; font-family: inherit; transition: all 0.2s ease;
-    }
-    .w8-close-btn:hover { background: rgba(255, 71, 112, 0.1); }
-`;
-document.head.appendChild(style);
+// ================= [ ব্রুট-ফোর্স প্রোটেকশন ও সিকিউরিটি কনফিগারেশন ] =================
+const MAX_ATTEMPTS = 5;
+const COOLDOWN_TIME = 60000; // ১ মিনিট (মিলিসেকেন্ডে)
 
-// DOM-এ পপআপ স্ট্রাকচার তৈরি করা
-const modalOverlay = document.createElement('div');
-modalOverlay.className = 'w8-modal-overlay';
-modalOverlay.id = 'w8ModalOverlay';
-modalOverlay.innerHTML = `
-    <div class="w8-modal">
-        <div class="w8-modal-title" id="w8ModalTitle">App Name</div>
-        <div class="w8-modal-stats" id="w8ModalStats">0 Downloads</div>
-        <div class="w8-btn-container">
-            <button class="w8-download-btn" id="w8ModalDownloadBtn">⚡ Start Download</button>
-            <button class="w8-close-btn" onclick="closeW8Modal()">Cancel</button>
-        </div>
-    </div>
-`;
-document.body.appendChild(modalOverlay);
-
-// ================= [ আপনার আসল ইনক্রিপ্টেড লক সিস্টেম ] =================
-const ENCRYPTED_VAULT = "NDUzNQ=="; //
-let sessionAuthenticated = sessionStorage.getItem("Rs5_auth_token") === "granted";
+// আপনার Base64 বা এনক্রিপ্টেড ভ্যালু এখানে বসাবেন (যেমন: "Y2hhbmdlbWU=")
+const ENCRYPTED_VAULT = "NDUzNQ=="; 
+let sessionAuthenticated = sessionStorage.getItem("RS5_auth_token") === "granted";
 
 function verifyTerminalPasscode() {
     const inputField = document.getElementById("terminal-pass-input");
     const errField = document.getElementById("terminal-error-log");
+    const loginBtn = document.getElementById("decrypt-btn");
     if (!inputField) return;
-    
+
+    // ব্লকড আছে কিনা চেক
+    let attempts = parseInt(localStorage.getItem("login_attempts") || "0");
+    let lastAttemptTime = parseInt(localStorage.getItem("last_attempt_time") || "0");
+    const currentTime = Date.now();
+
+    if (attempts >= MAX_ATTEMPTS && (currentTime - lastAttemptTime) < COOLDOWN_TIME) {
+        return; // এখনো কোল্ডডাউন পিরিয়ডে আছে
+    }
+
     const rawInput = inputField.value.trim();
+
+    // পাসওয়ার্ড ভেরিফিকেশন (এখানে আপনি আপনার পছন্দমতো ভ্যালিডেশন লজিক বা ডিক্রিপশন মেলাতে পারবেন)
+    // উদাহরণস্বরূপ: btoa(rawInput) === ENCRYPTED_VAULT অথবা সরাসরি rawInput ভেরিফিকেশন
+    let isCorrect = false;
     try {
-        // CryptoJS এনক্রিপশন ম্যাপিং
-        const decryptedBytes = CryptoJS.AES.decrypt(ENCRYPTED_VAULT, rawInput);
-        const originalPayload = decryptedBytes.toString(CryptoJS.enc.Utf8);
-        
-        if (originalPayload && originalPayload.includes("ACCESS_GRANTED_VERIFIED")) {
-            sessionAuthenticated = true;
-            sessionStorage.setItem("w8_auth_token", "granted");
-            
-            const lockPanel = document.getElementById("terminal-lock-panel");
-            const storeArea = document.getElementById("protected-store-area");
-            if (lockPanel) lockPanel.style.display = "none";
-            if (storeArea) storeArea.style.display = "block";
-            
-            fetchRepositoryData();
+        // যদি Base64 ম্যাচিং করতে চান
+        if (btoa(rawInput) === ENCRYPTED_VAULT || rawInput === ENCRYPTED_VAULT) {
+            isCorrect = true;
         } else {
-            throw new Error();
+            // আপনার পূর্বের CryptoJS মেথড ফলব্যাক
+            const decryptedBytes = CryptoJS.AES.decrypt(ENCRYPTED_VAULT, rawInput);
+            const originalPayload = decryptedBytes.toString(CryptoJS.enc.Utf8);
+            if (originalPayload && originalPayload.includes("ACCESS_GRANTED_VERIFIED")) {
+                isCorrect = true;
+            }
         }
     } catch (e) {
-        if (errField) {
-            errField.innerText = "❌ CRITICAL ERROR: ACCESS DENIED. INVALID CREDENTIALS.";
-            setTimeout(() => { errField.innerText = ""; }, 3000);
+        isCorrect = false;
+    }
+
+    if (isCorrect) {
+        // সফল লগইন
+        sessionAuthenticated = true;
+        sessionStorage.setItem("RS5_auth_token", "granted");
+        localStorage.removeItem("login_attempts");
+        localStorage.removeItem("last_attempt_time");
+
+        document.getElementById("terminal-lock-panel").style.display = "none";
+        document.getElementById("protected-store-area").style.display = "block";
+        
+        fetchRepositoryData();
+    } else {
+        // ভুল পাসওয়ার্ড ট্রাই
+        attempts++;
+        localStorage.setItem("login_attempts", attempts);
+        localStorage.setItem("last_attempt_time", currentTime);
+
+        if (attempts >= MAX_ATTEMPTS) {
+            startCooldown(COOLDOWN_TIME);
+        } else {
+            if (errField) {
+                errField.innerText = `❌ ACCESS DENIED. Attempts left: ${MAX_ATTEMPTS - attempts}`;
+                errField.style.color = "var(--danger)";
+                setTimeout(() => { errField.innerText = ""; }, 3000);
+            }
+            inputField.value = "";
         }
-        inputField.value = "";
     }
 }
 
-// এন্টার প্রেস করলে লক খোলার ট্রিকার
+function startCooldown(remainingTime) {
+    const inputField = document.getElementById("terminal-pass-input");
+    const errField = document.getElementById("terminal-error-log");
+    const loginBtn = document.getElementById("decrypt-btn");
+    
+    if(inputField) inputField.disabled = true;
+    if(loginBtn) loginBtn.disabled = true;
+
+    let timeLeft = Math.ceil(remainingTime / 1000);
+
+    const countdownInterval = setInterval(() => {
+        timeLeft--;
+        if (errField) {
+            errField.innerText = `🚨 SYSTEM LOCKED! Try again in ${timeLeft}s`;
+            errField.style.color = "var(--danger)";
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(countdownInterval);
+            if(inputField) inputField.disabled = false;
+            if(loginBtn) loginBtn.disabled = false;
+            if(errField) errField.innerText = "";
+            localStorage.removeItem("login_attempts");
+            localStorage.removeItem("last_attempt_time");
+        }
+    }, 1000);
+}
+
+// পেজ লোড হওয়ার সময় সিকিউরিটি ও সেশন চেক
 document.addEventListener("DOMContentLoaded", () => {
     const passInput = document.getElementById("terminal-pass-input");
     if (passInput) {
@@ -109,7 +120,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // সেশন চেক করে স্ক্রিন দেখানো
+    let attempts = parseInt(localStorage.getItem("login_attempts") || "0");
+    let lastAttemptTime = parseInt(localStorage.getItem("last_attempt_time") || "0");
+    const currentTime = Date.now();
+
+    if (attempts >= MAX_ATTEMPTS && (currentTime - lastAttemptTime) < COOLDOWN_TIME) {
+        startCooldown(COOLDOWN_TIME - (currentTime - lastAttemptTime));
+    }
+
     const lockPanel = document.getElementById("terminal-lock-panel");
     const storeArea = document.getElementById("protected-store-area");
     
@@ -124,6 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 // ========================================================================
 
+// ইমেজ হ্যান্ডলিং
 const mainLogo = document.getElementById("main-logo");
 if(mainLogo) {
     mainLogo.src = `${BASE_CDN}IMAGE/image.png`;
@@ -149,7 +168,7 @@ async function fetchRealTimeStats() {
             if (res.ok) {
                 const json = await res.json();
                 globalDownloadStats[item.name] = json.count || 0;
-                localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
+                localStorage.setItem('RS5_stats_backup', JSON.stringify(globalDownloadStats));
                 updateSingleCounter(item.name);
             }
         } catch(e) {}
@@ -203,26 +222,28 @@ function renderRankingDashboard() {
     });
 }
 
+// কাস্টম ডাউনলোড পপআপ মডাল ওপেন
 function forceDownloadFile(buttonElement, filename) {
     const displayName = formatAppName(filename);
     const currentDownloads = globalDownloadStats[filename] || 0;
 
-    document.getElementById("w8ModalTitle").innerText = displayName;
-    document.getElementById("w8ModalStats").innerText = `Total Downloads: ${currentDownloads}`;
+    document.getElementById("RS5ModalTitle").innerText = displayName;
+    document.getElementById("RS5ModalStats").innerText = `Total Downloads: ${currentDownloads}`;
     
-    const downloadBtn = document.getElementById("w8ModalDownloadBtn");
+    const downloadBtn = document.getElementById("RS5ModalDownloadBtn");
     downloadBtn.onclick = function() {
         executeSilentDownload(filename);
         closeW8Modal();
     };
 
-    document.getElementById("w8ModalOverlay").classList.add("active");
+    document.getElementById("RS5ModalOverlay").classList.add("active");
 }
 
 function closeW8Modal() {
-    document.getElementById("w8ModalOverlay").classList.remove("active");
+    document.getElementById("RS6ModalOverlay").classList.remove("active");
 }
 
+// সেম-ট্যাব সাইলেন্ট ডাউনলোডার
 function executeSilentDownload(filename) {
     const targetUrl = `${BASE_CDN}${encodeURIComponent(filename)}`;
     incrementCloudCounter(filename);
@@ -286,9 +307,9 @@ function displayApps(items) {
 }
 
 async function fetchRepositoryData() {
-    if (!sessionAuthenticated) return; // লক না খুললে ডেটা ফেচ হবে না
+    if (!sessionAuthenticated) return;
     
-    const backupData = localStorage.getItem('w8_apps_backup_list');
+    const backupData = localStorage.getItem('RS5_apps_backup_list');
     if(backupData) {
         cachedFetchedApps = JSON.parse(backupData);
         const totalAppsEl = document.getElementById("total-apps");
@@ -312,12 +333,12 @@ async function fetchRepositoryData() {
             }
         }
     } catch (error) {
-        console.log("Using dynamic storage engine fallback.");
+        console.log("Using fallback storage.");
     }
     fetchRealTimeStats();
 }
 
-// সার্চ ইভেন্ট বাইন্ডিং
+// সার্চ ফিল্টার
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("app-search");
     if(searchInput) {

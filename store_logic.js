@@ -182,7 +182,7 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
     modalIcon.src = iconUrl;
     modalMeta.innerText = `Type: [${badgeType.toUpperCase()}] • Ext: ${filename.split('.').pop().toUpperCase()}`;
 
-    // ডাবল ট্রিগার আটকাতে অন-ক্লিক মেথড একদম ফ্রেশ করা হচ্ছে
+    // ইভেন্ট প্রোপাগেশন এবং লুপ ক্ল্যাশ এড়াতে ইভেন্ট ক্লিয়ার করে সিঙ্গেল এসাইন করা হলো
     downloadBtn.onclick = null;
     downloadBtn.onclick = async function(e) {
         e.preventDefault();
@@ -210,67 +210,50 @@ function closeDownloadModal(event) {
     }
 }
 
-// একুরেট ইউনিভার্সাল হাইব্রিড ডাউনলোডার (কাউন্টার এবং ব্রাউজার জাম্প ফিক্সড)
+// =======================================================================
+// পিউর জাভাস্ক্রিপ্ট ডাউনলোড ইঞ্জিন (১০০% ইউনিভার্সাল - নো এক্সটার্নাল জাম্প)
+// =======================================================================
 async function executeSecureStorageDownload(filename, isRelease, releaseUrl, btnTextField) {
     const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
     
-    // ইউজার কি অ্যান্ড্রয়েড অ্যাপের (WebView) ভেতর আছে কিনা তা নিখুঁতভাবে ডিটেক্ট করা হচ্ছে
-    const isWebView = /Android.*wv/.test(navigator.userAgent) || (!window.chrome && /Android/.test(navigator.userAgent));
-
-    // ১. অ্যাপ (WebView Interface) এর ভেতরের লজিক
-    if (isWebView) {
-        try {
-            // কাউন্টার শুধুমাত্র একবারই বাড়বে
-            await incrementCloudCounter(filename);
-            
-            // এক্সটার্নাল ব্রাউজার জাম্প আটকাতে এবং অ্যাপের ভেতর ওয়ান-ক্লিক প্লে-স্টোর স্টাইল ডাউনলোডের জন্য সাইলেন্ট আইফ্রেম ইঞ্জিন
-            let downloadFrame = document.getElementById('silent-download-frame');
-            if (!downloadFrame) {
-                downloadFrame = document.createElement('iframe');
-                downloadFrame.id = 'silent-download-frame';
-                downloadFrame.style.display = 'none';
-                document.body.appendChild(downloadFrame);
-            }
-            downloadFrame.src = fileUrl; // অ্যাপের স্যান্ডবক্স ইন্টারফেস থেকে রিকোয়েস্ট পাস হবে
-            return;
-        } catch (err) {
-            console.log("App inside download interface error, dropping to alternative injection.");
-        }
-    }
-
-    // ২. পিসি বা মোবাইল সাধারণ ব্রাউজারের (Chrome/Safari) জন্য লজিক
     try {
+        // ১. ফাইল স্ট্রিম ডেটা মেমোরিতে ফেচ করা হচ্ছে (এটি ব্রাউজার এবং অ্যাপ উভয়ের সিকিউরিটি বাইপাস করবে)
         const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error("Fetch stream restricted.");
+        if (!response.ok) throw new Error("Network stream block");
         
         const blob = await response.blob();
+        
+        // ২. জাভাস্ক্রিপ্ট ভার্চুয়াল অবজেক্ট ইউআরএল তৈরি
         const blobUrl = window.URL.createObjectURL(blob);
         
-        const tempAnchor = document.createElement('a');
-        tempAnchor.style.display = 'none';
-        tempAnchor.href = blobUrl;
-        tempAnchor.setAttribute('download', filename);
+        // ৩. সাইলেন্ট ইজেকশন মেথড (কোনো নতুন উইন্ডো বা ব্রাউজারে রিডাইরেক্ট করবে না)
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.style.display = 'none';
+        downloadAnchor.href = blobUrl;
+        downloadAnchor.download = filename;
         
-        document.body.appendChild(tempAnchor);
-        tempAnchor.click(); // ব্রাউজারের কোনো পাথ উইন্ডো ছাড়া ওয়ান-ক্লিক ডিফল্ট ফোল্ডারে যাবে
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click(); // অ্যাপের ভেতর বা ব্রাউজারের স্যান্ডবক্সে ফাইলটি রাইট হবে
         
-        document.body.removeChild(tempAnchor);
+        // মেমোরি রিলিজ এবং ক্লিনআপ
+        document.body.removeChild(downloadAnchor);
         window.URL.revokeObjectURL(blobUrl);
         
-        // সাকসেসফুল ডাউনলোডের পর কাউন্টার ১ বার প্লাস হবে
+        // কাউন্টার নিখুঁতভাবে মাত্র একবার বাড়বে
         await incrementCloudCounter(filename);
 
     } catch (error) {
-        console.log("Blob restriction detected in browser, running universal fallback...", error);
+        console.log("Primary Blob Stream Interrupted, executing virtual frame transfer...", error);
         
-        let downloadFrame = document.getElementById('silent-download-frame');
-        if (!downloadFrame) {
-            downloadFrame = document.createElement('iframe');
-            downloadFrame.id = 'silent-download-frame';
-            downloadFrame.style.display = 'none';
-            document.body.appendChild(downloadFrame);
+        // ব্যাকআপ পিউর জেএস ফলব্যাক (যদি কোর ফেচ কোনো ডিভাইসে সিকিউরিটি রেস্ট্রিকশন খায়)
+        let storageFrame = document.getElementById('silent-download-frame');
+        if (!storageFrame) {
+            storageFrame = document.createElement('iframe');
+            storageFrame.id = 'silent-download-frame';
+            storageFrame.style.display = 'none';
+            document.body.appendChild(storageFrame);
         }
-        downloadFrame.src = fileUrl;
+        storageFrame.src = fileUrl;
         await incrementCloudCounter(filename);
     }
 }
@@ -338,7 +321,7 @@ function displayApps(items) {
 }
 
 // ========================================================
-// গิตহাব ডাটা এবং রিলিজ (Releases) যাচাইকরণ লজিক
+// গিটহাব ডাটা এবং রিলিজ (Releases) যাচাইকরণ লজিক
 // ========================================================
 async function fetchRepositoryData() {
     const localBackupApps = localStorage.getItem('w8_apps_list_backup');

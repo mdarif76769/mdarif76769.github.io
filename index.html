@@ -82,10 +82,10 @@
         .rank-score { color: var(--cyan); font-weight: 600; }
 
         /* ডায়নামিক মডাল ওভারলে থিম (UI উন্নত করা হয়েছে) */
-        .w8-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        .w8-modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .w8-modal { background: rgba(2, 10, 8, 0.98); border: 2px solid var(--green); border-radius: 16px; width: min(340px, 92%); padding: 25px; box-shadow: 0 0 35px rgba(0,255,159,0.4); text-align: center; transform: scale(0.85); transition: transform 0.3s ease; }
-        .w8-modal-overlay.active .w8-modal { transform: scale(1); }
+        .RS5-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .RS5-modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .RS5-modal { background: rgba(2, 10, 8, 0.98); border: 2px solid var(--green); border-radius: 16px; width: min(340px, 92%); padding: 25px; box-shadow: 0 0 35px rgba(0,255,159,0.4); text-align: center; transform: scale(0.85); transition: transform 0.3s ease; }
+        .RS5-modal-overlay.active .w8-modal { transform: scale(1); }
     </style>
 </head>
 <body>
@@ -127,14 +127,14 @@
         </div>
     </main>
 
-    <div class="w8-modal-overlay" id="w8ModalOverlay">
-        <div class="w8-modal">
+    <div class="RS5-modal-overlay" id="RS5ModalOverlay">
+        <div class="RS5-modal">
             <div style="font-size: 28px; margin-bottom: 10px;">📦</div>
-            <div class="w8-modal-title" id="w8ModalTitle" style="color: var(--green); font-size: 18px; font-weight: 700; margin-bottom: 8px;">App Title</div>
-            <div class="w8-modal-stats" id="w8ModalStats" style="color: var(--cyan); font-size: 13px; margin-bottom: 22px;">0 Downloads</div>
-            <div class="w8-btn-container">
-                <button class="w8-download-btn" id="w8ModalDownloadBtn">⚡ Deploy Download</button>
-                <button class="w8-close-btn" style="margin-top: 8px;" onclick="closeW8Modal()">Abort Connection</button>
+            <div class="RS5-modal-title" id="RS5ModalTitle" style="color: var(--green); font-size: 18px; font-weight: 700; margin-bottom: 8px;">App Title</div>
+            <div class="RS5-modal-stats" id="RS5ModalStats" style="color: var(--cyan); font-size: 13px; margin-bottom: 22px;">0 Downloads</div>
+            <div class="RS5-btn-container">
+                <button class="RS5-download-btn" id="RS5ModalDownloadBtn">⚡ Deploy Download</button>
+                <button class="RS5-close-btn" style="margin-top: 8px;" onclick="closeW8Modal()">Abort Connection</button>
             </div>
         </div>
     </div>

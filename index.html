@@ -135,7 +135,6 @@
         let attemptCount = 0;
         let isTelegramTerminal = false;
 
-        // স্মার্ট সেশন রুলস: sessionStorage রিফ্রেশে ডেটা হারায় না, শুধু ট্যাব/অ্যাপ সোয়াইপ ক্লোজ করলে ডেটা মুছে যায়।
         const isAlreadyUnlocked = sessionStorage.getItem("terminal_session_active") === "true";
 
         if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData && window.Telegram.WebApp.initData !== "") {
@@ -145,12 +144,16 @@
             document.getElementById("auth-gate-panel").style.display = "none";
             document.getElementById("protected-store-area").style.display = "block";
         } else if (isAlreadyUnlocked) {
-            // যদি আগে থেকেই সেশন আনলকড থাকে তবে সরাসরি স্ক্রিন দেখাবে (রিফ্রেশ সেফ)
             document.getElementById("auth-gate-panel").style.display = "none";
             document.getElementById("protected-store-area").style.display = "block";
         } else {
             document.getElementById("auth-gate-panel").style.display = "block";
-            document.getElementById("protected-store-area").style.display = "none";
+            document.getElementById("protected-store-area").style.none = "none";
+            
+            const currentGate = document.getElementById("auth-gate-panel");
+            if(currentGate) currentGate.style.display = "block";
+            const currentStore = document.getElementById("protected-store-area");
+            if(currentStore) currentStore.style.display = "none";
         }
 
         function unlockTerminalData() {
@@ -161,7 +164,6 @@
 
             if(inputVal === atob(ENCODED_TOKEN)) {
                 attemptCount = 0; 
-                // সেশন একটিভ করে দেওয়া হলো যাতে রিফ্রেশ করলে আবার লক না আসে
                 sessionStorage.setItem("terminal_session_active", "true");
                 document.getElementById("auth-gate-panel").style.display = "none";
                 document.getElementById("protected-store-area").style.display = "block";
@@ -203,7 +205,7 @@
         
         const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FOLDER}?nocache=${new Date().getTime()}`;
         const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?nocache=${new Date().getTime()}`;
-        const RAW_CDN_BASE = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/${DATA_FOLDER}/`;
+        const RAW_CDN_BASE = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/`;
 
         const COUNTER_API_BASE = "https://api.counterapi.dev/v1";
         const NAMESPACE = `w8_store_${GITHUB_USER}`; 
@@ -274,7 +276,7 @@
             }).slice(0, 3);
 
             if (ranked.length === 0) {
-                rankingContainer.innerHTML = `<div style="text-align: center; color: var(--cyan); font-size:11px; padding:6px;">No structural elements logged yet.</div>`;
+                rankingContainer.innerHTML = `<div style="text-align: center; color: var(--cyan); font-size:11px; padding:10px;">Syncing download stats...</div>`;
                 return;
             }
 
@@ -287,7 +289,7 @@
                             <span class="rank-num top3">🏆 0${index + 1}</span>
                             <span class="rank-name">${displayName}</span>
                         </div>
-                        <span class="rank-score">${count} Hits</span>
+                        <span class="rank-score">${count} Downloads</span>
                     </div>
                 `;
             });
@@ -303,27 +305,24 @@
             });
         }
 
-        // মডার্ন ইন-পেজ ব্লব ডাউনলোডার (কোন নতুন উইন্ডো বা ট্যাব ওপেন হবে না)
+        // ইন-অ্যাপ সাইলেন্ট ডাউনলোডার মেথড (কোন নতুন ট্যাব ওপেন হবে না)
         async function forceDownloadFile(buttonElement, filename, isRelease = false, releaseUrl = '') {
             if (buttonElement.classList.contains('downloading')) return;
             
             buttonElement.classList.add('downloading');
             const counterLabel = buttonElement.querySelector('.download-count');
-            const originalText = counterLabel.innerText;
             counterLabel.innerText = "Processing...";
 
+            const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
+
             try {
-                // ফাইল সোর্স পাথ নির্ধারণ
-                const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
-                
-                // ব্লব (Blob) মেথডে ব্যাকগ্রাউন্ড ফাইল ফেচিং
+                // ব্লব রিকোয়েস্ট পাঠিয়ে ডাউনলোড ট্রিগার করা
                 const response = await fetch(fileUrl);
-                if (!response.ok) throw new Error("Stream capture broken.");
+                if (!response.ok) throw new Error("CORS or Network issue.");
                 
                 const blob = await response.blob();
                 const blobUrl = window.URL.createObjectURL(blob);
                 
-                // ইন-পেজ হিডেন নোড জেনারেশন (একই পেজে পপআপ আনার জন্য)
                 const tempAnchor = document.createElement('a');
                 tempAnchor.style.display = 'none';
                 tempAnchor.href = blobUrl;
@@ -334,29 +333,25 @@
                 
                 document.body.removeChild(tempAnchor);
                 window.URL.revokeObjectURL(blobUrl);
-
                 await incrementCloudCounter(filename);
-
             } catch (error) {
-                console.error("Blob stream restricted, launching fallback frame injection:", error);
+                console.log("Blob fetch blocked or failed. Activating secure iframe injection fallback...");
                 
-                // অল্টারনেটিভ একই পেজের আইফ্রেম ইনজেকশন মেথড (উইন্ডো ব্লকিং প্রতিরোধের জন্য)
-                let silentFrame = document.getElementById('silent-download-frame');
-                if (!silentFrame) {
-                    silentFrame = document.createElement('iframe');
-                    silentFrame.id = 'silent-download-frame';
-                    silentFrame.style.display = 'none';
-                    document.body.appendChild(silentFrame);
+                // সাইলেন্ট আইফ্রেম মেথড: এটি অন্য পেজে না নিয়ে একই ভিউ-র মধ্যে ডাউনলোডের ইন্টারফেস ট্রিগার করে
+                let downloadFrame = document.getElementById('silent-download-frame');
+                if (!downloadFrame) {
+                    downloadFrame = document.createElement('iframe');
+                    downloadFrame.id = 'silent-download-frame';
+                    downloadFrame.style.display = 'none';
+                    document.body.appendChild(downloadFrame);
                 }
-                const fallbackUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
-                silentFrame.src = fallbackUrl;
-                
+                downloadFrame.src = fileUrl;
                 await incrementCloudCounter(filename);
             } finally {
                 setTimeout(() => {
                     buttonElement.classList.remove('downloading');
                     updateCardCounters(); 
-                }, 1200);
+                }, 1500);
             }
         }
 
@@ -384,8 +379,9 @@
                     ? "https://i.postimg.cc/85zXpD7m/text-icon.png" 
                     : "https://i.postimg.cc/mD3fzq4Y/apk-icon.png";
 
-                const pngUrl = `${RAW_CDN_BASE.replace(DATA_FOLDER + '/', '')}${IMAGE_FOLDER}/${safeImageName}.png?v=${cacheBuster}`;
-                const jpgUrl = `${RAW_CDN_BASE.replace(DATA_FOLDER + '/', '')}${IMAGE_FOLDER}/${safeImageName}.jpg?v=${cacheBuster}`;
+                // ইমেজ পাথ লোডিং রুল ফিক্সড
+                const pngUrl = `${RAW_CDN_BASE}${DATA_FOLDER}/${IMAGE_FOLDER}/${safeImageName}.png?v=${cacheBuster}`;
+                const jpgUrl = `${RAW_CDN_BASE}${DATA_FOLDER}/${IMAGE_FOLDER}/${safeImageName}.jpg?v=${cacheBuster}`;
 
                 const count = globalDownloadStats[item.name] || 0;
                 const isRelease = item.isRelease ? true : false;
@@ -410,6 +406,15 @@
         }
 
         async function fetchRepositoryData() {
+            // ডাবল-লেয়ার ফলব্যাক ব্যাকআপ: নেটওয়ার্ক স্লো থাকলে যাতে পেজ ব্ল্যাঙ্ক বা 'No items' না দেখায়
+            const localBackupApps = localStorage.getItem('w8_apps_list_backup');
+            if (localBackupApps) {
+                cachedFetchedApps = JSON.parse(localBackupApps);
+                document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
+                displayApps(cachedFetchedApps);
+                renderRankingDashboard();
+            }
+
             try {
                 const response = await fetch(API_URL);
                 let folderFiles = [];
@@ -443,23 +448,29 @@
                         });
                     }
                 } catch(e) {
-                    console.log("Release engine status: standby.");
+                    console.log("Release data fetch bypass.");
                 }
 
-                cachedFetchedApps = [...folderFiles, ...releaseFiles];
-                document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
-                
-                displayApps(cachedFetchedApps);
-                renderRankingDashboard();
-                
+                if (folderFiles.length > 0 || releaseFiles.length > 0) {
+                    cachedFetchedApps = [...folderFiles, ...releaseFiles];
+                    // লেটেস্ট ডেটা লোকাল ব্যাকআপে আপডেট করা
+                    localStorage.setItem('w8_apps_list_backup', JSON.stringify(cachedFetchedApps));
+                    
+                    document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
+                    displayApps(cachedFetchedApps);
+                    renderRankingDashboard();
+                }
+
                 await fetchRealTimeStats(cachedFetchedApps);
 
             } catch (error) {
-                console.error(error);
-                document.getElementById("apps-container").innerHTML = `
-                    <p style="grid-column: span 2; text-align: center; color: var(--danger);">
-                        Synchronization Error.<br>Please verify repo access structures.
-                    </p>`;
+                console.error("Network interface connection delayed:", error);
+                if (!localBackupApps) {
+                    document.getElementById("apps-container").innerHTML = `
+                        <p style="grid-column: span 2; text-align: center; color: var(--danger);">
+                            Synchronization Error.<br>Please verify repo access structures.
+                        </p>`;
+                }
             }
         }
 

@@ -195,7 +195,7 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
         const btnText = downloadBtn.querySelector('span');
         btnText.innerText = "Downloading...";
         
-        // ডিরেক্ট পিউর স্যান্ডবক্স ইঞ্জিন কল
+        // ডিরেক্ট পিউর স্যান্ডবক্স ইঞ্জিন কল (মেমোরি ক্র্যাশ ও ব্রাউজার জাম্প ফিক্সড)
         await executeSecureStorageDownload(filename, isRelease, releaseUrl, btnText);
         
         setTimeout(() => {
@@ -216,47 +216,57 @@ function closeDownloadModal(event) {
 }
 
 // =======================================================================
-// পিউর জাভাস্ক্রিপ্ট ইন-উইন্ডো ডাউনলোডার (নো ব্রাউজার জাম্প, নো ডাবল কাউন্টিং)
+// ওয়ান-ক্লিক ডিরেক্ট ডাউনলোড ইঞ্জিন (মেমোরি ক্র্যাশ ও ব্রাউজার রিডাইরেক্ট ফিক্স)
 // =======================================================================
 async function executeSecureStorageDownload(filename, isRelease, releaseUrl, btnTextField) {
     const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
     
+    // ইউজার কি অ্যান্ড্রয়েড অ্যাপের (WebView) ভেতর আছে কিনা তা চেক
+    const isWebView = /Android.*wv/.test(navigator.userAgent) || (!window.chrome && /Android/.test(navigator.userAgent));
+
+    if (isWebView) {
+        // ১. অ্যাপের জন্য লজিক: মেমোরি ক্র্যাশ এড়াতে আইফ্রেমের মাধ্যমে ডিরেক্ট স্টোরেজ রিকোয়েস্ট পুশ
+        try {
+            let sandboxFrame = document.getElementById('silent-download-frame');
+            if (!sandboxFrame) {
+                sandboxFrame = document.createElement('iframe');
+                sandboxFrame.id = 'silent-download-frame';
+                sandboxFrame.style.setProperty('display', 'none', 'important');
+                document.body.appendChild(sandboxFrame);
+            }
+            sandboxFrame.src = fileUrl; // অ্যাপের ভেতর থেকেই সিস্টেম ডাউনলোডার টানবে, ব্রাউজারে যাবে না
+            
+            await incrementCloudCounter(filename);
+            return;
+        } catch (err) {
+            console.log("App interface error, bypassing to layout anchor...");
+        }
+    }
+
+    // ২. সাধারণ ব্রাউজারের (Chrome/Safari) জন্য ওয়ান-ক্লিক ডিরেক্ট মেথড
     try {
-        // ১. কোর মেমোরি স্ট্রিম ফেচ (এটি অন্য কোনো উইন্ডো ওপেন হওয়া থেকে আটকায়)
-        const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error("Stream read error");
+        const directAnchor = document.createElement('a');
+        directAnchor.style.setProperty('display', 'none', 'important');
+        directAnchor.href = fileUrl;
+        directAnchor.download = filename;
         
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
+        // কোনো নতুন উইন্ডো বা ব্লব মেমোরি ছাড়াই সরাসরি ব্রাউজার ডাউনলোডারকে পুশ করা হচ্ছে
+        document.body.appendChild(directAnchor);
+        directAnchor.click();
+        document.body.removeChild(directAnchor);
         
-        // ২. সাইলেন্ট নো-লিঙ্ক ভার্চুয়াল ইজেকশন
-        const cleanAnchor = document.createElement('a');
-        cleanAnchor.style.setProperty('display', 'none', 'important');
-        cleanAnchor.href = blobUrl;
-        cleanAnchor.download = filename;
-        
-        // ডক ট্রিতে যুক্ত করে ইমিডিয়েট ফায়ার ও ক্লিনআপ
-        document.body.appendChild(cleanAnchor);
-        cleanAnchor.click();
-        
-        document.body.removeChild(cleanAnchor);
-        window.URL.revokeObjectURL(blobUrl);
-        
-        // ৩. সাকসেসফুল ইজেকশনের পর কাউন্টার এক্স্যাক্টলি ১ বার বাড়বে
         await incrementCloudCounter(filename);
 
     } catch (error) {
-        console.error("Virtual stream blocked, applying data URI interface fallback...", error);
-        
-        // অ্যাপ ইন্টারফেসের চরম ফলব্যাক: সাইলেন্ট ব্যাকগ্রাউন্ড আইফ্রেম টানেল
-        let sandboxFrame = document.getElementById('silent-download-frame');
-        if (!sandboxFrame) {
-            sandboxFrame = document.createElement('iframe');
-            sandboxFrame.id = 'silent-download-frame';
-            sandboxFrame.style.setProperty('display', 'none', 'important');
-            document.body.appendChild(sandboxFrame);
+        console.error("Direct download blocked, running iframe fall-through...", error);
+        let storageFrame = document.getElementById('silent-download-frame');
+        if (!storageFrame) {
+            storageFrame = document.createElement('iframe');
+            storageFrame.id = 'silent-download-frame';
+            storageFrame.style.setProperty('display', 'none', 'important');
+            document.body.appendChild(storageFrame);
         }
-        sandboxFrame.src = fileUrl;
+        storageFrame.src = fileUrl;
         await incrementCloudCounter(filename);
     }
 }

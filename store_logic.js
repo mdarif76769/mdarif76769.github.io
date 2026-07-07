@@ -19,7 +19,7 @@ if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData 
     document.getElementById("protected-store-area").style.display = "block";
 } else {
     document.getElementById("auth-gate-panel").style.display = "block";
-    document.getElementById("protected-store-area").style.display = "none";
+    document.getElementById("protected-store-area").style.none;
 }
 
 // তোর আসল ব্রুট-ফোর্স প্রোটেকশন ও আনলক মেথড
@@ -169,7 +169,7 @@ function renderRankingDashboard() {
 }
 
 // ========================================================
-// কাস্টম ইন-উইন্ডো পপআপ এবং স্ট্রিম ডাউনলোড ইঞ্জিন
+// গুগল ড্রাইভ স্টাইল "Download Anyway" এবং প্রোগ্রেস পপআপ
 // ========================================================
 function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUrl) {
     const modal = document.getElementById("download-modal");
@@ -182,42 +182,49 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
     modalIcon.src = iconUrl;
     modalMeta.innerText = `Type: [${badgeType.toUpperCase()}] • Ext: ${filename.split('.').pop().toUpperCase()}`;
 
-    // পপআপের ভেতরে প্রোগ্রেস কন্টেইনার না থাকলে জাভাস্ক্রিপ্ট দিয়ে তৈরি করা হচ্ছে
+    // প্রোগ্রেস বার লেআউট ইনজেকশন (না থাকলে তৈরি হবে)
     let progressWrapper = document.getElementById("modal-progress-wrapper");
     if (!progressWrapper) {
         progressWrapper = document.createElement("div");
         progressWrapper.id = "modal-progress-wrapper";
         progressWrapper.style.cssText = "width:100%; margin-top:15px; display:none; text-align:center;";
         progressWrapper.innerHTML = `
-            <div style="width:100%; background:rgba(255,255,255,0.1); height:8px; border-radius:10px; overflow:hidden; border:1px solid rgba(0,255,242,0.2);">
-                <div id="realtime-progress-bar" style="width:0%; background:linear-gradient(90deg, #00fff2, #0088ff); height:100%; transition:width 0.1s linear; border-radius:10px;"></div>
+            <div style="width:100%; background:rgba(255,255,255,0.1); height:10px; border-radius:10px; overflow:hidden; border:1px solid rgba(0,255,242,0.3);">
+                <div id="realtime-progress-bar" style="width:0%; background:linear-gradient(90deg, #00fff2, #0088ff); height:100%; transition:width 0.05s linear; border-radius:10px;"></div>
             </div>
-            <div style="display:flex; justify-content:between; font-size:11px; color:#00fff2; margin-top:5px; font-family:monospace;">
+            <div style="display:flex; justify-content:between; font-size:11px; color:#00fff2; margin-top:6px; font-family:monospace;">
                 <span id="progress-percent" style="flex:1; text-align:left;">0%</span>
                 <span id="progress-speed" style="flex:1; text-align:right;">0.00 MB/s</span>
             </div>
         `;
-        // ডাউনলোড বাটনের ঠিক উপরে প্রোগ্রেস বারটি পুশ করা হলো
         downloadBtn.parentNode.insertBefore(progressWrapper, downloadBtn);
     }
 
-    // রিসেট পপআপ ভিউ
+    // রিসেট পপআপ ডিফল্ট স্টেট
     progressWrapper.style.display = "none";
     downloadBtn.style.display = "block";
     downloadBtn.disabled = false;
     downloadBtn.querySelector('span').innerText = "⚡ Secure Download";
 
     downloadBtn.onclick = null;
-    downloadBtn.onclick = async function(e) {
+    downloadBtn.onclick = function(e) {
         e.preventDefault();
         e.stopPropagation();
+
+        // বাটনকে ড্রাইভের মতো "Download Anyway" গেটওয়েতে রূপান্তর
+        downloadBtn.querySelector('span').innerText = "⚠️ Download Anyway";
         
-        // ১. প্রথম ক্লিকে ডাউনলোড বাটন হাইড হবে এবং রিয়েল-টাইম প্রোগ্রেস প্যানেল অন হবে
-        downloadBtn.style.display = "none";
-        progressWrapper.style.display = "block";
-        
-        // ২. ব্যাকগ্রাউন্ড স্ট্রিম টানেল এক্সিকিউশন
-        await executeSecureStorageDownload(filename, isRelease, releaseUrl);
+        downloadBtn.onclick = async function(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            // ডাউনলোড অ্যানিওয়ে চাপামাত্রই বাটন হাইড হয়ে ইন্টারনাল স্ক্রিনেই প্রোগ্রেসবার চালু হবে (অটো ব্যাক মেকানিজম)
+            downloadBtn.style.display = "none";
+            progressWrapper.style.display = "block";
+
+            // কোর স্ট্রিম ডাউনলোডার ফায়ার
+            await executeSecureStorageDownload(filename, isRelease, releaseUrl);
+        };
     };
 
     modal.style.display = "grid";
@@ -230,7 +237,7 @@ function closeDownloadModal(event) {
 }
 
 // =======================================================================
-// রিয়েল-টাইম স্ট্রিম ইঞ্জিন (র‍্যাম ক্র্যাশ প্রুফ এবং ইন্টারনাল স্যান্ডবক্স)
+// রিয়েল-টাইম চাঙ্ক-স্ট্রিম ইঞ্জিন (ফিক্সড পার্সেন্টেজ + নো এক্সটার্নাল জাম্প)
 // =======================================================================
 async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
     const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
@@ -239,19 +246,27 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
     const progressPercent = document.getElementById("progress-percent");
     const progressSpeed = document.getElementById("progress-speed");
 
+    // প্রোগ্রেস ইনিশিয়াল রিসেট
+    progressBar.style.width = "0%";
+    progressPercent.innerText = "⏳ Connecting...";
+    progressSpeed.innerText = "0.00 MB/s";
+
     try {
         const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error("Stream connection failed");
+        if (!response.ok) throw new Error("Stream pipe block");
 
-        // ফাইলের টোটাল সাইজ রিড করা (Content-Length বাইট আকারে)
-        const totalBytes = parseInt(response.headers.get('content-length'), 10) || 0;
+        // কন্টেন্ট লেন্থ না পাওয়া গেলে ডেমো ব্যাকআপ সাইজ এসাইন (APK ফাইলের জন্য আনুমানিক ৫ মেগাবাইট)
+        let totalBytes = parseInt(response.headers.get('content-length'), 10);
+        if (!totalBytes || isNaN(totalBytes)) {
+            totalBytes = 5 * 1024 * 1024; // ফলব্যাক ৫ MB, যেন পার্সেন্টেজ রিয়েল-টাইমে ফিলাপ হতে দেখা যায়
+        }
+
         const reader = response.body.getReader();
-        
         let loadedBytes = 0;
         let startTime = performance.now();
-        let chunks = []; // ছোট ছোট টুকরোগুলো এখানে জমা হবে (র‍্যাম সেভ মোড)
+        let chunks = [];
 
-        // স্ট্রিম রিডার লুপ (রিয়েল-টাইম ডাটা স্ক্যানিং)
+        // স্ট্রিম রিড লুপ
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
@@ -259,26 +274,28 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
             chunks.push(value);
             loadedBytes += value.length;
 
-            // স্পিড এবং পার্সেন্টেজ হিসাব
-            if (totalBytes > 0) {
-                const percent = Math.round((loadedBytes / totalBytes) * 100);
-                progressBar.style.width = `${percent}%`;
-                progressPercent.innerText = `⏳ Downloading: ${percent}%`;
-            }
+            // রিয়েল-টাইম পার্সেন্টেজ ক্যালকুলেশন
+            const percent = Math.min(Math.round((loadedBytes / totalBytes) * 100), 99); // সেভ জোন ৯৯%
+            progressBar.style.width = `${percent}%`;
+            progressPercent.innerText = `📥 Downloading: ${percent}%`;
 
+            // রিয়েল-টাইম নেটওয়ার্ক স্পিড
             const currentTime = performance.now();
-            const duration = (currentTime - startTime) / 1000; // সেকেন্ডে কনভার্ট
+            const duration = (currentTime - startTime) / 1000;
             if (duration > 0) {
                 const speedMbps = (loadedBytes / (1024 * 1024)) / duration;
                 progressSpeed.innerText = `⚡ ${speedMbps.toFixed(2)} MB/s`;
             }
         }
 
-        // ৩. ডাউনলোড কমপ্লিট হলে টুকরোগুলোকে জোড়া লাগিয়ে একটি সিঙ্গেল মেমোরি অবজেক্ট তৈরি
-        const completeBlob = new Blob(chunks);
+        // ১০০% কমপ্লিট এবং ডাটা কম্পাইল
+        progressBar.style.width = "100%";
+        progressPercent.innerText = "✅ 100% Complete!";
+        
+        const completeBlob = new Blob(chunks, { type: "application/vnd.android.package-archive" });
         const completeBlobUrl = window.URL.createObjectURL(completeBlob);
 
-        // ৪. সাইলেন্ট ইজেকশন (কোনো এক্সটার্নাল ব্রাউজারে রিডাইরেক্ট করবে না, অ্যাপের ভেতরেই কমপ্লিট হবে)
+        // সাইলেন্ট ইজেকশন টানেল (ফোন ব্যাকগ্রাউন্ডে রাইট করবে)
         const cleanAnchor = document.createElement('a');
         cleanAnchor.style.setProperty('display', 'none', 'important');
         cleanAnchor.href = completeBlobUrl;
@@ -287,22 +304,21 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
         document.body.appendChild(cleanAnchor);
         cleanAnchor.click();
         
-        // মেমোরি ক্লিনআপ
         document.body.removeChild(cleanAnchor);
         window.URL.revokeObjectURL(completeBlobUrl);
 
-        // সাকসেস মেসেজ এবং অটো পপআপ ক্লোজ (অ্যাপের ভেতর ব্যাক করা)
-        progressPercent.innerText = "✅ Download Complete!";
+        // ক্লাউড কাউন্ট ১ বার বাড়ানো
         await incrementCloudCounter(filename);
         
+        // ডাউনলোড শেষ হলে পপআপ ক্লোজ হয়ে মেইন অ্যাপের ভিউতে চলে যাবে
         setTimeout(() => {
             closeDownloadModal(null);
-        }, 1200);
+        }, 1000);
 
     } catch (error) {
-        console.error("Stream restricted, falling back to silent frame tunnel...", error);
+        console.error("Stream failed, running direct fallback...", error);
         
-        // সর্বজনীন সাইলেন্ট ফ্রেম ফলব্যাক (যদি কোর নেটওয়ার্ক স্ট্রিম কোনো ডিভাইসে ব্লক খায়)
+        // চরম ফলব্যাক ইন্টিগ্রেশন (যদি ক্লায়েন্ট নেটওয়ার্ক স্ট্রিম টোটাল ফেইল খায়)
         let sandboxFrame = document.getElementById('silent-download-frame');
         if (!sandboxFrame) {
             sandboxFrame = document.createElement('iframe');
@@ -313,10 +329,9 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
         sandboxFrame.src = fileUrl;
         await incrementCloudCounter(filename);
         
-        // ফলব্যাক ট্রিগার হলে পপআপ ৩ সেকেন্ড পর অটো ক্লোজ হবে
         setTimeout(() => {
             closeDownloadModal(null);
-        }, 3000);
+        }, 2000);
     }
 }
 

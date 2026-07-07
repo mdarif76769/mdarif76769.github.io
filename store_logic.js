@@ -9,7 +9,7 @@ const NAMESPACE = `w8_store_production_${GITHUB_USER}`;
 let cachedFetchedApps = [];
 let globalDownloadStats = JSON.parse(localStorage.getItem('w8_stats_backup')) || {};
 
-// ইনজেক্টেড কাস্টম পপআপ থিম (CSS)
+// ইনজেক্টেড কাস্টম পপআপ এবং লক প্যানেল থিম (CSS)
 const style = document.createElement('style');
 style.innerHTML = `
     .w8-modal-overlay {
@@ -63,7 +63,67 @@ modalOverlay.innerHTML = `
 `;
 document.body.appendChild(modalOverlay);
 
-// মেইন অ্যাভাটার লোগো পাথ সেটআপ
+// ================= [ আপনার আসল ইনক্রিপ্টেড লক সিস্টেম ] =================
+const ENCRYPTED_VAULT = "U2FsdGVkX1+vG8M9xK+Z9Wv2Y9BqjZ==..."; // আপনার আসল এনক্রিপ্টেড হ্যাশ এখানে থাকবে
+let sessionAuthenticated = sessionStorage.getItem("w8_auth_token") === "granted";
+
+function verifyTerminalPasscode() {
+    const inputField = document.getElementById("terminal-pass-input");
+    const errField = document.getElementById("terminal-error-log");
+    if (!inputField) return;
+    
+    const rawInput = inputField.value.trim();
+    try {
+        // CryptoJS এনক্রিপশন ম্যাপিং
+        const decryptedBytes = CryptoJS.AES.decrypt(ENCRYPTED_VAULT, rawInput);
+        const originalPayload = decryptedBytes.toString(CryptoJS.enc.Utf8);
+        
+        if (originalPayload && originalPayload.includes("ACCESS_GRANTED_VERIFIED")) {
+            sessionAuthenticated = true;
+            sessionStorage.setItem("w8_auth_token", "granted");
+            
+            const lockPanel = document.getElementById("terminal-lock-panel");
+            const storeArea = document.getElementById("protected-store-area");
+            if (lockPanel) lockPanel.style.display = "none";
+            if (storeArea) storeArea.style.display = "block";
+            
+            fetchRepositoryData();
+        } else {
+            throw new Error();
+        }
+    } catch (e) {
+        if (errField) {
+            errField.innerText = "❌ CRITICAL ERROR: ACCESS DENIED. INVALID CREDENTIALS.";
+            setTimeout(() => { errField.innerText = ""; }, 3000);
+        }
+        inputField.value = "";
+    }
+}
+
+// এন্টার প্রেস করলে লক খোলার ট্রিকার
+document.addEventListener("DOMContentLoaded", () => {
+    const passInput = document.getElementById("terminal-pass-input");
+    if (passInput) {
+        passInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") verifyTerminalPasscode();
+        });
+    }
+
+    // সেশন চেক করে স্ক্রিন দেখানো
+    const lockPanel = document.getElementById("terminal-lock-panel");
+    const storeArea = document.getElementById("protected-store-area");
+    
+    if (sessionAuthenticated) {
+        if (lockPanel) lockPanel.style.display = "none";
+        if (storeArea) storeArea.style.display = "block";
+        fetchRepositoryData();
+    } else {
+        if (lockPanel) lockPanel.style.display = "grid";
+        if (storeArea) storeArea.style.display = "none";
+    }
+});
+// ========================================================================
+
 const mainLogo = document.getElementById("main-logo");
 if(mainLogo) {
     mainLogo.src = `${BASE_CDN}IMAGE/image.png`;
@@ -143,7 +203,6 @@ function renderRankingDashboard() {
     });
 }
 
-// কার্ডে ক্লিক করলে কাস্টম পপআপ মডাল ওপেন হবে
 function forceDownloadFile(buttonElement, filename) {
     const displayName = formatAppName(filename);
     const currentDownloads = globalDownloadStats[filename] || 0;
@@ -152,8 +211,6 @@ function forceDownloadFile(buttonElement, filename) {
     document.getElementById("w8ModalStats").innerText = `Total Downloads: ${currentDownloads}`;
     
     const downloadBtn = document.getElementById("w8ModalDownloadBtn");
-    
-    // আগের ইভেন্ট লিসেনার ক্লিন করে নতুন অ্যাকশন দেওয়া
     downloadBtn.onclick = function() {
         executeSilentDownload(filename);
         closeW8Modal();
@@ -166,7 +223,6 @@ function closeW8Modal() {
     document.getElementById("w8ModalOverlay").classList.remove("active");
 }
 
-// মডালের ভেতর ডাউনলোডে ক্লিক করলে একই ট্যাবে সাইলেন্টলি ফাইল পুশ হবে
 function executeSilentDownload(filename) {
     const targetUrl = `${BASE_CDN}${encodeURIComponent(filename)}`;
     incrementCloudCounter(filename);
@@ -230,6 +286,8 @@ function displayApps(items) {
 }
 
 async function fetchRepositoryData() {
+    if (!sessionAuthenticated) return; // লক না খুললে ডেটা ফেচ হবে না
+    
     const backupData = localStorage.getItem('w8_apps_backup_list');
     if(backupData) {
         cachedFetchedApps = JSON.parse(backupData);
@@ -270,5 +328,3 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-
-fetchRepositoryData();

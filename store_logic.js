@@ -326,7 +326,7 @@ async function fetchRepositoryData() {
             
             if(filtered.length > 0) {
                 cachedFetchedApps = filtered;
-                localStorage.setItem('w8_apps_backup_list', JSON.stringify(filtered));
+                localStorage.setItem('RS5_apps_backup_list', JSON.stringify(filtered));
                 const totalAppsEl = document.getElementById("total-apps");
                 if(totalAppsEl) totalAppsEl.innerText = `${filtered.length} Items`;
                 displayApps(filtered);

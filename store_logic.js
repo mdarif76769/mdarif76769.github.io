@@ -64,8 +64,8 @@ modalOverlay.innerHTML = `
 document.body.appendChild(modalOverlay);
 
 // ================= [ আপনার আসল ইনক্রিপ্টেড লক সিস্টেম ] =================
-const ENCRYPTED_VAULT = "U2FsdGVkX1+vG8M9xK+Z9Wv2Y9BqjZ==..."; // আপনার আসল এনক্রিপ্টেড হ্যাশ এখানে থাকবে
-let sessionAuthenticated = sessionStorage.getItem("w8_auth_token") === "granted";
+const ENCRYPTED_VAULT = "NDUzNQ=="; //
+let sessionAuthenticated = sessionStorage.getItem("Rs5_auth_token") === "granted";
 
 function verifyTerminalPasscode() {
     const inputField = document.getElementById("terminal-pass-input");

@@ -19,7 +19,7 @@ if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData 
     document.getElementById("protected-store-area").style.display = "block";
 } else {
     document.getElementById("auth-gate-panel").style.display = "block";
-    document.getElementById("protected-store-area").style.none;
+    document.getElementById("protected-store-area").style.display = "none";
 }
 
 // তোর আসল ব্রুট-ফোর্স প্রোটেকশন ও আনলক মেথড
@@ -77,8 +77,8 @@ const GITHUB_REPO = "mdarif76769.github.io";
 const DATA_FOLDER = "DATA";
 const IMAGE_FOLDER = "IMAGE";
 
-const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FOLDER}?nocache=${new Date().getTime()}`;
-const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?nocache=${new Date().getTime()}`;
+const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FOLDER}`;
+const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases`;
 const RAW_CDN_BASE = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/`;
 
 const COUNTER_API_BASE = "https://api.counterapi.dev/v1";
@@ -113,7 +113,7 @@ async function fetchRealTimeStats(items) {
     }
     localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
     
-    // ডাউনলোড স্ট্যাটাস আসার পর অ্যাপগুলোকে বেশি ডাউনলোড অনুযায়ী পুনরায় সর্ট করে স্ক্রিনে দেখানো হবে
+    // রিয়েলটাইম কাউন্ট আপডেট শেষে লিস্ট পুনরায় সর্ট হবে
     sortAndRenderApps(cachedFetchedApps);
     renderRankingDashboard();
 }
@@ -135,7 +135,7 @@ async function incrementCloudCounter(filename) {
         console.error("Stats cloud server sync fail", e);
     }
     
-    // প্রতি ডাউনলোডের পর লিস্ট আবার সর্ট হবে যাতে বেশি ডাউনলোডেরটা উপরে যায়
+    // প্রতি ডাউনলোডের পরপরই রিয়েলটাইম সর্টিং হবে
     sortAndRenderApps(cachedFetchedApps);
     renderRankingDashboard();
 }
@@ -269,7 +269,6 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl, btn
 // র‍্যাংকিং লজিক: বেশি ডাউনলোড হওয়া অ্যাপ সবার আগে যাবে
 // ========================================================
 function sortAndRenderApps(items) {
-    // ডাউনলোড সংখ্যার ভিত্তিতে বড় থেকে ছোট (Descending) ক্রমানুসারে সর্ট করা হচ্ছে
     const sortedItems = [...items].sort((a, b) => {
         const downloadsA = globalDownloadStats[a.name] || 0;
         const downloadsB = globalDownloadStats[b.name] || 0;
@@ -310,7 +309,6 @@ function displayApps(items) {
         const isRelease = item.isRelease ? true : false;
         const downloadUrl = item.downloadUrl || '';
 
-        // হ্যাশট্যাগ (#) দিয়ে লাইভ র‍্যাংক পজিশন কার্ডে বসে যাবে (index + 1)
         const cardHtml = `
             <button class="card" type="button" onclick="triggerDownloadPopup('${item.name.replace(/'/g, "\\'")}', '${pngUrl}', '${itemBadge}', ${isRelease}, '${downloadUrl}')">
                 <div class="badge-chip">${itemBadge}</div>
@@ -342,22 +340,28 @@ async function fetchRepositoryData() {
     }
 
     try {
-        // ১. DATA ফোল্ডারের ফাইল যাচাই
-        const response = await fetch(API_URL);
+        const cacheBuster = `?nocache=${new Date().getTime()}`;
+        
+        // ১. DATA ফোল্ডারের ফাইল স্ক্যান
         let folderFiles = [];
-        if(response.ok) {
-            const files = await response.json();
-            folderFiles = files.filter(file => {
-                if (file.type !== "file") return false;
-                const nameLower = file.name.toLowerCase();
-                return nameLower.endsWith('.apk') || nameLower.endsWith('.txt');
-            }).map(file => ({ name: file.name, isRelease: false }));
+        try {
+            const response = await fetch(`${API_URL}${cacheBuster}`);
+            if(response.ok) {
+                const files = await response.json();
+                folderFiles = files.filter(file => {
+                    if (file.type !== "file") return false;
+                    const nameLower = file.name.toLowerCase();
+                    return nameLower.endsWith('.apk') || nameLower.endsWith('.txt');
+                }).map(file => ({ name: file.name, isRelease: false }));
+            }
+        } catch (e) {
+            console.log("Folder engine sync delayed.");
         }
         
-        // ২. গিটহাব রিলিজ (Releases) এ পাবলিশ করা ফাইল যাচাই লজিক
+        // ২. গিটহাব রিলিজ (Releases) এর লাইভ ফাইল স্ক্যান
         let releaseFiles = [];
         try {
-            const relResponse = await fetch(RELEASES_API_URL);
+            const relResponse = await fetch(`${RELEASES_API_URL}${cacheBuster}`);
             if(relResponse.ok) {
                 const releases = await relResponse.json();
                 releases.forEach(rel => {
@@ -376,12 +380,17 @@ async function fetchRepositoryData() {
                 });
             }
         } catch(e) {
-            console.log("Release data fetch bypass.");
+            console.log("Release engine sync delayed.");
         }
 
-        // ফোল্ডার এবং রিলিজ দুই জায়গার ফাইল একসাথে মার্চ করা
+        // ৩. ডুপ্লিকেট ফিল্টার এবং মার্জিং অপারেশন (রিলিজ ফাইলকে সর্বোচ্চ অগ্রাধিকার)
         if (folderFiles.length > 0 || releaseFiles.length > 0) {
-            cachedFetchedApps = [...folderFiles, ...releaseFiles];
+            const uniqueAppsMap = new Map();
+            
+            folderFiles.forEach(app => uniqueAppsMap.set(app.name, app));
+            releaseFiles.forEach(app => uniqueAppsMap.set(app.name, app)); // রিলিজ ডেটা থাকলে তা ওভাররাইট করে ট্রু (True) কন্ডিশন সেট করবে
+            
+            cachedFetchedApps = Array.from(uniqueAppsMap.values());
             localStorage.setItem('w8_apps_list_backup', JSON.stringify(cachedFetchedApps));
             
             document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;

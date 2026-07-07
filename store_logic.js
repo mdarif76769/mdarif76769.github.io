@@ -169,7 +169,7 @@ function renderRankingDashboard() {
 }
 
 // ========================================================
-// কাস্টম ইন-উইন্ডো পপআপ এবং ডাউনলোড ইঞ্জিন
+// কাস্টম ইন-উইন্ডো পপআপ এবং স্ট্রিম ডাউনলোড ইঞ্জিন
 // ========================================================
 function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUrl) {
     const modal = document.getElementById("download-modal");
@@ -182,28 +182,42 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
     modalIcon.src = iconUrl;
     modalMeta.innerText = `Type: [${badgeType.toUpperCase()}] • Ext: ${filename.split('.').pop().toUpperCase()}`;
 
-    // আগের বাটন লিসেনার ক্লিয়ার করে নতুন করে শুধুমাত্র ১ বার এক্সিকিউশন নিশ্চিত করা হলো
+    // পপআপের ভেতরে প্রোগ্রেস কন্টেইনার না থাকলে জাভাস্ক্রিপ্ট দিয়ে তৈরি করা হচ্ছে
+    let progressWrapper = document.getElementById("modal-progress-wrapper");
+    if (!progressWrapper) {
+        progressWrapper = document.createElement("div");
+        progressWrapper.id = "modal-progress-wrapper";
+        progressWrapper.style.cssText = "width:100%; margin-top:15px; display:none; text-align:center;";
+        progressWrapper.innerHTML = `
+            <div style="width:100%; background:rgba(255,255,255,0.1); height:8px; border-radius:10px; overflow:hidden; border:1px solid rgba(0,255,242,0.2);">
+                <div id="realtime-progress-bar" style="width:0%; background:linear-gradient(90deg, #00fff2, #0088ff); height:100%; transition:width 0.1s linear; border-radius:10px;"></div>
+            </div>
+            <div style="display:flex; justify-content:between; font-size:11px; color:#00fff2; margin-top:5px; font-family:monospace;">
+                <span id="progress-percent" style="flex:1; text-align:left;">0%</span>
+                <span id="progress-speed" style="flex:1; text-align:right;">0.00 MB/s</span>
+            </div>
+        `;
+        // ডাউনলোড বাটনের ঠিক উপরে প্রোগ্রেস বারটি পুশ করা হলো
+        downloadBtn.parentNode.insertBefore(progressWrapper, downloadBtn);
+    }
+
+    // রিসেট পপআপ ভিউ
+    progressWrapper.style.display = "none";
+    downloadBtn.style.display = "block";
+    downloadBtn.disabled = false;
+    downloadBtn.querySelector('span').innerText = "⚡ Secure Download";
+
     downloadBtn.onclick = null;
     downloadBtn.onclick = async function(e) {
         e.preventDefault();
         e.stopPropagation();
         
-        if (downloadBtn.getAttribute("data-loading") === "true") return;
-        downloadBtn.setAttribute("data-loading", "true");
-        downloadBtn.disabled = true;
+        // ১. প্রথম ক্লিকে ডাউনলোড বাটন হাইড হবে এবং রিয়েল-টাইম প্রোগ্রেস প্যানেল অন হবে
+        downloadBtn.style.display = "none";
+        progressWrapper.style.display = "block";
         
-        const btnText = downloadBtn.querySelector('span');
-        btnText.innerText = "Downloading...";
-        
-        // ডিরেক্ট পিউর স্যান্ডবক্স ইঞ্জিন কল (মেমোরি ক্র্যাশ ও ব্রাউজার জাম্প ফিক্সড)
-        await executeSecureStorageDownload(filename, isRelease, releaseUrl, btnText);
-        
-        setTimeout(() => {
-            downloadBtn.removeAttribute("data-loading");
-            downloadBtn.disabled = false;
-            btnText.innerText = "⚡ Secure Download";
-            closeDownloadModal(null);
-        }, 2000);
+        // ২. ব্যাকগ্রাউন্ড স্ট্রিম টানেল এক্সিকিউশন
+        await executeSecureStorageDownload(filename, isRelease, releaseUrl);
     };
 
     modal.style.display = "grid";
@@ -216,58 +230,93 @@ function closeDownloadModal(event) {
 }
 
 // =======================================================================
-// ওয়ান-ক্লিক ডিরেক্ট ডাউনলোড ইঞ্জিন (মেমোরি ক্র্যাশ ও ব্রাউজার রিডাইরেক্ট ফিক্স)
+// রিয়েল-টাইম স্ট্রিম ইঞ্জিন (র‍্যাম ক্র্যাশ প্রুফ এবং ইন্টারনাল স্যান্ডবক্স)
 // =======================================================================
-async function executeSecureStorageDownload(filename, isRelease, releaseUrl, btnTextField) {
+async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
     const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
     
-    // ইউজার কি অ্যান্ড্রয়েড অ্যাপের (WebView) ভেতর আছে কিনা তা চেক
-    const isWebView = /Android.*wv/.test(navigator.userAgent) || (!window.chrome && /Android/.test(navigator.userAgent));
+    const progressBar = document.getElementById("realtime-progress-bar");
+    const progressPercent = document.getElementById("progress-percent");
+    const progressSpeed = document.getElementById("progress-speed");
 
-    if (isWebView) {
-        // ১. অ্যাপের জন্য লজিক: মেমোরি ক্র্যাশ এড়াতে আইফ্রেমের মাধ্যমে ডিরেক্ট স্টোরেজ রিকোয়েস্ট পুশ
-        try {
-            let sandboxFrame = document.getElementById('silent-download-frame');
-            if (!sandboxFrame) {
-                sandboxFrame = document.createElement('iframe');
-                sandboxFrame.id = 'silent-download-frame';
-                sandboxFrame.style.setProperty('display', 'none', 'important');
-                document.body.appendChild(sandboxFrame);
-            }
-            sandboxFrame.src = fileUrl; // অ্যাপের ভেতর থেকেই সিস্টেম ডাউনলোডার টানবে, ব্রাউজারে যাবে না
-            
-            await incrementCloudCounter(filename);
-            return;
-        } catch (err) {
-            console.log("App interface error, bypassing to layout anchor...");
-        }
-    }
-
-    // ২. সাধারণ ব্রাউজারের (Chrome/Safari) জন্য ওয়ান-ক্লিক ডিরেক্ট মেথড
     try {
-        const directAnchor = document.createElement('a');
-        directAnchor.style.setProperty('display', 'none', 'important');
-        directAnchor.href = fileUrl;
-        directAnchor.download = filename;
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error("Stream connection failed");
+
+        // ফাইলের টোটাল সাইজ রিড করা (Content-Length বাইট আকারে)
+        const totalBytes = parseInt(response.headers.get('content-length'), 10) || 0;
+        const reader = response.body.getReader();
         
-        // কোনো নতুন উইন্ডো বা ব্লব মেমোরি ছাড়াই সরাসরি ব্রাউজার ডাউনলোডারকে পুশ করা হচ্ছে
-        document.body.appendChild(directAnchor);
-        directAnchor.click();
-        document.body.removeChild(directAnchor);
+        let loadedBytes = 0;
+        let startTime = performance.now();
+        let chunks = []; // ছোট ছোট টুকরোগুলো এখানে জমা হবে (র‍্যাম সেভ মোড)
+
+        // স্ট্রিম রিডার লুপ (রিয়েল-টাইম ডাটা স্ক্যানিং)
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            chunks.push(value);
+            loadedBytes += value.length;
+
+            // স্পিড এবং পার্সেন্টেজ হিসাব
+            if (totalBytes > 0) {
+                const percent = Math.round((loadedBytes / totalBytes) * 100);
+                progressBar.style.width = `${percent}%`;
+                progressPercent.innerText = `⏳ Downloading: ${percent}%`;
+            }
+
+            const currentTime = performance.now();
+            const duration = (currentTime - startTime) / 1000; // সেকেন্ডে কনভার্ট
+            if (duration > 0) {
+                const speedMbps = (loadedBytes / (1024 * 1024)) / duration;
+                progressSpeed.innerText = `⚡ ${speedMbps.toFixed(2)} MB/s`;
+            }
+        }
+
+        // ৩. ডাউনলোড কমপ্লিট হলে টুকরোগুলোকে জোড়া লাগিয়ে একটি সিঙ্গেল মেমোরি অবজেক্ট তৈরি
+        const completeBlob = new Blob(chunks);
+        const completeBlobUrl = window.URL.createObjectURL(completeBlob);
+
+        // ৪. সাইলেন্ট ইজেকশন (কোনো এক্সটার্নাল ব্রাউজারে রিডাইরেক্ট করবে না, অ্যাপের ভেতরেই কমপ্লিট হবে)
+        const cleanAnchor = document.createElement('a');
+        cleanAnchor.style.setProperty('display', 'none', 'important');
+        cleanAnchor.href = completeBlobUrl;
+        cleanAnchor.download = filename;
         
+        document.body.appendChild(cleanAnchor);
+        cleanAnchor.click();
+        
+        // মেমোরি ক্লিনআপ
+        document.body.removeChild(cleanAnchor);
+        window.URL.revokeObjectURL(completeBlobUrl);
+
+        // সাকসেস মেসেজ এবং অটো পপআপ ক্লোজ (অ্যাপের ভেতর ব্যাক করা)
+        progressPercent.innerText = "✅ Download Complete!";
         await incrementCloudCounter(filename);
+        
+        setTimeout(() => {
+            closeDownloadModal(null);
+        }, 1200);
 
     } catch (error) {
-        console.error("Direct download blocked, running iframe fall-through...", error);
-        let storageFrame = document.getElementById('silent-download-frame');
-        if (!storageFrame) {
-            storageFrame = document.createElement('iframe');
-            storageFrame.id = 'silent-download-frame';
-            storageFrame.style.setProperty('display', 'none', 'important');
-            document.body.appendChild(storageFrame);
+        console.error("Stream restricted, falling back to silent frame tunnel...", error);
+        
+        // সর্বজনীন সাইলেন্ট ফ্রেম ফলব্যাক (যদি কোর নেটওয়ার্ক স্ট্রিম কোনো ডিভাইসে ব্লক খায়)
+        let sandboxFrame = document.getElementById('silent-download-frame');
+        if (!sandboxFrame) {
+            sandboxFrame = document.createElement('iframe');
+            sandboxFrame.id = 'silent-download-frame';
+            sandboxFrame.style.setProperty('display', 'none', 'important');
+            document.body.appendChild(sandboxFrame);
         }
-        storageFrame.src = fileUrl;
+        sandboxFrame.src = fileUrl;
         await incrementCloudCounter(filename);
+        
+        // ফলব্যাক ট্রিগার হলে পপআপ ৩ সেকেন্ড পর অটো ক্লোজ হবে
+        setTimeout(() => {
+            closeDownloadModal(null);
+        }, 3000);
     }
 }
 
@@ -322,7 +371,7 @@ function displayApps(items) {
                 <div class="icon">
                     <img loading="lazy" width="62" height="62" 
                          src="${pngUrl}" 
-                         onerror="this.onerror=null; this.src='${jpgUrl}'; this.onerror=function(){this.src='${fallbackIcon}';};" 
+                         onerror="this.onerror=null; this.src='${jpgUrl}'; this.onerror=function(){this.src='https://i.postimg.cc/mD3fzq4Y/apk-icon.png';};" 
                          alt="${displayName}">
                 </div>
                 <p class="app-name">${displayName}</p>

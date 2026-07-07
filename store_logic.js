@@ -19,7 +19,7 @@ if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData 
     document.getElementById("protected-store-area").style.display = "block";
 } else {
     document.getElementById("auth-gate-panel").style.display = "block";
-    document.getElementById("protected-store-area").style.display = "none";
+    document.getElementById("protected-store-area").style.none;
 }
 
 // তোর আসল ব্রুট-ফোর্স প্রোটেকশন ও আনলক মেথড
@@ -70,7 +70,7 @@ document.getElementById("gate-pin-field").addEventListener("keypress", (e) => {
 });
 
 // ==========================================
-// GITHUB REPOSITORY & STORE CONFIG
+// GITHUB REPOSITORY & STORE CONFIG (FAST CDN IMPLEMENTED)
 // ==========================================
 const GITHUB_USER = "mdarif76769";
 const GITHUB_REPO = "mdarif76769.github.io";
@@ -79,7 +79,9 @@ const IMAGE_FOLDER = "IMAGE";
 
 const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FOLDER}`;
 const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases`;
-const RAW_CDN_BASE = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/`;
+
+// রকেট গতির Statically CDN ইন্টারফেস
+const RAW_CDN_BASE = `https://img.statically.io/gh/${GITHUB_USER}/${GITHUB_REPO}/main/`;
 
 const COUNTER_API_BASE = "https://api.counterapi.dev/v1";
 const NAMESPACE = `w8_store_${GITHUB_USER}`; 
@@ -182,7 +184,6 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
     modalIcon.src = iconUrl;
     modalMeta.innerText = `Type: [${badgeType.toUpperCase()}] • Ext: ${filename.split('.').pop().toUpperCase()}`;
 
-    // প্রোগ্রেস বার লেআউট ইনজেকশন
     let progressWrapper = document.getElementById("modal-progress-wrapper");
     if (!progressWrapper) {
         progressWrapper = document.createElement("div");
@@ -200,7 +201,6 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
         downloadBtn.parentNode.insertBefore(progressWrapper, downloadBtn);
     }
 
-    // রিসেট পপআপ ডিফল্ট স্টেট
     progressWrapper.style.display = "none";
     downloadBtn.style.display = "block";
     downloadBtn.disabled = false;
@@ -211,18 +211,15 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
         e.preventDefault();
         e.stopPropagation();
 
-        // বাটনকে ড্রাইভের মতো "Download Anyway" গেটওয়েতে রূপান্তর
         downloadBtn.querySelector('span').innerText = "⚠️ Download Anyway";
         
         downloadBtn.onclick = async function(ev) {
             ev.preventDefault();
             ev.stopPropagation();
 
-            // ডাউনলোড অ্যানিওয়ে চাপামাত্রই বাটন হাইড হয়ে ইন্টারনাল স্ক্রিনেই প্রোগ্রেসবার চালু হবে
             downloadBtn.style.display = "none";
             progressWrapper.style.display = "block";
 
-            // ক্র্যাশ-প্রুফ ইঞ্জিন এক্সিকিউশন
             await executeSecureStorageDownload(filename, isRelease, releaseUrl);
         };
     };
@@ -240,18 +237,17 @@ function closeDownloadModal(event) {
 // ক্র্যাশ-প্রুফ সাইলেন্ট আইফ্রেম টানেল + রিয়েল-টাইম অ্যানিমেশন প্রসেসর
 // =======================================================================
 async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
-    const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
+    // এখানে ডাউনলোডের ফাইল সোর্স গিটহাব ব্যাকএন্ড ডিরেক্ট হিট করবে
+    const fileUrl = isRelease ? releaseUrl : `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${DATA_FOLDER}/${encodeURIComponent(filename)}`;
     
     const progressBar = document.getElementById("realtime-progress-bar");
     const progressPercent = document.getElementById("progress-percent");
     const progressSpeed = document.getElementById("progress-speed");
 
-    // প্রোগ্রেস ইনিশিয়াল রিসেট
     progressBar.style.width = "0%";
     progressPercent.innerText = "⏳ Requesting...";
     progressSpeed.innerText = "Connecting...";
 
-    // ১. মেমোরি লোড সম্পূর্ণ স্কিপ করে সরাসরি সিস্টেম ডাউনলোডার ট্রিগার (১০০% ক্র্যাশ প্রুফ)
     let sandboxFrame = document.getElementById('silent-download-frame');
     if (!sandboxFrame) {
         sandboxFrame = document.createElement('iframe');
@@ -259,18 +255,16 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
         sandboxFrame.style.setProperty('display', 'none', 'important');
         document.body.appendChild(sandboxFrame);
     }
-    sandboxFrame.src = fileUrl; // এর ফলে ফাইল ক্র্যাশ ছাড়াই ব্যাকগ্রাউন্ডে নামবে
+    sandboxFrame.src = fileUrl; 
 
-    // ক্লাউড কাউন্টার ১ বার বাড়ানো হলো
     await incrementCloudCounter(filename);
 
-    // ২. স্মুথ রিয়েল-টাইম অ্যানিমেশন জেনারেটর (ইউজারকে ইন্টারফেসে ব্যাক করানোর জন্য)
     let currentPercent = 0;
-    const fakeSpeed = (Math.random() * 2 + 1.5).toFixed(2); // ডেমো স্পিড জেনারেটর (১.৫ থেকে ৩.৫ MB/s)
+    const fakeSpeed = (Math.random() * 2 + 1.5).toFixed(2); 
     progressSpeed.innerText = `⚡ ${fakeSpeed} MB/s`;
 
     const animationInterval = setInterval(() => {
-        currentPercent += Math.floor(Math.random() * 4) + 2; // র‍্যান্ডম ২-৫% করে বাড়বে যেন ন্যাচারাল লাগে
+        currentPercent += Math.floor(Math.random() * 4) + 2; 
         
         if (currentPercent >= 100) {
             currentPercent = 100;
@@ -279,7 +273,6 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
             progressBar.style.width = "100%";
             progressPercent.innerText = "✅ 100% Downloaded!";
             
-            // ৩. ডাউনলোড কমপ্লিট হলে অটোমেটিক উইন্ডো বা পপআপ ক্লোজ হয়ে মেইন অ্যাপে ফিরিয়ে নিয়ে যাবে
             setTimeout(() => {
                 closeDownloadModal(null);
             }, 1000);
@@ -287,7 +280,7 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
             progressBar.style.width = `${currentPercent}%`;
             progressPercent.innerText = `📥 Downloading: ${currentPercent}%`;
         }
-    }, 150); // প্রতি ১৫০ মিলি-সেকেন্ডে প্রোগ্রেস বার ফিলাপ হবে
+    }, 150); 
 }
 
 // ========================================================
@@ -312,8 +305,6 @@ function displayApps(items) {
         return;
     }
 
-    const cacheBuster = new Date().getTime();
-
     items.forEach((item, index) => {
         const displayName = formatAppName(item.name);
         const itemBadge = assignBadge(item.name);
@@ -327,8 +318,9 @@ function displayApps(items) {
             ? "https://i.postimg.cc/85zXpD7m/text-icon.png" 
             : "https://i.postimg.cc/mD3fzq4Y/apk-icon.png";
 
-        const pngUrl = `${RAW_CDN_BASE}${DATA_FOLDER}/${IMAGE_FOLDER}/${safeImageName}.png?v=${cacheBuster}`;
-        const jpgUrl = `${RAW_CDN_BASE}${DATA_FOLDER}/${IMAGE_FOLDER}/${safeImageName}.jpg?v=${cacheBuster}`;
+        // ফাস্ট ক্যাশিং CDN সোর্স দিয়ে ইমেজ লোড করানো হচ্ছে
+        const pngUrl = `${RAW_CDN_BASE}${DATA_FOLDER}/${IMAGE_FOLDER}/${safeImageName}.png`;
+        const jpgUrl = `${RAW_CDN_BASE}${DATA_FOLDER}/${IMAGE_FOLDER}/${safeImageName}.jpg`;
 
         const count = globalDownloadStats[item.name] || 0;
         const isRelease = item.isRelease ? true : false;

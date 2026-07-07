@@ -112,8 +112,6 @@ async function fetchRealTimeStats(items) {
         }
     }
     localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
-    
-    // রিয়েলটাইম কাউন্ট আপডেট শেষে লিস্ট পুনরায় সর্ট হবে
     sortAndRenderApps(cachedFetchedApps);
     renderRankingDashboard();
 }
@@ -135,7 +133,6 @@ async function incrementCloudCounter(filename) {
         console.error("Stats cloud server sync fail", e);
     }
     
-    // প্রতি ডাউনলোডের পরপরই রিয়েলটাইম সর্টিং হবে
     sortAndRenderApps(cachedFetchedApps);
     renderRankingDashboard();
 }
@@ -188,7 +185,7 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
     downloadBtn.onclick = async function() {
         downloadBtn.disabled = true;
         const btnText = downloadBtn.querySelector('span');
-        btnText.innerText = "Accessing Storage...";
+        btnText.innerText = "Downloading...";
         
         await executeSecureStorageDownload(filename, isRelease, releaseUrl, btnText);
         
@@ -196,7 +193,7 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
             downloadBtn.disabled = false;
             btnText.innerText = "⚡ Secure Download";
             closeDownloadModal(null);
-        }, 1200);
+        }, 1500);
     };
 
     modal.style.display = "grid";
@@ -208,33 +205,28 @@ function closeDownloadModal(event) {
     }
 }
 
+// পারফেক্ট হাইব্রিড ডাউনলোডার (ব্রাউজার এবং অ্যান্ড্রয়েড অ্যাপ ওয়েবভিউ উভয়ের জন্য)
 async function executeSecureStorageDownload(filename, isRelease, releaseUrl, btnTextField) {
     const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
+    
+    // ইউজার কি সাধারণ ব্রাউজারে আছে নাকি অ্যান্ড্রয়েড অ্যাপের (WebView) ভেতর আছে তা ডিটেক্ট করা হচ্ছে
+    const isWebView = /Android.*wv/.test(navigator.userAgent) || (!window.chrome && /Android/.test(navigator.userAgent));
 
-    try {
-        if ('showSaveFilePicker' in window) {
-            btnTextField.innerText = "Select Directory...";
-            const opts = {
-                suggestedName: filename,
-                types: [{
-                    description: 'Application Package File',
-                    accept: {'application/octet-stream': [`.${filename.split('.').pop()}`]},
-                }],
-            };
-            const handle = await window.showSaveFilePicker(opts);
-            btnTextField.innerText = "Writing to Storage...";
-            
-            const response = await fetch(fileUrl);
-            const writable = await handle.createWritable();
-            await response.body.pipeTo(writable);
-            
+    if (isWebView) {
+        // ১. অ্যাপের ভেতরের জন্য লজিক: সরাসরি অ্যান্ড্রয়েড সিস্টেম ম্যানেজারকে কল করা (যাতে নোটিফিকেশনে প্রোগ্রেস বার দেখায়)
+        try {
             await incrementCloudCounter(filename);
+            window.location.href = fileUrl; // কোনো আলাদা উইন্ডো খুলবে না, অ্যাপের ভেতর থেকেই সিস্টেম ডাউনলোড ট্রিগার হবে
             return;
+        } catch (err) {
+            console.log("Direct Intent redirection failed, trying iframe backup...");
         }
+    }
 
-        btnTextField.innerText = "Downloading...";
+    // ২. ব্রাউজারের জন্য লজিক: ১-ক্লিকে ডিরেক্ট ডিফল্ট Download ফোল্ডারে ফাইল পাঠানো (কোনো পাথ বা উইন্ডো সিলেকশন আসবে না)
+    try {
         const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error("Fetch stream restricted.");
+        if (!response.ok) throw new Error("Fetch restricted.");
         
         const blob = await response.blob();
         const blobUrl = window.URL.createObjectURL(blob);
@@ -252,7 +244,8 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl, btn
         await incrementCloudCounter(filename);
 
     } catch (error) {
-        console.log("Storage API Fallback Action Active...", error);
+        console.log("Blob failed in browser, triggering iframe fall-through...", error);
+        // সর্বজনীন ফলব্যাক
         let downloadFrame = document.getElementById('silent-download-frame');
         if (!downloadFrame) {
             downloadFrame = document.createElement('iframe');
@@ -342,7 +335,6 @@ async function fetchRepositoryData() {
     try {
         const cacheBuster = `?nocache=${new Date().getTime()}`;
         
-        // ১. DATA ফোল্ডারের ফাইল স্ক্যান
         let folderFiles = [];
         try {
             const response = await fetch(`${API_URL}${cacheBuster}`);
@@ -358,7 +350,6 @@ async function fetchRepositoryData() {
             console.log("Folder engine sync delayed.");
         }
         
-        // ২. গিটহাব রিলিজ (Releases) এর লাইভ ফাইল স্ক্যান
         let releaseFiles = [];
         try {
             const relResponse = await fetch(`${RELEASES_API_URL}${cacheBuster}`);
@@ -383,12 +374,11 @@ async function fetchRepositoryData() {
             console.log("Release engine sync delayed.");
         }
 
-        // ৩. ডুপ্লিকেট ফিল্টার এবং মার্জিং অপারেশন (রিলিজ ফাইলকে সর্বোচ্চ অগ্রাধিকার)
         if (folderFiles.length > 0 || releaseFiles.length > 0) {
             const uniqueAppsMap = new Map();
             
             folderFiles.forEach(app => uniqueAppsMap.set(app.name, app));
-            releaseFiles.forEach(app => uniqueAppsMap.set(app.name, app)); // রিলিজ ডেটা থাকলে তা ওভাররাইট করে ট্রু (True) কন্ডিশন সেট করবে
+            releaseFiles.forEach(app => uniqueAppsMap.set(app.name, app)); 
             
             cachedFetchedApps = Array.from(uniqueAppsMap.values());
             localStorage.setItem('w8_apps_list_backup', JSON.stringify(cachedFetchedApps));

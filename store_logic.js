@@ -180,19 +180,75 @@ function updateCardCounters() {
     });
 }
 
-// তোর আসল ইন-অ্যাপ সাইলেন্ট হাইব্রিড ডাউনলোডার মেথড
-async function forceDownloadFile(buttonElement, filename, isRelease = false, releaseUrl = '') {
-    if (buttonElement.classList.contains('downloading')) return;
-    
-    buttonElement.classList.add('downloading');
-    const counterLabel = buttonElement.querySelector('.download-count');
-    counterLabel.innerText = "Processing...";
+// ========================================================
+// কাস্টম ইন-উইন্ডো পপআপ এবং স্টোরেজ পারমিশন লজিক (NEW)
+// ========================================================
+function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUrl) {
+    const modal = document.getElementById("download-modal");
+    const modalTitle = document.getElementById("modal-app-title");
+    const modalIcon = document.getElementById("modal-app-icon");
+    const modalMeta = document.getElementById("modal-app-meta");
+    const downloadBtn = document.getElementById("modal-download-btn");
 
+    modalTitle.innerText = formatAppName(filename);
+    modalIcon.src = iconUrl;
+    modalMeta.innerText = `Type: [${badgeType.toUpperCase()}] • Ext: ${filename.split('.').pop().toUpperCase()}`;
+
+    // ডাউনলোড বাটনে ক্লিক ইভেন্ট বাইন্ডিং
+    downloadBtn.onclick = async function() {
+        downloadBtn.disabled = true;
+        const btnText = downloadBtn.querySelector('span');
+        btnText.innerText = "Accessing Storage...";
+        
+        // একই স্ক্রিনে থেকে ব্যাকগ্রাউন্ড প্রসেসে ডাউনলোডার ফায়ার করা
+        await executeSecureStorageDownload(filename, isRelease, releaseUrl, btnText);
+        
+        setTimeout(() => {
+            downloadBtn.disabled = false;
+            btnText.innerText = "⚡ Secure Download";
+            closeDownloadModal(null);
+        }, 1200);
+    };
+
+    modal.style.display = "grid";
+}
+
+function closeDownloadModal(event) {
+    if(!event || event.target === document.getElementById("download-modal") || event === null) {
+        document.getElementById("download-modal").style.display = "none";
+    }
+}
+
+// ইন-অ্যাপ স্টোরেজ ডাউনলোড কোর ইঞ্জিন (কোনো নতুন ব্ল্যাঙ্ক পেজ খুলবে না)
+async function executeSecureStorageDownload(filename, isRelease, releaseUrl, btnTextField) {
     const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
 
     try {
+        // ১. মডার্ন সিস্টেম ডিরেক্টরি চয়েস ও স্টোরেজ পারমিশন প্রম্পট (যদি ব্রাউজারে এভেলেবেল থাকে)
+        if ('showSaveFilePicker' in window) {
+            btnTextField.innerText = "Select Directory...";
+            const opts = {
+                suggestedName: filename,
+                types: [{
+                    description: 'Application Package File',
+                    accept: {'application/octet-stream': [`.${filename.split('.').pop()}`]},
+                }],
+            };
+            const handle = await window.showSaveFilePicker(opts);
+            btnTextField.innerText = "Writing to Storage...";
+            
+            const response = await fetch(fileUrl);
+            const writable = await handle.createWritable();
+            await response.body.pipeTo(writable);
+            
+            await incrementCloudCounter(filename);
+            return;
+        }
+
+        // ২. সাইলেন্ট ফলব্যাক: Blob রাইটার (কোনো এক্সটার্নাল উইন্ডো ক্রিয়েট না করে ব্যাকগ্রাউন্ডে সেভ করবে)
+        btnTextField.innerText = "Downloading...";
         const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error("CORS or Network issue.");
+        if (!response.ok) throw new Error("Fetch stream restricted.");
         
         const blob = await response.blob();
         const blobUrl = window.URL.createObjectURL(blob);
@@ -203,14 +259,16 @@ async function forceDownloadFile(buttonElement, filename, isRelease = false, rel
         tempAnchor.setAttribute('download', filename);
         
         document.body.appendChild(tempAnchor);
-        tempAnchor.click();
+        tempAnchor.click(); 
         
         document.body.removeChild(tempAnchor);
         window.URL.revokeObjectURL(blobUrl);
         await incrementCloudCounter(filename);
+
     } catch (error) {
-        console.log("Blob fetch blocked or failed. Activating secure iframe injection fallback...");
+        console.log("Storage API bypassed or declined. Activating iframe proxy fallback...", error);
         
+        // ৩. ইন-অ্যাপ ওয়েবভিউ/টেলিগ্রাম স্যান্ডবক্সের জন্য সাইলেন্ট আইফ্রেম মেথড
         let downloadFrame = document.getElementById('silent-download-frame');
         if (!downloadFrame) {
             downloadFrame = document.createElement('iframe');
@@ -220,11 +278,6 @@ async function forceDownloadFile(buttonElement, filename, isRelease = false, rel
         }
         downloadFrame.src = fileUrl;
         await incrementCloudCounter(filename);
-    } finally {
-        setTimeout(() => {
-            buttonElement.classList.remove('downloading');
-            updateCardCounters(); 
-        }, 1500);
     }
 }
 
@@ -259,8 +312,9 @@ function displayApps(items) {
         const isRelease = item.isRelease ? true : false;
         const downloadUrl = item.downloadUrl || '';
 
+        // ক্লিকে এখন সরাসরি triggerDownloadPopup ফায়ার হবে
         const cardHtml = `
-            <button class="card" type="button" onclick="forceDownloadFile(this, '${item.name.replace(/'/g, "\\'")}', ${isRelease}, '${downloadUrl}')">
+            <button class="card" type="button" onclick="triggerDownloadPopup('${item.name.replace(/'/g, "\\'")}', '${pngUrl}', '${itemBadge}', ${isRelease}, '${downloadUrl}')">
                 <div class="badge-chip">${itemBadge}</div>
                 <div class="rank-badge">#${index + 1}</div>
                 <div class="icon">

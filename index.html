@@ -6,7 +6,7 @@
     <title>W8AppsStore</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=VT323&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght=400;600;700&family=VT323&display=swap');
         :root{--green:#00ff9f;--green-soft:rgba(0,255,159,.28);--cyan:#25dfff;--panel:rgba(3,15,12,.82);--text:#d9fff0;--danger:#ff4770;--gold:#ffd700}
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{min-height:100%;touch-action:manipulation;oversample-behavior:none;-webkit-text-size-adjust:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}body{margin:0;color:var(--text);font-family:'Fira Code',Consolas,monospace;background:radial-gradient(circle at 50% 0%,rgba(0,255,159,.18),transparent 34%),radial-gradient(circle at 15% 86%,rgba(37,223,255,.12),transparent 30%),linear-gradient(180deg,#020303 0%,#06110e 54%,#010202 100%);overflow-x:hidden}
         
@@ -19,10 +19,10 @@
         .app-shell{position:relative;z-index:1;width:min(430px,100%);min-height:100vh;margin:0 auto;padding:26px 14px 32px}.app-shell:before,.app-shell:after{content:"";position:fixed;inset:0;pointer-events:none}.app-shell:before{background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px),linear-gradient(90deg,transparent,rgba(0,255,159,.06),transparent);mix-blend-mode:screen;opacity:.85}.app-shell:after{background:radial-gradient(circle at 50% 30%,transparent 0 48%,rgba(0,0,0,.44) 100%),radial-gradient(circle at 52% 18%,rgba(0,255,159,.11),transparent 18%)}
         .top{position:relative;z-index:2;display:grid;justify-items:center;gap:16px;margin-bottom:18px}.avatar{position:relative;width:118px;height:118px;border-radius:50%;border:2px solid var(--green);background:radial-gradient(circle,rgba(0,255,159,.2),transparent 44%),repeating-linear-gradient(90deg,transparent 0 8px,rgba(0,255,159,.09) 8px 10px),rgba(0,0,0,.62);box-shadow:0 0 18px var(--green-soft),0 0 48px rgba(0,255,159,.22),inset 0 0 22px rgba(0,255,159,.18);animation:avatarFlicker 3s infinite steps(2,end);overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover;display:block}.avatar:before,.avatar:after{content:"";position:absolute;border-radius:50%;inset:14px;border:1px dashed rgba(37,223,255,.62);animation:rotateRing 11s linear infinite}.avatar:after{inset:35px;border-style:solid;border-color:rgba(0,255,159,.76);animation-duration:7s;animation-direction:reverse}
         .title-panel,.detail-panel,.status-panel,.rank-panel{position:relative;overflow:hidden;border:1px solid var(--green);border-radius:8px;background:linear-gradient(90deg,transparent,rgba(0,255,159,.08),transparent),var(--panel);box-shadow:0 0 18px rgba(0,255,159,.28),0 0 42px rgba(37,223,255,.12),inset 0 0 24px rgba(0,255,159,.11)}.title-panel{width:100%;min-height:82px;display:grid;place-items:center}.title-panel:before,.detail-panel:before,.status-panel:before,.rank-panel:before,.card:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 12px,rgba(0,255,159,.1) 12px 13px),repeating-linear-gradient(90deg,transparent 0 18px,rgba(37,223,255,.07) 18px 19px);opacity:.46}.bot-name{position:relative;z-index:1;margin:0;color:var(--green);font-family:'VT323',monospace;font-size:clamp(44px,14vw,66px);font-weight:400;letter-spacing:0;line-height:1;text-align:center;text-shadow:0 0 8px var(--green),2px 0 0 rgba(37,223,255,.5),-2px 0 0 rgba(0,255,159,.38);animation:textGlitch 3.2s infinite steps(2,end)}
-        .status-panel{z-index:2;margin-bottom:14px;padding:13px;display:grid;gap:8px}.status-title{position:relative;z-index:1;color:var(--cyan);font-size:12px;text-transform:uppercase}.status-row{position:relative;z-index:1;display:flex;justify-content:space-between;gap:10px;font-size:13px}.status-row strong{color:var(--green);overflow-wrap:anywhere;text-align:right}.filter-panel{z-index:2;margin-bottom:14px;padding:13px;display:grid;gap:10px}.filter-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:10px}.filter-input{width:100%;min-height:44px;padding:10px 12px;border:1px solid rgba(0,255,159,.35);border-radius:8px;background:rgba(0,0,0,.28);color:var(--text);font:inherit}.card-grid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.card{position:relative;min-height:156px;display:grid;justify-items:center;align-content:center;gap:10px;overflow:hidden;padding:16px 10px;border:1px solid var(--green);border-radius:8px;color:var(--text);background:radial-gradient(circle at 50% 10%,rgba(0,255,159,.14),transparent 42%),linear-gradient(145deg,rgba(0,255,159,.08),rgba(37,223,255,.03)),rgba(1,8,6,.82);box-shadow:0 0 15px rgba(0,255,159,.22),inset 0 0 24px rgba(0,255,159,.08);cursor:pointer;font-family:inherit;width:100%}.card:after{content:"";position:absolute;inset:18% 0 auto;height:24px;background:linear-gradient(90deg,transparent,rgba(37,223,255,.34),transparent 38%,rgba(0,255,159,.28),transparent);opacity:0;animation:cardNoise 3.8s infinite steps(2,end)}.card:nth-child(2n):after{animation-delay:-1.3s;top:52%}.card:nth-child(3n):after{animation-delay:-2.1s;top:33%}.card:hover,.card:focus-visible{outline:none;transform:translateY(-2px);box-shadow:0 0 22px rgba(0,255,159,.36),0 0 34px rgba(37,223,255,.15),inset 0 0 26px rgba(0,255,159,.1)}
+        .status-panel{z-index:2;margin-bottom:14px;padding:13px;display:grid;gap:8px}.status-title{position:relative;z-index:1;color:var(--cyan);font-size:12px;text-transform:uppercase}.status-row{position:relative;z-index:1;display:flex;justify-content:space-between;gap:10px;font-size:13px}.status-row strong{color:var(--green);overflow-wrap:anywhere;text-align:right}.filter-panel{z-index:2;margin-bottom:14px;padding:13px;display:grid;gap:10px}.filter-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:10px}.filter-input{width:100%;min-height:44px;padding:10px 12px;border:1px solid rgba(0,255,159,.35);border-radius:8px;background:rgba(0,0,0,.28);color:var(--text);font:inherit}.card-grid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.card{position:relative;min-height:156px;display:grid;justify-items:center;align-content:center;gap:10px;overflow:hidden;padding:16px 10px;border:1px solid var(--green);border-radius:8px;color:var(--text);background:radial-gradient(circle at 50% 10%,rgba(0,255,159,.14),transparent 42%),linear-gradient(145deg,rgba(0,255,159,.08),rgba(37,223,255,.03)),rgba(1,8,6,.82);box-shadow:0 0 15px rgba(0,255,159,.22),inset 0 0 24px rgba(0,255,159,.08);cursor:pointer;font-family:inherit;width:100%}.card:after{content:"";position:absolute;inset:18% 0 auto;height:24px;background:linear-gradient(90deg,transparent,rgba(37,223,255,.34),transparent 38%,rgba(0,255,159,.28),transparent);opacity:0;animation:cardNoise 3.8s infinite steps(2,end)}.card:hover,.card:focus-visible{outline:none;transform:translateY(-2px);box-shadow:0 0 22px rgba(0,255,159,.36),0 0 34px rgba(37,223,255,.15),inset 0 0 26px rgba(0,255,159,.1)}
         .icon{position:relative;z-index:1;width:62px;height:62px;display:grid;place-items:center;overflow:hidden;border:1px solid var(--green);border-radius:50%;background:radial-gradient(circle,rgba(37,223,255,.18),transparent 58%),rgba(0,255,159,.08);box-shadow:0 0 16px rgba(0,255,159,.35),inset 0 0 15px rgba(0,255,159,.16);animation:logoPulse 2.6s infinite}.icon:before{content:"";width:26px;height:26px;border:2px solid var(--green);border-radius:50%;box-shadow:0 0 12px rgba(0,255,159,.55)}.icon:after{content:"";position:absolute;width:130%;height:1px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);transform:rotate(-22deg);animation:iconScan 2.8s infinite}.icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;pointer-events:none;-webkit-user-drag:none}
-        .app-name{position:relative;z-index:1;width:100%;margin:0;color:var(--text);font-size:13px;font-weight:700;text-align:center;overflow-wrap:anywhere;text-shadow:0 0 10px rgba(0,255,159,.54)}.download-count{position:relative;z-index:1;color:var(--cyan);font-size:11px}.badge-chip{position:absolute;top:10px;right:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(37,223,255,.16);border:1px solid rgba(37,223,255,.45);color:var(--cyan);font-size:10px;text-transform:uppercase;letter-spacing:.08em}.rank-badge{position:absolute;top:10px;left:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(0,255,159,.12);border:1px solid rgba(0,255,159,.35);color:var(--green);font-size:10px;font-weight:700}
-        .card.downloading{border-color:var(--cyan);box-shadow:0 0 20px var(--cyan);opacity:.8}
+        .app-name{position:relative;z-index:1;width:100%;margin:0;color:var(--text);font-size:13px;font-weight:700;text-align:center;overflow-wrap:anywhere;text-shadow:0 0 10px rgba(0,255,159,.54)}.download-count{position:relative;z-index:1;color:var(--cyan);font-size:11px}
+        .badge-chip{position:absolute;top:10px;right:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(37,223,255,.16);border:1px solid rgba(37,223,255,.45);color:var(--cyan);font-size:10px;text-transform:uppercase;letter-spacing:.08em}.rank-badge{position:absolute;top:10px;left:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(0,255,159,.12);border:1px solid rgba(0,255,159,.35);color:var(--green);font-size:10px;font-weight:700}
         
         .rank-panel{margin-bottom:14px;padding:13px}.rank-list{position:relative;z-index:1;display:flex;flex-direction:column;gap:8px;margin-top:8px}
         .rank-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 12px;background:rgba(0,255,159,.04);border:1px dashed rgba(0,255,159,.25);border-radius:6px;font-size:12px}
@@ -37,8 +37,6 @@
 </head>
 <body>
     <div class="matrix" aria-hidden="true">
-        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
-        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
         <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
     </div>
     <div class="particles" aria-hidden="true"></div>
@@ -73,194 +71,6 @@
         </div>
     </main>
 
-    <script>
-        const GITHUB_USER = "mdarif76769";
-        const GITHUB_REPO = "mdarif76769.github.io";
-        
-        // ইমেজ এবং ফাইলের মূল CDN পাথ রুল ফিক্সড (কোন ডাবল ফোল্ডার বা স্লাশ এরর হবে না)
-        const BASE_CDN = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/DATA/`;
-        const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/DATA`;
-        const COUNTER_API_BASE = "https://api.counterapi.dev/v1";
-        const NAMESPACE = `w8_store_production_${GITHUB_USER}`;
-
-        let cachedFetchedApps = [];
-        let globalDownloadStats = JSON.parse(localStorage.getItem('w8_stats_backup')) || {};
-
-        // মেইন অ্যাভাটার লোগো পাথ সেটআপ
-        document.getElementById("main-logo").src = `${BASE_CDN}IMAGE/image.png`;
-        document.getElementById("main-logo").onerror = function() {
-            this.src = "https://i.postimg.cc/mD3fzq4Y/apk-icon.png";
-        };
-
-        function formatAppName(filename) {
-            return filename.replace(/\.(apk|txt)$/i, '').replace(/[-_]/g, ' ');
-        }
-
-        function assignBadge(filename) {
-            if (filename.toLowerCase().endsWith('.txt')) return 'list';
-            if (filename.toLowerCase().includes('bomber')) return 'hot';
-            if (filename.toLowerCase().includes('hack') || filename.toLowerCase().includes('brute')) return 'audit';
-            return 'app';
-        }
-
-        async function fetchRealTimeStats() {
-            cachedFetchedApps.forEach(async (item) => {
-                const itemCleanKey = item.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
-                try {
-                    const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}`);
-                    if (res.ok) {
-                        const json = await res.json();
-                        globalDownloadStats[item.name] = json.count || 0;
-                        localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
-                        updateSingleCounter(item.name);
-                    }
-                } catch(e) {}
-            });
-            setTimeout(renderRankingDashboard, 1000);
-        }
-
-        async function incrementCloudCounter(filename) {
-            const itemCleanKey = filename.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
-            globalDownloadStats[filename] = (globalDownloadStats[filename] || 0) + 1;
-            localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
-            updateSingleCounter(filename);
-            renderRankingDashboard();
-
-            try {
-                await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}/up`);
-            } catch(e) {}
-        }
-
-        function updateSingleCounter(filename) {
-            const uniqueId = btoa(filename).replace(/=/g, '');
-            const element = document.getElementById(`count-label-${uniqueId}`);
-            if(element) {
-                element.innerText = `${globalDownloadStats[filename] || 0} Downloads`;
-            }
-        }
-
-        function renderRankingDashboard() {
-            const rankingContainer = document.getElementById("ranking-container");
-            if (!rankingContainer) return;
-            
-            const ranked = [...cachedFetchedApps].sort((a, b) => {
-                return (globalDownloadStats[b.name] || 0) - (globalDownloadStats[a.name] || 0);
-            }).slice(0, 3);
-
-            rankingContainer.innerHTML = "";
-            if (ranked.length === 0) {
-                rankingContainer.innerHTML = `<div style="text-align:center;color:var(--cyan);font-size:11px;">No stats available.</div>`;
-                return;
-            }
-
-            ranked.forEach((item, index) => {
-                rankingContainer.innerHTML += `
-                    <div class="rank-item">
-                        <div class="meta">
-                            <span class="rank-num top3">🏆 0${index + 1}</span>
-                            <span class="rank-name">${formatAppName(item.name)}</span>
-                        </div>
-                        <span class="rank-score">${globalDownloadStats[item.name] || 0} Downloads</span>
-                    </div>`;
-            });
-        }
-
-        // ক্র্যাশ প্রুফ ডাউনলোড মেথড: ওয়েব-ভিউ মেমোরি ব্লক করবে না
-        function forceDownloadFile(buttonElement, filename) {
-            const targetUrl = `${BASE_CDN}${encodeURIComponent(filename)}`;
-            
-            // ক্লাউড কাউন্টার প্লাস ব্যাকআপ বাড়ানো
-            incrementCloudCounter(filename);
-
-            // মেমোরি লিক ছাড়া ইনস্ট্যান্ট ব্রাউজার ট্রিপ ট্রিগার
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.href = targetUrl;
-            downloadAnchor.setAttribute('download', filename);
-            downloadAnchor.target = '_blank'; // ইন-অ্যাপ ক্র্যাশ এড়াতে নতুন থ্রেডে হ্যান্ডেল করবে
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            document.body.removeChild(downloadAnchor);
-        }
-
-        function displayApps(items) {
-            const container = document.getElementById("apps-container");
-            container.innerHTML = "";
-            
-            if(items.length === 0) {
-                container.innerHTML = `<p style="grid-column: span 2; text-align: center; color: var(--danger);">No items verified.</p>`;
-                return;
-            }
-
-            items.forEach((item, index) => {
-                const displayName = formatAppName(item.name);
-                const itemBadge = assignBadge(item.name);
-                const uniqueId = btoa(item.name).replace(/=/g, '');
-                
-                const cleanNameWithoutExt = item.name.replace(/\.(apk|txt)$/i, '');
-                const safeImageName = encodeURIComponent(cleanNameWithoutExt);
-
-                const fallbackIcon = item.name.toLowerCase().endsWith('.txt') 
-                    ? "https://i.postimg.cc/85zXpD7m/text-icon.png" 
-                    : "https://i.postimg.cc/mD3fzq4Y/apk-icon.png";
-
-                // ইমেজের জেনুইন রিপোজিটরি পাথ রুল
-                const mainImageUrl = `${BASE_CDN}IMAGE/${safeImageName}`;
-
-                const count = globalDownloadStats[item.name] || 0;
-
-                container.innerHTML += `
-                    <button class="card" type="button" onclick="forceDownloadFile(this, '${item.name.replace(/'/g, "\\'")}')">
-                        <div class="badge-chip">${itemBadge}</div>
-                        <div class="rank-badge">#${index + 1}</div>
-                        <div class="icon">
-                            <img loading="lazy" width="62" height="62" 
-                                 src="${mainImageUrl}.png" 
-                                 onerror="this.onerror=null; this.src='${mainImageUrl}.jpg'; this.onerror=function(){this.src='${fallbackIcon}';};" 
-                                 alt="${displayName}">
-                        </div>
-                        <p class="app-name">${displayName}</p>
-                        <div class="download-count" id="count-label-${uniqueId}">${count} Downloads</div>
-                    </button>`;
-            });
-        }
-
-        async function fetchRepositoryData() {
-            // হাইড্রো-লোডিং মেকানিজম (লোকাল ক্যাশ থেকে ইনস্ট্যান্ট ডেটা রেন্ডার করবে, ইউজারকে ওয়েট করতে হবে না)
-            const backupData = localStorage.getItem('w8_apps_backup_list');
-            if(backupData) {
-                cachedFetchedApps = JSON.parse(backupData);
-                document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
-                displayApps(cachedFetchedApps);
-                renderRankingDashboard();
-            }
-
-            try {
-                const response = await fetch(API_URL);
-                if(response.ok) {
-                    const files = await response.json();
-                    const filtered = files.filter(f => f.type === "file" && (f.name.endsWith('.apk') || f.name.endsWith('.txt')));
-                    
-                    if(filtered.length > 0) {
-                        cachedFetchedApps = filtered;
-                        localStorage.setItem('w8_apps_backup_list', JSON.stringify(filtered));
-                        document.getElementById("total-apps").innerText = `${filtered.length} Items`;
-                        displayApps(filtered);
-                    }
-                }
-            } catch (error) {
-                console.log("Using dynamic storage engine fallback.");
-            }
-            
-            fetchRealTimeStats();
-        }
-
-        document.getElementById("app-search").addEventListener("input", (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            const filtered = cachedFetchedApps.filter(item => item.name.toLowerCase().includes(query));
-            displayApps(filtered);
-        });
-
-        fetchRepositoryData();
-    </script>
+    <script src="store_logic.js"></script>
 </body>
 </html>

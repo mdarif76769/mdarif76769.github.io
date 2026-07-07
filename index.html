@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>W8AppsStore</title>
+    <title>AppsStore</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght=400;600;700&family=VT323&display=swap');
@@ -12,27 +13,28 @@
         
         .matrix{position:fixed;inset:-20% 0;z-index:0;pointer-events:none;overflow:hidden;display:grid;grid-template-columns:repeat(auto-fill, minmax(16px, 1fr));gap:8px;width:100vw;opacity:.18}
         .matrix span{color:var(--green);font-family:'VT323',monospace;font-size:20px;line-height:.9;writing-mode:vertical-rl;text-orientation:upright;text-shadow:0 0 9px var(--green);animation:matrixFall 7s linear infinite}
-        .matrix span:nth-child(2n){color:var(--cyan);animation-duration:10s;opacity:.72}
-        .matrix span:nth-child(3n){animation-duration:12s;animation-delay:-4s}
         
-        .particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(circle at 18% 20%,rgba(0,255,159,.28) 0 1px,transparent 2px),radial-gradient(circle at 72% 36%,rgba(37,223,255,.2) 0 1px,transparent 2px),radial-gradient(circle at 48% 76%,rgba(0,255,159,.18) 0 1px,transparent 2px);background-size:120px 160px,180px 220px,150px 190px;animation:particleDrift 16s linear infinite;opacity:.62}
-        .app-shell{position:relative;z-index:1;width:min(430px,100%);min-height:100vh;margin:0 auto;padding:26px 14px 32px}.app-shell:before,.app-shell:after{content:"";position:fixed;inset:0;pointer-events:none}.app-shell:before{background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px),linear-gradient(90deg,transparent,rgba(0,255,159,.06),transparent);mix-blend-mode:screen;opacity:.85}.app-shell:after{background:radial-gradient(circle at 50% 30%,transparent 0 48%,rgba(0,0,0,.44) 100%),radial-gradient(circle at 52% 18%,rgba(0,255,159,.11),transparent 18%)}
-        .top{position:relative;z-index:2;display:grid;justify-items:center;gap:16px;margin-bottom:18px}.avatar{position:relative;width:118px;height:118px;border-radius:50%;border:2px solid var(--green);background:radial-gradient(circle,rgba(0,255,159,.2),transparent 44%),repeating-linear-gradient(90deg,transparent 0 8px,rgba(0,255,159,.09) 8px 10px),rgba(0,0,0,.62);box-shadow:0 0 18px var(--green-soft),0 0 48px rgba(0,255,159,.22),inset 0 0 22px rgba(0,255,159,.18);animation:avatarFlicker 3s infinite steps(2,end);overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover;display:block}.avatar:before,.avatar:after{content:"";position:absolute;border-radius:50%;inset:14px;border:1px dashed rgba(37,223,255,.62);animation:rotateRing 11s linear infinite}.avatar:after{inset:35px;border-style:solid;border-color:rgba(0,255,159,.76);animation-duration:7s;animation-direction:reverse}
-        .title-panel,.detail-panel,.status-panel,.rank-panel{position:relative;overflow:hidden;border:1px solid var(--green);border-radius:8px;background:linear-gradient(90deg,transparent,rgba(0,255,159,.08),transparent),var(--panel);box-shadow:0 0 18px rgba(0,255,159,.28),0 0 42px rgba(37,223,255,.12),inset 0 0 24px rgba(0,255,159,.11)}.title-panel{width:100%;min-height:82px;display:grid;place-items:center}.title-panel:before,.detail-panel:before,.status-panel:before,.rank-panel:before,.card:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 12px,rgba(0,255,159,.1) 12px 13px),repeating-linear-gradient(90deg,transparent 0 18px,rgba(37,223,255,.07) 18px 19px);opacity:.46}.bot-name{position:relative;z-index:1;margin:0;color:var(--green);font-family:'VT323',monospace;font-size:clamp(44px,14vw,66px);font-weight:400;letter-spacing:0;line-height:1;text-align:center;text-shadow:0 0 8px var(--green),2px 0 0 rgba(37,223,255,.5),-2px 0 0 rgba(0,255,159,.38);animation:textGlitch 3.2s infinite steps(2,end)}
-        .status-panel{z-index:2;margin-bottom:14px;padding:13px;display:grid;gap:8px}.status-title{position:relative;z-index:1;color:var(--cyan);font-size:12px;text-transform:uppercase}.status-row{position:relative;z-index:1;display:flex;justify-content:space-between;gap:10px;font-size:13px}.status-row strong{color:var(--green);overflow-wrap:anywhere;text-align:right}.filter-panel{z-index:2;margin-bottom:14px;padding:13px;display:grid;gap:10px}.filter-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:10px}.filter-input{width:100%;min-height:44px;padding:10px 12px;border:1px solid rgba(0,255,159,.35);border-radius:8px;background:rgba(0,0,0,.28);color:var(--text);font:inherit}.card-grid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.card{position:relative;min-height:156px;display:grid;justify-items:center;align-content:center;gap:10px;overflow:hidden;padding:16px 10px;border:1px solid var(--green);border-radius:8px;color:var(--text);background:radial-gradient(circle at 50% 10%,rgba(0,255,159,.14),transparent 42%),linear-gradient(145deg,rgba(0,255,159,.08),rgba(37,223,255,.03)),rgba(1,8,6,.82);box-shadow:0 0 15px rgba(0,255,159,.22),inset 0 0 24px rgba(0,255,159,.08);cursor:pointer;font-family:inherit;width:100%}.card:after{content:"";position:absolute;inset:18% 0 auto;height:24px;background:linear-gradient(90deg,transparent,rgba(37,223,255,.34),transparent 38%,rgba(0,255,159,.28),transparent);opacity:0;animation:cardNoise 3.8s infinite steps(2,end)}.card:hover,.card:focus-visible{outline:none;transform:translateY(-2px);box-shadow:0 0 22px rgba(0,255,159,.36),0 0 34px rgba(37,223,255,.15),inset 0 0 26px rgba(0,255,159,.1)}
-        .icon{position:relative;z-index:1;width:62px;height:62px;display:grid;place-items:center;overflow:hidden;border:1px solid var(--green);border-radius:50%;background:radial-gradient(circle,rgba(37,223,255,.18),transparent 58%),rgba(0,255,159,.08);box-shadow:0 0 16px rgba(0,255,159,.35),inset 0 0 15px rgba(0,255,159,.16);animation:logoPulse 2.6s infinite}.icon:before{content:"";width:26px;height:26px;border:2px solid var(--green);border-radius:50%;box-shadow:0 0 12px rgba(0,255,159,.55)}.icon:after{content:"";position:absolute;width:130%;height:1px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);transform:rotate(-22deg);animation:iconScan 2.8s infinite}.icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;pointer-events:none;-webkit-user-drag:none}
-        .app-name{position:relative;z-index:1;width:100%;margin:0;color:var(--text);font-size:13px;font-weight:700;text-align:center;overflow-wrap:anywhere;text-shadow:0 0 10px rgba(0,255,159,.54)}.download-count{position:relative;z-index:1;color:var(--cyan);font-size:11px}
-        .badge-chip{position:absolute;top:10px;right:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(37,223,255,.16);border:1px solid rgba(37,223,255,.45);color:var(--cyan);font-size:10px;text-transform:uppercase;letter-spacing:.08em}.rank-badge{position:absolute;top:10px;left:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(0,255,159,.12);border:1px solid rgba(0,255,159,.35);color:var(--green);font-size:10px;font-weight:700}
+        .particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(circle at 18% 20%,rgba(0,255,159,.28) 0 1px,transparent 2px),radial-gradient(circle at 72% 36%,rgba(37,223,255,.2) 0 1px,transparent 2px);background-size:120px 160px,180px 220px;animation:particleDrift 16s linear infinite;opacity:.62}
+        .app-shell{position:relative;z-index:1;width:min(430px,100%);min-height:100vh;margin:0 auto;padding:26px 14px 32px}
+        .top{position:relative;z-index:2;display:grid;justify-items:center;gap:16px;margin-bottom:18px}.avatar{position:relative;width:118px;height:118px;border-radius:50%;border:2px solid var(--green);background:rgba(0,0,0,.62);overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+        
+        .title-panel,.detail-panel,.status-panel,.rank-panel,.lock-card{position:relative;overflow:hidden;border:1px solid var(--green);border-radius:8px;background:var(--panel);box-shadow:0 0 18px rgba(0,255,159,.28)}.bot-name{position:relative;z-index:1;margin:0;color:var(--green);font-family:'VT323',monospace;font-size:clamp(44px,14vw,66px);text-align:center;text-shadow:0 0 8px var(--green)}
+        
+        /* লক স্ক্রিন প্যানেল স্টাইল */
+        .lock-container{display:none;position:relative;z-index:10;width:100%;padding:20px;margin-top:40px;place-items:center}.lock-card{width:100%;max-width:340px;padding:24px;text-align:center}.lock-title{color:var(--cyan);font-size:14px;text-transform:uppercase;margin-bottom:15px;letter-spacing:1px}.lock-input{width:100%;height:44px;background:rgba(0,0,0,0.5);border:1px solid var(--green);border-radius:6px;color:#fff;padding:0 12px;font-family:inherit;text-align:center;margin-bottom:12px;outline:none}.lock-btn{width:100%;height:44px;background:var(--green);color:#000;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-family:inherit;text-transform:uppercase}.lock-error{color:var(--danger);font-size:11px;margin-top:10px;min-height:16px}
+        
+        .status-panel{z-index:2;margin-bottom:14px;padding:13px;display:grid;gap:8px}.status-title{position:relative;z-index:1;color:var(--cyan);font-size:12px;text-transform:uppercase}.status-row{position:relative;z-index:1;display:flex;justify-content:space-between;gap:10px;font-size:13px}.status-row strong{color:var(--green)}
+        .filter-panel{z-index:2;margin-bottom:14px;padding:13px}.filter-input{width:100%;min-height:44px;padding:10px 12px;border:1px solid rgba(0,255,159,.35);border-radius:8px;background:rgba(0,0,0,.28);color:var(--text);font:inherit}
+        
+        .card-grid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.card{position:relative;min-height:156px;display:grid;justify-items:center;align-content:center;gap:10px;overflow:hidden;padding:16px 10px;border:1px solid var(--green);border-radius:8px;color:var(--text);background:rgba(1,8,6,.82);box-shadow:0 0 15px rgba(0,255,159,.22);cursor:pointer;font-family:inherit;width:100%}.card:hover{transform:translateY(-2px);box-shadow:0 0 22px rgba(0,255,159,.36)}
+        .icon{position:relative;z-index:1;width:62px;height:62px;display:grid;place-items:center;overflow:hidden;border:1px solid var(--green);border-radius:50%}.icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+        .app-name{position:relative;z-index:1;width:100%;margin:0;color:var(--text);font-size:13px;font-weight:700;text-align:center;overflow-wrap:anywhere}.download-count{position:relative;z-index:1;color:var(--cyan);font-size:11px}
+        .badge-chip{position:absolute;top:10px;right:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(37,223,255,.16);border:1px solid rgba(37,223,255,.45);color:var(--cyan);font-size:10px;text-transform:uppercase}.rank-badge{position:absolute;top:10px;left:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(0,255,159,.12);border:1px solid rgba(0,255,159,.35);color:var(--green);font-size:10px;font-weight:700}
         
         .rank-panel{margin-bottom:14px;padding:13px}.rank-list{position:relative;z-index:1;display:flex;flex-direction:column;gap:8px;margin-top:8px}
         .rank-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 12px;background:rgba(0,255,159,.04);border:1px dashed rgba(0,255,159,.25);border-radius:6px;font-size:12px}
-        .rank-item .meta{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;padding-right:10px}
-        .rank-num{font-family:'Fira Code',monospace;font-size:13px;font-weight:700;white-space:nowrap;color:var(--text)}
-        .rank-num.top3{color:var(--gold);text-shadow:0 0 8px var(--gold)}
-        .rank-name{font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .rank-score{color:var(--cyan);font-size:11px;white-space:nowrap;flex-shrink:0}
-
-        @media(max-width:360px){.app-shell{padding-inline:10px}.card-grid{gap:10px}.card{min-height:142px;padding-inline:8px}.icon{width:54px;height:54px}}@keyframes matrixFall{from{transform:translateY(-18%)}to{transform:translateY(22%)}}@keyframes rotateRing{to{transform:rotate(360deg)}}@keyframes avatarFlicker{0%,86%,100%{filter:brightness(1)}88%{filter:brightness(1.55) hue-rotate(10deg)}90%{filter:brightness(.82)}}@keyframes textGlitch{0%,90%,100%{transform:translate(0)}92%{transform:translate(2px,-1px)}94%{transform:translate(-2px,1px)}}@keyframes cardNoise{0%,72%,100%{opacity:0;transform:translateX(-18%)}74%,78%{opacity:.92;transform:translateX(8%)}80%{opacity:.32;transform:translateX(-4%)}}@keyframes particleDrift{to{background-position:120px 160px,-180px 220px,150px -190px}}
+        .rank-item .meta{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}.rank-num{font-size:13px;font-weight:700;color:var(--text)}.rank-num.top3{color:var(--gold)}.rank-name{font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rank-score{color:var(--cyan);font-size:11px}
+        @keyframes matrixFall{from{transform:translateY(-18%)}to{transform:translateY(22%)}}@keyframes particleDrift{to{background-position:120px 160px,-180px 220px}}
     </style>
 </head>
 <body>
@@ -47,7 +49,16 @@
             <div class="title-panel"><h1 class="bot-name">W8AppsStore</h1></div>
         </section>
 
-        <div id="protected-store-area">
+        <section class="lock-container" id="terminal-lock-panel">
+            <div class="lock-card">
+                <div class="lock-title">🔑 SECURITY AUTHENTICATION REQUIRED</div>
+                <input class="lock-input" type="password" id="terminal-pass-input" placeholder="Enter Security Passcode...">
+                <button class="lock-btn" onclick="verifyTerminalPasscode()">Decrypt Vault</button>
+                <div class="lock-error" id="terminal-error-log"></div>
+            </div>
+        </section>
+
+        <div id="protected-store-area" style="display: none;">
             <section class="rank-panel">
                 <div class="status-title">🔥 Top Installed (Real-Time)</div>
                 <div class="rank-list" id="ranking-container"></div>

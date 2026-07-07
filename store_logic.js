@@ -182,23 +182,28 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
     modalIcon.src = iconUrl;
     modalMeta.innerText = `Type: [${badgeType.toUpperCase()}] • Ext: ${filename.split('.').pop().toUpperCase()}`;
 
-    // ইভেন্ট প্রোপাগেশন এবং লুপ ক্ল্যাশ এড়াতে ইভেন্ট ক্লিয়ার করে সিঙ্গেল এসাইন করা হলো
+    // আগের বাটন লিসেনার ক্লিয়ার করে নতুন করে শুধুমাত্র ১ বার এক্সিকিউশন নিশ্চিত করা হলো
     downloadBtn.onclick = null;
     downloadBtn.onclick = async function(e) {
         e.preventDefault();
         e.stopPropagation();
         
+        if (downloadBtn.getAttribute("data-loading") === "true") return;
+        downloadBtn.setAttribute("data-loading", "true");
         downloadBtn.disabled = true;
+        
         const btnText = downloadBtn.querySelector('span');
         btnText.innerText = "Downloading...";
         
+        // ডিরেক্ট পিউর স্যান্ডবক্স ইঞ্জিন কল
         await executeSecureStorageDownload(filename, isRelease, releaseUrl, btnText);
         
         setTimeout(() => {
+            downloadBtn.removeAttribute("data-loading");
             downloadBtn.disabled = false;
             btnText.innerText = "⚡ Secure Download";
             closeDownloadModal(null);
-        }, 1500);
+        }, 2000);
     };
 
     modal.style.display = "grid";
@@ -211,49 +216,47 @@ function closeDownloadModal(event) {
 }
 
 // =======================================================================
-// পিউর জাভাস্ক্রিপ্ট ডাউনলোড ইঞ্জিন (১০০% ইউনিভার্সাল - নো এক্সটার্নাল জাম্প)
+// পিউর জাভাস্ক্রিপ্ট ইন-উইন্ডো ডাউনলোডার (নো ব্রাউজার জাম্প, নো ডাবল কাউন্টিং)
 // =======================================================================
 async function executeSecureStorageDownload(filename, isRelease, releaseUrl, btnTextField) {
     const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
     
     try {
-        // ১. ফাইল স্ট্রিম ডেটা মেমোরিতে ফেচ করা হচ্ছে (এটি ব্রাউজার এবং অ্যাপ উভয়ের সিকিউরিটি বাইপাস করবে)
+        // ১. কোর মেমোরি স্ট্রিম ফেচ (এটি অন্য কোনো উইন্ডো ওপেন হওয়া থেকে আটকায়)
         const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error("Network stream block");
+        if (!response.ok) throw new Error("Stream read error");
         
         const blob = await response.blob();
-        
-        // ২. জাভাস্ক্রিপ্ট ভার্চুয়াল অবজেক্ট ইউআরএল তৈরি
         const blobUrl = window.URL.createObjectURL(blob);
         
-        // ৩. সাইলেন্ট ইজেকশন মেথড (কোনো নতুন উইন্ডো বা ব্রাউজারে রিডাইরেক্ট করবে না)
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.style.display = 'none';
-        downloadAnchor.href = blobUrl;
-        downloadAnchor.download = filename;
+        // ২. সাইলেন্ট নো-লিঙ্ক ভার্চুয়াল ইজেকশন
+        const cleanAnchor = document.createElement('a');
+        cleanAnchor.style.setProperty('display', 'none', 'important');
+        cleanAnchor.href = blobUrl;
+        cleanAnchor.download = filename;
         
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click(); // অ্যাপের ভেতর বা ব্রাউজারের স্যান্ডবক্সে ফাইলটি রাইট হবে
+        // ডক ট্রিতে যুক্ত করে ইমিডিয়েট ফায়ার ও ক্লিনআপ
+        document.body.appendChild(cleanAnchor);
+        cleanAnchor.click();
         
-        // মেমোরি রিলিজ এবং ক্লিনআপ
-        document.body.removeChild(downloadAnchor);
+        document.body.removeChild(cleanAnchor);
         window.URL.revokeObjectURL(blobUrl);
         
-        // কাউন্টার নিখুঁতভাবে মাত্র একবার বাড়বে
+        // ৩. সাকসেসফুল ইজেকশনের পর কাউন্টার এক্স্যাক্টলি ১ বার বাড়বে
         await incrementCloudCounter(filename);
 
     } catch (error) {
-        console.log("Primary Blob Stream Interrupted, executing virtual frame transfer...", error);
+        console.error("Virtual stream blocked, applying data URI interface fallback...", error);
         
-        // ব্যাকআপ পিউর জেএস ফলব্যাক (যদি কোর ফেচ কোনো ডিভাইসে সিকিউরিটি রেস্ট্রিকশন খায়)
-        let storageFrame = document.getElementById('silent-download-frame');
-        if (!storageFrame) {
-            storageFrame = document.createElement('iframe');
-            storageFrame.id = 'silent-download-frame';
-            storageFrame.style.display = 'none';
-            document.body.appendChild(storageFrame);
+        // অ্যাপ ইন্টারফেসের চরম ফলব্যাক: সাইলেন্ট ব্যাকগ্রাউন্ড আইফ্রেম টানেল
+        let sandboxFrame = document.getElementById('silent-download-frame');
+        if (!sandboxFrame) {
+            sandboxFrame = document.createElement('iframe');
+            sandboxFrame.id = 'silent-download-frame';
+            sandboxFrame.style.setProperty('display', 'none', 'important');
+            document.body.appendChild(sandboxFrame);
         }
-        storageFrame.src = fileUrl;
+        sandboxFrame.src = fileUrl;
         await incrementCloudCounter(filename);
     }
 }

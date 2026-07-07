@@ -135,20 +135,22 @@
         let attemptCount = 0;
         let isTelegramTerminal = false;
 
+        // স্মার্ট সেশন রুলস: sessionStorage রিফ্রেশে ডেটা হারায় না, শুধু ট্যাব/অ্যাপ সোয়াইপ ক্লোজ করলে ডেটা মুছে যায়।
+        const isAlreadyUnlocked = sessionStorage.getItem("terminal_session_active") === "true";
+
         if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData && window.Telegram.WebApp.initData !== "") {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
             isTelegramTerminal = true;
             document.getElementById("auth-gate-panel").style.display = "none";
             document.getElementById("protected-store-area").style.display = "block";
+        } else if (isAlreadyUnlocked) {
+            // যদি আগে থেকেই সেশন আনলকড থাকে তবে সরাসরি স্ক্রিন দেখাবে (রিফ্রেশ সেফ)
+            document.getElementById("auth-gate-panel").style.display = "none";
+            document.getElementById("protected-store-area").style.display = "block";
         } else {
             document.getElementById("auth-gate-panel").style.display = "block";
-            document.getElementById("protected-store-area").style.none = "none";
-            
-            const currentGate = document.getElementById("auth-gate-panel");
-            if(currentGate) currentGate.style.display = "block";
-            const currentStore = document.getElementById("protected-store-area");
-            if(currentStore) currentStore.style.display = "none";
+            document.getElementById("protected-store-area").style.display = "none";
         }
 
         function unlockTerminalData() {
@@ -159,6 +161,8 @@
 
             if(inputVal === atob(ENCODED_TOKEN)) {
                 attemptCount = 0; 
+                // সেশন একটিভ করে দেওয়া হলো যাতে রিফ্রেশ করলে আবার লক না আসে
+                sessionStorage.setItem("terminal_session_active", "true");
                 document.getElementById("auth-gate-panel").style.display = "none";
                 document.getElementById("protected-store-area").style.display = "block";
             } else {
@@ -205,8 +209,6 @@
         const NAMESPACE = `w8_store_${GITHUB_USER}`; 
 
         let cachedFetchedApps = [];
-        
-        // ডাবল-লেয়ার ডেটা সলিউশন: লোকাল স্টোরেজ থেকে ব্যাকআপ লোড করা
         let globalDownloadStats = JSON.parse(localStorage.getItem('w8_stats_backup')) || {};
 
         function formatAppName(filename) {
@@ -233,7 +235,6 @@
                     console.log("Stats fetching delayed, using local backup.");
                 }
             }
-            // ব্যাকআপ সেভ করা যাতে রিফ্রেশ দিলেও ০ না হয়
             localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
             renderRankingDashboard();
             updateCardCounters();
@@ -242,7 +243,6 @@
         async function incrementCloudCounter(filename) {
             const itemCleanKey = filename.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
             
-            // ইনস্ট্যান্ট লোকাল আপডেট (রিফ্রেশের পর ডাটা ধরে রাখতে)
             globalDownloadStats[filename] = (globalDownloadStats[filename] || 0) + 1;
             localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
             renderRankingDashboard();
@@ -264,6 +264,7 @@
 
         function renderRankingDashboard() {
             const rankingContainer = document.getElementById("ranking-container");
+            if (!rankingContainer) return;
             rankingContainer.innerHTML = "";
 
             const ranked = [...cachedFetchedApps].sort((a, b) => {
@@ -271,6 +272,11 @@
                 const countB = globalDownloadStats[b.name] || 0;
                 return countB - countA;
             }).slice(0, 3);
+
+            if (ranked.length === 0) {
+                rankingContainer.innerHTML = `<div style="text-align: center; color: var(--cyan); font-size:11px; padding:6px;">No structural elements logged yet.</div>`;
+                return;
+            }
 
             ranked.forEach((item, index) => {
                 const displayName = formatAppName(item.name);
@@ -281,7 +287,7 @@
                             <span class="rank-num top3">🏆 0${index + 1}</span>
                             <span class="rank-name">${displayName}</span>
                         </div>
-                        <span class="rank-score">${count} Downloads</span>
+                        <span class="rank-score">${count} Hits</span>
                     </div>
                 `;
             });
@@ -297,20 +303,27 @@
             });
         }
 
+        // মডার্ন ইন-পেজ ব্লব ডাউনলোডার (কোন নতুন উইন্ডো বা ট্যাব ওপেন হবে না)
         async function forceDownloadFile(buttonElement, filename, isRelease = false, releaseUrl = '') {
+            if (buttonElement.classList.contains('downloading')) return;
+            
             buttonElement.classList.add('downloading');
             const counterLabel = buttonElement.querySelector('.download-count');
+            const originalText = counterLabel.innerText;
             counterLabel.innerText = "Processing...";
 
             try {
+                // ফাইল সোর্স পাথ নির্ধারণ
                 const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
                 
+                // ব্লব (Blob) মেথডে ব্যাকগ্রাউন্ড ফাইল ফেচিং
                 const response = await fetch(fileUrl);
-                if (!response.ok) throw new Error("Network capture failed.");
+                if (!response.ok) throw new Error("Stream capture broken.");
                 
                 const blob = await response.blob();
                 const blobUrl = window.URL.createObjectURL(blob);
                 
+                // ইন-পেজ হিডেন নোড জেনারেশন (একই পেজে পপআপ আনার জন্য)
                 const tempAnchor = document.createElement('a');
                 tempAnchor.style.display = 'none';
                 tempAnchor.href = blobUrl;
@@ -325,20 +338,25 @@
                 await incrementCloudCounter(filename);
 
             } catch (error) {
-                console.error("Download fallback mode activated:", error);
-                const altAnchor = document.createElement('a');
-                altAnchor.href = isRelease ? releaseUrl : `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
-                altAnchor.setAttribute('download', filename);
-                altAnchor.setAttribute('target', '_blank');
-                document.body.appendChild(altAnchor);
-                altAnchor.click();
-                document.body.removeChild(altAnchor);
+                console.error("Blob stream restricted, launching fallback frame injection:", error);
+                
+                // অল্টারনেটিভ একই পেজের আইফ্রেম ইনজেকশন মেথড (উইন্ডো ব্লকিং প্রতিরোধের জন্য)
+                let silentFrame = document.getElementById('silent-download-frame');
+                if (!silentFrame) {
+                    silentFrame = document.createElement('iframe');
+                    silentFrame.id = 'silent-download-frame';
+                    silentFrame.style.display = 'none';
+                    document.body.appendChild(silentFrame);
+                }
+                const fallbackUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${encodeURIComponent(filename)}`;
+                silentFrame.src = fallbackUrl;
+                
                 await incrementCloudCounter(filename);
             } finally {
                 setTimeout(() => {
                     buttonElement.classList.remove('downloading');
                     updateCardCounters(); 
-                }, 1000);
+                }, 1200);
             }
         }
 
@@ -351,7 +369,6 @@
                 return;
             }
 
-            // ক্যাশ সমস্যা এড়াতে প্রতিটি রেন্ডারে ইউনিক বাস-টাইম জেনারেট করা
             const cacheBuster = new Date().getTime();
 
             items.forEach((item, index) => {
@@ -367,12 +384,10 @@
                     ? "https://i.postimg.cc/85zXpD7m/text-icon.png" 
                     : "https://i.postimg.cc/mD3fzq4Y/apk-icon.png";
 
-                // ইউআরএল-এর শেষে ক্যাশবাস্টার (?v=) দেওয়া হলো যাতে ইমেজ রিফ্রেশ বা মিস না হয়
-                const pngUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.png?v=${cacheBuster}`;
-                const jpgUrl = `${RAW_CDN_BASE}${IMAGE_FOLDER}/${safeImageName}.jpg?v=${cacheBuster}`;
+                const pngUrl = `${RAW_CDN_BASE.replace(DATA_FOLDER + '/', '')}${IMAGE_FOLDER}/${safeImageName}.png?v=${cacheBuster}`;
+                const jpgUrl = `${RAW_CDN_BASE.replace(DATA_FOLDER + '/', '')}${IMAGE_FOLDER}/${safeImageName}.jpg?v=${cacheBuster}`;
 
                 const count = globalDownloadStats[item.name] || 0;
-
                 const isRelease = item.isRelease ? true : false;
                 const downloadUrl = item.downloadUrl || '';
 
@@ -396,7 +411,6 @@
 
         async function fetchRepositoryData() {
             try {
-                // ১. DATA ফোল্ডারের ছোট সাইজের ফাইল নিয়ে আসা
                 const response = await fetch(API_URL);
                 let folderFiles = [];
                 if(response.ok) {
@@ -408,7 +422,6 @@
                     }).map(file => ({ name: file.name, isRelease: false }));
                 }
                 
-                // ২. Releases সেকশনের বড় সাইজের ফাইলগুলো নিয়ে আসা
                 let releaseFiles = [];
                 try {
                     const relResponse = await fetch(RELEASES_API_URL);
@@ -430,19 +443,15 @@
                         });
                     }
                 } catch(e) {
-                    console.log("No releases found or error loading release data.");
+                    console.log("Release engine status: standby.");
                 }
 
-                // দুটি ডাটা সোর্সকে একসাথে যুক্ত করা
                 cachedFetchedApps = [...folderFiles, ...releaseFiles];
-
                 document.getElementById("total-apps").innerText = `${cachedFetchedApps.length} Items`;
                 
-                // প্রথমে লোকাল ব্যাকআপ ডেটা দিয়ে দ্রুত ইউজার ইন্টারফেস রেন্ডার করা
                 displayApps(cachedFetchedApps);
                 renderRankingDashboard();
                 
-                // এরপর ব্যাকগ্রাউন্ডে ক্লাউড থেকে লেটেস্ট ডেটা সিঙ্ক করা
                 await fetchRealTimeStats(cachedFetchedApps);
 
             } catch (error) {

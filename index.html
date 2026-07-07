@@ -3,141 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>RS5AppsStore Pro</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <title>Apps Store</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght=400;600;700&family=VT323&display=swap');
+        :root{--green:#00ff9f;--green-soft:rgba(0,255,159,.28);--cyan:#25dfff;--panel:rgba(3,15,12,.82);--text:#d9fff0;--danger:#ff4770;--gold:#ffd700}
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{min-height:100%;touch-action:manipulation;oversample-behavior:none;-webkit-text-size-adjust:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}body{margin:0;color:var(--text);font-family:'Fira Code',Consolas,monospace;background:radial-gradient(circle at 50% 0%,rgba(0,255,159,.18),transparent 34%),radial-gradient(circle at 15% 86%,rgba(37,223,255,.12),transparent 30%),linear-gradient(180deg,#020303 0%,#06110e 54%,#010202 100%);overflow-x:hidden}
         
-        :root {
-            --green: #00ff9f;
-            --green-glow: rgba(0, 255, 159, 0.35);
-            --cyan: #25dfff;
-            --panel: rgba(5, 18, 14, 0.9);
-            --text: #e6fff4;
-            --danger: #ff4770;
-            --gold: #ffd700;
+        .matrix{
+            position:fixed;
+            inset:-20% 0;
+            z-index:0;
+            pointer-events:none;
+            overflow:hidden;
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(16px, 1fr));
+            gap:8px;
+            width: 100vw;
+            opacity:.18;
         }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body { min-height: 100%; touch-action: manipulation; background: #010504; overflow-x: hidden; margin: 0; }
-        body { color: var(--text); font-family: 'Fira Code', monospace; padding-bottom: 30px; }
-
-        /* গ্লোবাল ব্যাকগ্রাউন্ড ইফেক্টস */
-        .matrix-bg { position: fixed; inset: 0; z-index: 0; opacity: 0.12; pointer-events: none; background: linear-gradient(180deg, rgba(0,255,159,0.1) 0%, transparent 100%); }
+        .matrix span{
+            color:var(--green);
+            font-family:'VT323',monospace;
+            font-size:20px;
+            line-height:.9;
+            writing-mode:vertical-rl;
+            text-orientation:upright;
+            text-shadow:0 0 9px var(--green);
+            animation:matrixFall 7s linear infinite;
+        }
+        .matrix span:nth-child(2n){color:var(--cyan);animation-duration:10s;opacity:.72}
+        .matrix span:nth-child(3n){animation-duration:12s;animation-delay:-4s}
         
-        .app-shell { position: relative; z-index: 1; width: min(440px, 100%); margin: 0 auto; padding: 20px 14px; }
+        .particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(circle at 18% 20%,rgba(0,255,159,.28) 0 1px,transparent 2px),radial-gradient(circle at 72% 36%,rgba(37,223,255,.2) 0 1px,transparent 2px),radial-gradient(circle at 48% 76%,rgba(0,255,159,.18) 0 1px,transparent 2px);background-size:120px 160px,180px 220px,150px 190px;animation:particleDrift 16s linear infinite;opacity:.62}
+        .app-shell{position:relative;z-index:1;width:min(430px,100%);min-height:100vh;margin:0 auto;padding:26px 14px 32px}.app-shell:before,.app-shell:after{content:"";position:fixed;inset:0;pointer-events:none}.app-shell:before{background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px),linear-gradient(90deg,transparent,rgba(0,255,159,.06),transparent);mix-blend-mode:screen;opacity:.85}.app-shell:after{background:radial-gradient(circle at 50% 30%,transparent 0 48%,rgba(0,0,0,.44) 100%),radial-gradient(circle at 52% 18%,rgba(0,255,159,.11),transparent 18%)}
+        .top{position:relative;z-index:2;display:grid;justify-items:center;gap:16px;margin-bottom:18px}.avatar{position:relative;width:118px;height:118px;border-radius:50%;border:2px solid var(--green);background:radial-gradient(circle,rgba(0,255,159,.2),transparent 44%),repeating-linear-gradient(90deg,transparent 0 8px,rgba(0,255,159,.09) 8px 10px),rgba(0,0,0,.62);box-shadow:0 0 18px var(--green-soft),0 0 48px rgba(0,255,159,.22),inset 0 0 22px rgba(0,255,159,.18);animation:avatarFlicker 3s infinite steps(2,end);overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover;display:block}.avatar:before,.avatar:after{content:"";position:absolute;border-radius:50%;inset:14px;border:1px dashed rgba(37,223,255,.62);animation:rotateRing 11s linear infinite}.avatar:after{inset:35px;border-style:solid;border-color:rgba(0,255,159,.76);animation-duration:7s;animation-direction:reverse}
+        .title-panel,.detail-panel,.status-panel,.rank-panel{position:relative;overflow:hidden;border:1px solid var(--green);border-radius:8px;background:linear-gradient(90deg,transparent,rgba(0,255,159,.08),transparent),var(--panel);box-shadow:0 0 18px rgba(0,255,159,.28),0 0 42px rgba(37,223,255,.12),inset 0 0 24px rgba(0,255,159,.11)}.title-panel{width:100%;min-height:82px;display:grid;place-items:center}.title-panel:before,.detail-panel:before,.status-panel:before,.rank-panel:before,.card:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 12px,rgba(0,255,159,.1) 12px 13px),repeating-linear-gradient(90deg,transparent 0 18px,rgba(37,223,255,.07) 18px 19px);opacity:.46}.bot-name{position:relative;z-index:1;margin:0;color:var(--green);font-family:'VT323',monospace;font-size:clamp(44px,14vw,66px);font-weight:400;letter-spacing:0;line-height:1;text-align:center;text-shadow:0 0 8px var(--green),2px 0 0 rgba(37,223,255,.5),-2px 0 0 rgba(0,255,159,.38);animation:textGlitch 3.2s infinite steps(2,end)}
+        .status-panel{z-index:2;margin-bottom:14px;padding:13px;display:grid;gap:8px}.status-title{position:relative;z-index:1;color:var(--cyan);font-size:12px;text-transform:uppercase}.status-row{position:relative;z-index:1;display:flex;justify-content:space-between;gap:10px;font-size:13px}.status-row strong{color:var(--green);overflow-wrap:anywhere;text-align:right}.filter-panel{z-index:2;margin-bottom:14px;padding:13px;display:grid;gap:10px}.filter-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:10px}.filter-input{width:100%;min-height:44px;padding:10px 12px;border:1px solid rgba(0,255,159,.35);border-radius:8px;background:rgba(0,0,0,.28);color:var(--text);font:inherit}.card-grid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.card{position:relative;min-height:156px;display:grid;justify-items:center;align-content:center;gap:10px;overflow:hidden;padding:16px 10px;border:1px solid var(--green);border-radius:8px;color:var(--text);background:radial-gradient(circle at 50% 10%,rgba(0,255,159,.14),transparent 42%),linear-gradient(145deg,rgba(0,255,159,.08),rgba(37,223,255,.03)),rgba(1,8,6,.82);box-shadow:0 0 15px rgba(0,255,159,.22),inset 0 0 24px rgba(0,255,159,.08);cursor:pointer;font-family:inherit;width:100%}.card:after{content:"";position:absolute;inset:18% 0 auto;height:24px;background:linear-gradient(90deg,transparent,rgba(37,223,255,.34),transparent 38%,rgba(0,255,159,.28),transparent);opacity:0;animation:cardNoise 3.8s infinite steps(2,end)}.card:nth-child(2n):after{animation-delay:-1.3s;top:52%}.card:nth-child(3n):after{animation-delay:-2.1s;top:33%}.card:hover,.card:focus-visible{outline:none;transform:translateY(-2px);box-shadow:0 0 22px rgba(0,255,159,.36),0 0 34px rgba(37,223,255,.15),inset 0 0 26px rgba(0,255,159,.1)}
+        .icon{position:relative;z-index:1;width:62px;height:62px;display:grid;place-items:center;overflow:hidden;border:1px solid var(--green);border-radius:50%;background:radial-gradient(circle,rgba(37,223,255,.18),transparent 58%),rgba(0,255,159,.08);box-shadow:0 0 16px rgba(0,255,159,.35),inset 0 0 15px rgba(0,255,159,.16);animation:logoPulse 2.6s infinite}.icon:before{content:"";width:26px;height:26px;border:2px solid var(--green);border-radius:50%;box-shadow:0 0 12px rgba(0,255,159,.55)}.icon:after{content:"";position:absolute;width:130%;height:1px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);transform:rotate(-22deg);animation:iconScan 2.8s infinite}.icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;pointer-events:none;-webkit-user-drag:none;animation:logoShine 3.2s infinite}.app-name{position:relative;z-index:1;width:100%;margin:0;color:var(--text);font-size:13px;font-weight:700;text-align:center;overflow-wrap:anywhere;text-shadow:0 0 10px rgba(0,255,159,.54)}.download-count{position:relative;z-index:1;color:var(--cyan);font-size:11px}.badge-chip{position:absolute;top:10px;right:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(37,223,255,.16);border:1px solid rgba(37,223,255,.45);color:var(--cyan);font-size:10px;text-transform:uppercase;letter-spacing:.08em}.rank-badge{position:absolute;top:10px;left:10px;z-index:3;padding:4px 8px;border-radius:999px;background:rgba(0,255,159,.12);border:1px solid rgba(0,255,159,.35);color:var(--green);font-size:10px;font-weight:700}
+        .card.downloading{border-color:var(--cyan);box-shadow:0 0 20px var(--cyan);opacity:.8;}
         
-        /* প্রিমিয়াম টপ হেডার */
-        .top-header { text-align: center; margin-bottom: 25px; margin-top: 10px; }
-        .avatar-container { position: relative; width: 100px; height: 100px; margin: 0 auto 15px; border-radius: 50%; border: 2px solid var(--green); box-shadow: 0 0 20px var(--green-glow); overflow: hidden; }
-        .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
-        .bot-name { font-family: 'VT323', monospace; font-size: 52px; color: var(--green); margin: 0; text-shadow: 0 0 12px var(--green); letter-spacing: 1px; }
+        .rank-panel{margin-bottom:14px;padding:13px}.rank-list{position:relative;z-index:1;display:flex;flex-direction:column;gap:8px;margin-top:8px}
+        .rank-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 12px;background:rgba(0,255,159,.04);border:1px dashed rgba(0,255,159,.25);border-radius:6px;font-size:12px}
+        .rank-item .meta{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;padding-right:10px}
+        .rank-num{font-family:'Fira Code',monospace;font-size:13px;font-weight:700;white-space:nowrap;color:var(--text)}
+        .rank-num.top3{color:var(--gold);text-shadow:0 0 8px var(--gold)}
+        .rank-name{font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .rank-score{color:var(--cyan);font-size:11px;white-space:nowrap;flex-shrink:0}
 
-        /* সুন্দর প্যানেল কন্টেইনার */
-        .cyber-panel { position: relative; background: var(--panel); border: 1px solid var(--green); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 0 15px rgba(0,255,159,0.15); }
-        .panel-header { font-size: 11px; text-transform: uppercase; color: var(--cyan); letter-spacing: 1.5px; margin-bottom: 12px; font-weight: 700; border-bottom: 1px dashed rgba(0,255,159,0.2); padding-bottom: 6px; }
+        #auth-gate-panel {
+            display: none;
+            margin-bottom: 14px;
+            padding: 16px;
+            border: 1px solid var(--danger);
+            box-shadow: 0 0 15px rgba(255,71,112,.2);
+        }
+        .gate-title-inline { color: var(--danger); font-size: 14px; text-transform: uppercase; margin-bottom: 12px; font-weight: bold; }
+        .gate-input-wrapper { display: flex; gap: 10px; }
+        .gate-field { flex: 1; min-height: 44px; padding: 10px; border: 1px solid var(--danger); border-radius: 6px; background: rgba(0,0,0,.4); color: #fff; font-size: 16px; text-align: center; font-family: inherit; }
+        .gate-field:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+        .gate-action-btn { min-height: 44px; padding: 0 18px; background: var(--danger); border: none; border-radius: 6px; color: #000; font-weight: 700; font-family: inherit; cursor: pointer; text-transform: uppercase; }
+        .gate-action-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+        #protected-store-area { display: block; }
 
-        /* লক স্ক্রিন ডিজাইন */
-        .lock-wrapper { display: none; margin-top: 30px; place-items: center; width: 100%; }
-        .lock-card { width: 100%; text-align: center; padding: 30px 20px; border-radius: 14px; border: 2px solid var(--green); box-shadow: 0 0 25px rgba(0,255,159,0.25); }
-        .lock-icon { font-size: 32px; margin-bottom: 15px; text-shadow: 0 0 10px var(--cyan); color: var(--cyan); }
-        .lock-input { width: 100%; height: 46px; background: rgba(0,0,0,0.6); border: 1px solid rgba(0,255,159,0.5); border-radius: 8px; color: #fff; padding: 0 15px; font-family: inherit; text-align: center; font-size: 14px; margin-bottom: 15px; outline: none; transition: all 0.3s; }
-        .lock-input:focus { border-color: var(--green); box-shadow: 0 0 10px var(--green-glow); }
-        .cyber-btn { width: 100%; height: 46px; background: linear-gradient(135deg, #00ff9f, #00b36b); color: #000; border: none; border-radius: 8px; font-weight: 700; font-family: inherit; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 15px var(--green-glow); transition: all 0.2s; }
-        .cyber-btn:active { transform: scale(0.98); }
-        .cyber-btn:disabled { background: #22332a; color: #555; box-shadow: none; cursor: not-allowed; border: 1px solid #33443a; }
-        .lock-error { color: var(--danger); font-size: 12px; margin-top: 12px; min-height: 18px; font-weight: 600; }
-
-        /* সিস্টেম স্ট্যাটাস রো */
-        .status-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
-        .status-row strong { color: var(--green); }
-
-        /* সার্চ বক্স */
-        .search-box { width: 100%; height: 44px; background: rgba(0,0,0,0.4); border: 1px solid rgba(0,255,159,0.4); border-radius: 8px; color: #fff; padding: 0 14px; font-family: inherit; font-size: 13px; outline: none; }
-        .search-box:focus { border-color: var(--cyan); box-shadow: 0 0 10px rgba(37,223,255,0.2); }
-
-        /* অ্যাপস গ্রিড ও কার্ড লাক্সারি লুক */
-        .card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-        .card { position: relative; background: rgba(2, 12, 9, 0.85); border: 1px solid var(--green); border-radius: 12px; padding: 20px 12px; display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer; width: 100%; transition: all 0.2s ease-in-out; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .card:hover { transform: translateY(-3px); border-color: var(--cyan); box-shadow: 0 0 18px rgba(37,223,255,0.3); }
-        
-        .icon-frame { width: 66px; height: 66px; border-radius: 16px; border: 1px solid rgba(0,255,159,0.4); overflow: hidden; background: #000; display: grid; place-items: center; box-shadow: inset 0 0 10px rgba(0,255,159,0.2); }
-        .icon-frame img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .app-name { margin: 0; font-size: 13px; font-weight: 700; text-align: center; overflow-wrap: anywhere; text-shadow: 0 0 8px rgba(0,255,159,0.3); color: var(--text); line-height: 1.3; }
-        .download-count { color: var(--cyan); font-size: 11px; font-weight: 600; background: rgba(37,223,255,0.08); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(37,223,255,0.15); }
-
-        /* ব্যাজ */
-        .badge-chip { position: absolute; top: 8px; right: 8px; padding: 2px 6px; border-radius: 6px; background: rgba(37,223,255,0.15); border: 1px solid rgba(37,223,255,0.4); color: var(--cyan); font-size: 9px; text-transform: uppercase; font-weight: 700; }
-        .rank-badge { position: absolute; top: 8px; left: 8px; padding: 2px 6px; border-radius: 6px; background: rgba(0,255,159,0.12); border: 1px solid rgba(0,255,159,0.3); color: var(--green); font-size: 9px; font-weight: 700; }
-
-        /* টপ রিলিজ লিডারবোর্ড */
-        .rank-list { display: flex; flex-direction: column; gap: 8px; }
-        .rank-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(0,255,159,0.03); border: 1px dashed rgba(0,255,159,0.2); border-radius: 8px; font-size: 12px; }
-        .rank-item .meta { display: flex; align-items: center; gap: 10px; overflow: hidden; }
-        .rank-num { font-weight: 700; }
-        .rank-num.top3 { color: var(--gold); text-shadow: 0 0 6px var(--gold); }
-        .rank-name { color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
-        .rank-score { color: var(--cyan); font-weight: 600; }
-
-        /* ডায়নামিক মডাল ওভারলে থিম (UI উন্নত করা হয়েছে) */
-        .RS5-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        .RS5-modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .RS5-modal { background: rgba(2, 10, 8, 0.98); border: 2px solid var(--green); border-radius: 16px; width: min(340px, 92%); padding: 25px; box-shadow: 0 0 35px rgba(0,255,159,0.4); text-align: center; transform: scale(0.85); transition: transform 0.3s ease; }
-        .RS5-modal-overlay.active .w8-modal { transform: scale(1); }
+        @media(max-width:360px){.app-shell{padding-inline:10px}.card-grid{gap:10px}.card{min-height:142px;padding-inline:8px}.icon{width:54px;height:54px}}@keyframes matrixFall{from{transform:translateY(-18%)}to{transform:translateY(22%)}}@keyframes rotateRing{to{transform:rotate(360deg)}}@keyframes avatarFlicker{0%,86%,100%{filter:brightness(1)}88%{filter:brightness(1.55) hue-rotate(10deg)}90%{filter:brightness(.82)}}@keyframes textGlitch{0%,90%,100%{transform:translate(0)}92%{transform:translate(2px,-1px)}94%{transform:translate(-2px,1px)}}@keyframes cardNoise{0%,72%,100%{opacity:0;transform:translateX(-18%)}74%,78%{opacity:.92;transform:translateX(8%)}80%{opacity:.32;transform:translateX(-4%)}}@keyframes iconScan{0%,62%{transform:translateY(-42px) rotate(-22deg);opacity:0}70%{opacity:1}100%{transform:translateY(42px) rotate(-22deg);opacity:0}}@keyframes logoPulse{0%,100%{box-shadow:0 0 16px rgba(0,255,159,.35),inset 0 0 15px rgba(0,255,159,.16)}50%{box-shadow:0 0 28px rgba(0,255,159,.58),0 0 40px rgba(37,223,255,.24),inset 0 0 20px rgba(0,255,159,.28)}}@keyframes logoShine{0%,100%{filter:brightness(1) saturate(1)}50%{filter:brightness(1.16) saturate(1.2)}}@keyframes particleDrift{to{background-position:120px 160px,-180px 220px,150px -190px}}
     </style>
 </head>
 <body>
-    <div class="matrix-bg" aria-hidden="true"></div>
+    <div class="matrix" aria-hidden="true">
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+        <span>0101011108AFC0DE99010110BEEF</span><span>0101011108AFC0DE99010110BEEF</span>
+    </div>
     
-    <main class="app-shell">
-        <header class="top-header">
-            <div class="avatar-container"><img id="main-logo" src="" alt="Avatar"></div>
-            <h1 class="bot-name">W8AppsStore</h1>
-        </header>
+    <div class="particles" aria-hidden="true"></div>
+    
+    <main class="app-shell" id="main-store">
+        <div id="store-content">
+            <section class="top">
+                <div class="avatar"><img loading="lazy" src="DATA/IMAGE/image.png" alt="Bot Logo"></div>
+                <div class="title-panel"><h1 class="bot-name">RS5AppsStore</h1></div>
+            </section>
 
-        <section class="lock-wrapper" id="terminal-lock-panel">
-            <div class="lock-card cyber-panel">
-                <div class="lock-icon">🔒</div>
-                <div class="panel-header">SECURITY KEY VALIDATION REQUIRED</div>
-                <input class="lock-input" type="password" id="terminal-pass-input" placeholder="Enter Secure Passcode...">
-                <button class="cyber-btn" id="decrypt-btn" onclick="verifyTerminalPasscode()">Decrypt Core</button>
-                <div class="lock-error" id="terminal-error-log"></div>
+            <section class="status-panel" id="auth-gate-panel">
+                <div class="gate-title-inline" id="gate-title-text">🔒 Terminal Crypt-Lock Enabled</div>
+                <div class="gate-input-wrapper">
+                    <input type="password" id="gate-pin-field" class="gate-field" placeholder="Enter Security PIN" maxlength="6">
+                    <button type="button" id="gate-submit-btn" class="gate-action-btn" onclick="unlockTerminalData()">Unlock</button>
+                </div>
+            </section>
+
+            <div id="protected-store-area">
+                <section class="rank-panel">
+                    <div class="status-title">🔥 Top Installed (Real-Time)</div>
+                    <div class="rank-list" id="ranking-container">
+                        <div style="text-align: center; color: var(--cyan); font-size:11px; padding:10px;">Syncing download stats...</div>
+                    </div>
+                </section>
+
+                <section class="status-panel">
+                    <div class="status-title">System Status</div>
+                    <div class="status-row"><span>Total Synced Items</span><strong id="total-apps">Syncing...</strong></div>
+                </section>
+
+                <section class="filter-panel">
+                    <div class="status-title">Find Apps</div>
+                    <div class="filter-grid">
+                        <input class="filter-input" id="app-search" type="search" placeholder="Search synced apps...">
+                    </div>
+                </section>
+
+                <section class="card-grid" id="apps-container" aria-label="Apps">
+                    <p style="grid-column: span 2; text-align: center; color: var(--cyan);">Connecting to GitHub DATA repository...</p>
+                </section>
             </div>
-        </section>
-
-        <div id="protected-store-area" style="display: none;">
-            <section class="cyber-panel">
-                <div class="panel-header">🔥 Top Installed (Real-Time)</div>
-                <div class="rank-list" id="ranking-container"></div>
-            </section>
-
-            <section class="cyber-panel">
-                <div class="panel-header">System Parameters</div>
-                <div class="status-row"><span>Terminal Database Synced:</span><strong id="total-apps">Loading...</strong></div>
-            </section>
-
-            <section class="cyber-panel">
-                <div class="panel-header">Search Directory</div>
-                <input class="search-box" id="app-search" type="search" placeholder="Filter secure files...">
-            </section>
-
-            <section class="card-grid" id="apps-container" aria-label="Secure Apps"></section>
         </div>
     </main>
-
-    <div class="RS5-modal-overlay" id="RS5ModalOverlay">
-        <div class="RS5-modal">
-            <div style="font-size: 28px; margin-bottom: 10px;">📦</div>
-            <div class="RS5-modal-title" id="RS5ModalTitle" style="color: var(--green); font-size: 18px; font-weight: 700; margin-bottom: 8px;">App Title</div>
-            <div class="RS5-modal-stats" id="RS5ModalStats" style="color: var(--cyan); font-size: 13px; margin-bottom: 22px;">0 Downloads</div>
-            <div class="RS5-btn-container">
-                <button class="RS5-download-btn" id="RS5ModalDownloadBtn">⚡ Deploy Download</button>
-                <button class="RS5-close-btn" style="margin-top: 8px;" onclick="closeW8Modal()">Abort Connection</button>
-            </div>
-        </div>
-    </div>
 
     <script src="store_logic.js"></script>
 </body>

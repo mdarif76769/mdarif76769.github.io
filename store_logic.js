@@ -1,5 +1,5 @@
 // =======================================================================
-// 🔒 1. SECURITY BLOCK & TERMINAL AUTHENTICATION GATEWAY
+// 🔒 1. SECURITY BLOCK & TERMINAL AUTHENTICATION GATEWAY (FIXED INTERFACE)
 // =======================================================================
 const ENCODED_TOKEN = "NDUzNQ=="; // তোর আসল ক্রিপ্ট-টোকেন
 let attemptCount = 0;
@@ -8,19 +8,30 @@ let isTelegramTerminal = false;
 // সেশন লক চেকিং মেকানিজম
 const isAlreadyUnlocked = sessionStorage.getItem("terminal_session_active") === "true";
 
+// ইন্টারফেস পুরোপুরি লক বা আনলক করার কন্ট্রোল ফাংশন
+function applySecurityInterface(unlocked) {
+    const authPanel = document.getElementById("auth-gate-panel");
+    const storeArea = document.getElementById("protected-store-area");
+    
+    if (unlocked) {
+        if (authPanel) authPanel.style.setProperty("display", "none", "important");
+        if (storeArea) storeArea.style.setProperty("display", "block", "important");
+    } else {
+        if (authPanel) authPanel.style.setProperty("display", "block", "important");
+        if (storeArea) storeArea.style.setProperty("display", "none", "important");
+    }
+}
+
 // টেলিগ্রাম ওয়েব অ্যাপ এনভায়রনমেন্ট ও সেশন ভ্যালিডেশন লজিক
 if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData && window.Telegram.WebApp.initData !== "") {
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
     isTelegramTerminal = true;
-    document.getElementById("auth-gate-panel").style.display = "none";
-    document.getElementById("protected-store-area").style.display = "block";
+    applySecurityInterface(true); // টেলিগ্রামে ডিরেক্ট বাইপাস ও আনলক
 } else if (isAlreadyUnlocked) {
-    document.getElementById("auth-gate-panel").style.display = "none";
-    document.getElementById("protected-store-area").style.display = "block";
+    applySecurityInterface(true); // সেশন একটিভ থাকলে আনলক
 } else {
-    document.getElementById("auth-gate-panel").style.display = "block";
-    document.getElementById("protected-store-area").style.none;
+    applySecurityInterface(false); // অন্য সব ক্ষেত্রে কঠোরভাবে সম্পূর্ণ স্টোর হাইড এবং লক
 }
 
 // তোর আসল ব্রুট-ফোর্স প্রোটেকশন ও সিকিউর আনলক মেথড
@@ -33,8 +44,7 @@ function unlockTerminalData() {
     if(inputVal === atob(ENCODED_TOKEN)) {
         attemptCount = 0; 
         sessionStorage.setItem("terminal_session_active", "true");
-        document.getElementById("auth-gate-panel").style.display = "none";
-        document.getElementById("protected-store-area").style.display = "block";
+        applySecurityInterface(true); // পিন মিললে তবেই নিচের সব ডেটা ভেসে উঠবে
     } else {
         attemptCount++;
         if (attemptCount >= 5) {
@@ -42,19 +52,21 @@ function unlockTerminalData() {
             pinField.disabled = true;
             submitBtn.disabled = true;
             pinField.value = "";
-            titleText.style.color = "var(--danger)";
+            if (titleText) titleText.style.color = "var(--danger)";
 
             const countdownInterval = setInterval(() => {
                 timeLeft--;
-                titleText.innerText = `🛑 Too many attempts. Try again in ${timeLeft}s`;
+                if (titleText) titleText.innerText = `🛑 Too many attempts. Try again in ${timeLeft}s`;
                 
                 if (timeLeft <= 0) {
                     clearInterval(countdownInterval);
                     attemptCount = 0; 
                     pinField.disabled = false;
                     submitBtn.disabled = false;
-                    titleText.innerText = "🔒 Terminal Crypt-Lock Enabled";
-                    titleText.style.color = "var(--danger)";
+                    if (titleText) {
+                        titleText.innerText = "🔒 Terminal Crypt-Lock Enabled";
+                        titleText.style.color = "var(--danger)";
+                    }
                 }
             }, 1000);
 
@@ -65,6 +77,7 @@ function unlockTerminalData() {
         }
     }
 }
+
 
 // এন্টার প্রেস করলে যেন ডিরেক্ট আনলক হয়
 document.getElementById("gate-pin-field").addEventListener("keypress", (e) => {

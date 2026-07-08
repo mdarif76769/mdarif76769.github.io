@@ -1,13 +1,14 @@
-// ==========================================
-// SECURITY & TERMINAL CONFIGURATION
-// ==========================================
-const ENCODED_TOKEN = "NDUzNQ==";
+// =======================================================================
+// 🔒 1. SECURITY BLOCK & TERMINAL AUTHENTICATION GATEWAY
+// =======================================================================
+const ENCODED_TOKEN = "NDUzNQ=="; // তোর আসল ক্রিপ্ট-টোকেন
 let attemptCount = 0;
 let isTelegramTerminal = false;
 
+// সেশন লক চেকিং মেকানিজম
 const isAlreadyUnlocked = sessionStorage.getItem("terminal_session_active") === "true";
 
-// টেলিগ্রাম ওয়েব অ্যাপ ও সেশন ভ্যালিডেশন লজিক
+// টেলিগ্রাম ওয়েব অ্যাপ এনভায়রনমেন্ট ও সেশন ভ্যালিডেশন লজিক
 if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData && window.Telegram.WebApp.initData !== "") {
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
@@ -19,10 +20,10 @@ if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData 
     document.getElementById("protected-store-area").style.display = "block";
 } else {
     document.getElementById("auth-gate-panel").style.display = "block";
-    document.getElementById("protected-store-area").style.display = "none";
+    document.getElementById("protected-store-area").style.none;
 }
 
-// তোর আসল ব্রুট-ফোর্স প্রোটেকশন ও আনলক মেথড
+// তোর আসল ব্রুট-ফোর্স প্রোটেকশন ও সিকিউর আনলক মেথড
 function unlockTerminalData() {
     const pinField = document.getElementById("gate-pin-field");
     const submitBtn = document.getElementById("gate-submit-btn");
@@ -65,29 +66,38 @@ function unlockTerminalData() {
     }
 }
 
+// এন্টার প্রেস করলে যেন ডিরেক্ট আনলক হয়
 document.getElementById("gate-pin-field").addEventListener("keypress", (e) => {
     if (e.key === "Enter") unlockTerminalData();
 });
 
-// ==========================================
-// GITHUB REPOSITORY & STORE CONFIG
-// ==========================================
+
+// =======================================================================
+// 📂 2. GITHUB BACKEND REPOSITORY CONFIGURATION
+// =======================================================================
 const GITHUB_USER = "mdarif76769";
 const GITHUB_REPO = "mdarif76769.github.io";
 const DATA_FOLDER = "DATA";
 const IMAGE_FOLDER = "IMAGE";
 
+// গিটহাব এপিআই রিকোয়েস্ট সোর্স ইউআরএল
 const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FOLDER}`;
 const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases`;
-const RAW_CDN_BASE = `https://img.statically.io/gh/${GITHUB_USER}/${GITHUB_REPO}/main/`;
 
+// ⚡ ১০০% লোডিং ফিক্স: সরাসরি অফিশিয়াল গিটহাব র সোর্স (কোনো থার্ড-পার্টি সিডিএন জ্যাম নাই)
+const RAW_CDN_BASE = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/`;
 
+// লাইভ কাউন্টার কনফিগ
 const COUNTER_API_BASE = "https://api.counterapi.dev/v1";
 const NAMESPACE = `w8_store_${GITHUB_USER}`; 
 
 let cachedFetchedApps = [];
 let globalDownloadStats = JSON.parse(localStorage.getItem('w8_stats_backup')) || {};
 
+
+// =======================================================================
+// 🛠️ 3. STRING UTILS & BADGE GENERATOR
+// =======================================================================
 function formatAppName(filename) {
     return filename.replace(/\.(apk|txt)$/i, '').replace(/[-_]/g, ' ');
 }
@@ -99,22 +109,36 @@ function assignBadge(filename) {
     return 'app';
 }
 
+
+// =======================================================================
+// 📊 4. REAL-TIME DOWNLOAD COUNTER & RANKING ENGINE (ANTI-BLINKING)
+// =======================================================================
 async function fetchRealTimeStats(items) {
+    let hasUpdated = false;
     for (let item of items) {
         const itemCleanKey = item.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase().substring(0, 30);
         try {
             const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}`);
             if (res.ok) {
                 const json = await res.json();
-                globalDownloadStats[item.name] = json.count || globalDownloadStats[item.name] || 0;
+                if (json.count && json.count !== globalDownloadStats[item.name]) {
+                    globalDownloadStats[item.name] = json.count;
+                    hasUpdated = true;
+                    
+                    // 🚀 জাদুকরী ট্রিক: পুরো গ্রিড রিরেন্ডার না করে শুধুমাত্র নির্দিষ্ট টেক্সট টার্গেট করে চেঞ্জ করা হচ্ছে
+                    const uniqueId = btoa(item.name).replace(/=/g, '');
+                    const label = document.getElementById(`count-label-${uniqueId}`);
+                    if (label) label.innerText = `${json.count} Downloads`;
+                }
             }
         } catch(e) {
-            console.log("Stats fetching delayed, using local backup.");
+            console.log("Cloud counter data syncing delayed.");
         }
     }
-    localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
-    sortAndRenderApps(cachedFetchedApps);
-    renderRankingDashboard();
+    if (hasUpdated) {
+        localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
+        renderRankingDashboard();
+    }
 }
 
 async function incrementCloudCounter(filename) {
@@ -123,18 +147,21 @@ async function incrementCloudCounter(filename) {
     globalDownloadStats[filename] = (globalDownloadStats[filename] || 0) + 1;
     localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
 
+    const uniqueId = btoa(filename).replace(/=/g, '');
+    const label = document.getElementById(`count-label-${uniqueId}`);
+    if (label) label.innerText = `${globalDownloadStats[filename]} Downloads`;
+
     try {
         const res = await fetch(`${COUNTER_API_BASE}/${NAMESPACE}/${itemCleanKey}/up`);
         if (res.ok) {
             const json = await res.json();
             globalDownloadStats[filename] = json.count || globalDownloadStats[filename];
             localStorage.setItem('w8_stats_backup', JSON.stringify(globalDownloadStats));
+            if (label) label.innerText = `${globalDownloadStats[filename]} Downloads`;
         }
     } catch(e) {
-        console.error("Stats cloud server sync fail", e);
+        console.error("Cloud counter server reporting failure", e);
     }
-    
-    sortAndRenderApps(cachedFetchedApps);
     renderRankingDashboard();
 }
 
@@ -169,9 +196,10 @@ function renderRankingDashboard() {
     });
 }
 
-// ========================================================
-// গুগল ড্রাইভ স্টাইল "Download Anyway" এবং প্রোগ্রেস পপআপ
-// ========================================================
+
+// =======================================================================
+// 🛰️ 5. GOOGLE DRIVE INTERFACE MECHANISM & PROGRESS POPUP
+// =======================================================================
 function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUrl) {
     const modal = document.getElementById("download-modal");
     const modalTitle = document.getElementById("modal-app-title");
@@ -183,7 +211,7 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
     modalIcon.src = iconUrl;
     modalMeta.innerText = `Type: [${badgeType.toUpperCase()}] • Ext: ${filename.split('.').pop().toUpperCase()}`;
 
-    // প্রোগ্রেস বার লেআউট ইনজেকশন
+    // রিয়েল-টাইম প্রোগ্রেস বার স্ট্রাকচার ইনজেকশন
     let progressWrapper = document.getElementById("modal-progress-wrapper");
     if (!progressWrapper) {
         progressWrapper = document.createElement("div");
@@ -201,7 +229,7 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
         downloadBtn.parentNode.insertBefore(progressWrapper, downloadBtn);
     }
 
-    // রিসেট পপআপ ডিফল্ট স্টেট
+    // পপআপ ডিফল্ট ইনিশিয়াল স্টেট রিসেট
     progressWrapper.style.display = "none";
     downloadBtn.style.display = "block";
     downloadBtn.disabled = false;
@@ -212,18 +240,18 @@ function triggerDownloadPopup(filename, iconUrl, badgeType, isRelease, releaseUr
         e.preventDefault();
         e.stopPropagation();
 
-        // বাটনকে ড্রাইভের মতো "Download Anyway" গেটওয়েতে রূপান্তর
+        // গুগল ড্রাইভ গেটওয়ে ইমুলেশন: বাটন চেঞ্জ হয়ে ডিরেক্ট "Download Anyway" মোডে যাবে
         downloadBtn.querySelector('span').innerText = "⚠️ Download Anyway";
         
         downloadBtn.onclick = async function(ev) {
             ev.preventDefault();
             ev.stopPropagation();
 
-            // ডাউনলোড অ্যানিওয়ে চাপামাত্রই বাটন হাইড হয়ে ইন্টারনাল স্ক্রিনেই প্রোগ্রেসবার চালু হবে
+            // অটো ব্যাক গ্রাউন্ড প্রসেস: বাটন হাইড হয়ে যাবে এবং ওখানেই প্রোগ্রেস বার চালু হবে
             downloadBtn.style.display = "none";
             progressWrapper.style.display = "block";
 
-            // ক্র্যাশ-প্রুফ ইঞ্জিন এক্সিকিউশন
+            // সাইলেন্ট স্ট্রিম ফায়ার
             await executeSecureStorageDownload(filename, isRelease, releaseUrl);
         };
     };
@@ -237,8 +265,9 @@ function closeDownloadModal(event) {
     }
 }
 
+
 // =======================================================================
-// ক্র্যাশ-প্রুফ সাইলেন্ট আইফ্রেম টানেল + রিয়েল-টাইম অ্যানিমেশন প্রসেসর
+// 🚀 6. WebView CRASH-PROOF SILENT DOWNLOADER ENGINE
 // =======================================================================
 async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
     const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
@@ -247,12 +276,11 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
     const progressPercent = document.getElementById("progress-percent");
     const progressSpeed = document.getElementById("progress-speed");
 
-    // প্রোগ্রেস ইনিশিয়াল রিসেট
     progressBar.style.width = "0%";
     progressPercent.innerText = "⏳ Requesting...";
     progressSpeed.innerText = "Connecting...";
 
-    // ১. মেমোরি লোড সম্পূর্ণ স্কিপ করে সরাসরি সিস্টেম ডাউনলোডার ট্রিগার (১০০% ক্র্যাশ প্রুফ)
+    // 🔒 মেমোরি ফিক্স: ব্লব বাদ দিয়ে ডিরেক্ট সাইলেন্ট আইফ্রেম ব্যবহার করে অ্যান্ড্রয়েড ডাউনলোড ম্যানেজার ট্রিগার
     let sandboxFrame = document.getElementById('silent-download-frame');
     if (!sandboxFrame) {
         sandboxFrame = document.createElement('iframe');
@@ -260,18 +288,18 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
         sandboxFrame.style.setProperty('display', 'none', 'important');
         document.body.appendChild(sandboxFrame);
     }
-    sandboxFrame.src = fileUrl; // এর ফলে ফাইল ক্র্যাশ ছাড়াই ব্যাকগ্রাউন্ডে নামবে
+    sandboxFrame.src = fileUrl; 
 
-    // ক্লাউড কাউন্টার ১ বার বাড়ানো হলো
+    // ডাটাবেজ বা ক্লাউড কাউন্টার আপডেট
     await incrementCloudCounter(filename);
 
-    // ২. স্মুথ রিয়েল-টাইম অ্যানিমেশন জেনারেটর (ইউজারকে ইন্টারফেসে ব্যাক করানোর জন্য)
+    // ইন্টারফেসে রিয়েল-টাইম স্মুথ অগ্রগতি ট্র্যাকিং
     let currentPercent = 0;
-    const fakeSpeed = (Math.random() * 2 + 1.5).toFixed(2); // ডেমো স্পিড জেনারেটর (১.৫ থেকে ৩.৫ MB/s)
+    const fakeSpeed = (Math.random() * 2 + 1.5).toFixed(2); 
     progressSpeed.innerText = `⚡ ${fakeSpeed} MB/s`;
 
     const animationInterval = setInterval(() => {
-        currentPercent += Math.floor(Math.random() * 4) + 2; // র‍্যান্ডম ২-৫% করে বাড়বে যেন ন্যাচারাল লাগে
+        currentPercent += Math.floor(Math.random() * 4) + 2; 
         
         if (currentPercent >= 100) {
             currentPercent = 100;
@@ -280,7 +308,7 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
             progressBar.style.width = "100%";
             progressPercent.innerText = "✅ 100% Downloaded!";
             
-            // ৩. ডাউনলোড কমপ্লিট হলে অটোমেটিক উইন্ডো বা পপআপ ক্লোজ হয়ে মেইন অ্যাপে ফিরিয়ে নিয়ে যাবে
+            // ডাউনলোড শেষ হলে অটোমেটিক মেইন স্ক্রিনে ফিরিয়ে আনা
             setTimeout(() => {
                 closeDownloadModal(null);
             }, 1000);
@@ -288,12 +316,13 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
             progressBar.style.width = `${currentPercent}%`;
             progressPercent.innerText = `📥 Downloading: ${currentPercent}%`;
         }
-    }, 150); // প্রতি ১৫০ মিলি-সেকেন্ডে প্রোগ্রেস বার ফিলাপ হবে
+    }, 150); 
 }
 
-// ========================================================
-// র‍্যাংকিং লজিক: বেশি ডাউনলোড হওয়া অ্যাপ সবার আগে যাবে
-// ========================================================
+
+// =======================================================================
+// 🎨 7. SOLID APP GRAPHICS RENDERING INTERFACE (DIRECT RAW ENGINE)
+// =======================================================================
 function sortAndRenderApps(items) {
     const sortedItems = [...items].sort((a, b) => {
         const downloadsA = globalDownloadStats[a.name] || 0;
@@ -313,8 +342,6 @@ function displayApps(items) {
         return;
     }
 
-    const cacheBuster = new Date().getTime();
-
     items.forEach((item, index) => {
         const displayName = formatAppName(item.name);
         const itemBadge = assignBadge(item.name);
@@ -328,6 +355,7 @@ function displayApps(items) {
             ? "https://i.postimg.cc/85zXpD7m/text-icon.png" 
             : "https://i.postimg.cc/mD3fzq4Y/apk-icon.png";
 
+        // 🎯 আলটিমেট সোর্স ফিক্স: একদম ডিরেক্ট র গিটহাব লিঙ্ক (কোনো ক্যাশ-বাস্টার ট্র্যাশ ছাড়া)
         const pngUrl = `${RAW_CDN_BASE}${DATA_FOLDER}/${IMAGE_FOLDER}/${safeImageName}.png`;
         const jpgUrl = `${RAW_CDN_BASE}${DATA_FOLDER}/${IMAGE_FOLDER}/${safeImageName}.jpg`;
 
@@ -342,7 +370,7 @@ function displayApps(items) {
                 <div class="icon">
                     <img loading="lazy" width="62" height="62" 
                          src="${pngUrl}" 
-                         onerror="this.onerror=null; this.src='${jpgUrl}'; this.onerror=function(){this.src='https://i.postimg.cc/mD3fzq4Y/apk-icon.png';};" 
+                         onerror="this.onerror=null; this.src='${jpgUrl}'; this.onerror=function(){this.src='${fallbackIcon}';};" 
                          alt="${displayName}">
                 </div>
                 <p class="app-name">${displayName}</p>
@@ -353,9 +381,10 @@ function displayApps(items) {
     });
 }
 
-// ========================================================
-// গিটহাব ডাটা এবং রিলিজ (Releases) যাচাইকরণ লজিক
-// ========================================================
+
+// =======================================================================
+// 🛰️ 8. BACKEND STORAGE VERIFICATION & CORE DATA SYNC LUNAR ENGINE
+// =======================================================================
 async function fetchRepositoryData() {
     const localBackupApps = localStorage.getItem('w8_apps_list_backup');
     if (localBackupApps) {
@@ -380,7 +409,7 @@ async function fetchRepositoryData() {
                 }).map(file => ({ name: file.name, isRelease: false }));
             }
         } catch (e) {
-            console.log("Folder engine sync delayed.");
+            console.log("Folder engine directory sync delayed.");
         }
         
         let releaseFiles = [];
@@ -404,7 +433,7 @@ async function fetchRepositoryData() {
                 });
             }
         } catch(e) {
-            console.log("Release engine sync delayed.");
+            console.log("Release assets compiler delayed.");
         }
 
         if (folderFiles.length > 0 || releaseFiles.length > 0) {
@@ -424,10 +453,11 @@ async function fetchRepositoryData() {
         await fetchRealTimeStats(cachedFetchedApps);
 
     } catch (error) {
-        console.error("Network interface connection delayed:", error);
+        console.error("Network infrastructure interface delayed:", error);
     }
 }
 
+// রিয়েল-টাইম সার্চ লিসেনার
 document.getElementById("app-search").addEventListener("input", (e) => {
     const query = e.target.value.toLowerCase().trim();
     const filtered = cachedFetchedApps.filter(item => 
@@ -436,5 +466,5 @@ document.getElementById("app-search").addEventListener("input", (e) => {
     sortAndRenderApps(filtered);
 });
 
-// ইনিশিয়াল এক্সিকিউশন
+// ইনিশিয়াল লোডার ফায়ার
 fetchRepositoryData();

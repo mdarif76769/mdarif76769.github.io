@@ -332,17 +332,6 @@
     </style>
 </head>
 <body>
-    <div id="tgBlocker">
-        <div>
-            <div id="blockIcon" style="font-size: 60px; margin-bottom: 20px;">⌛</div>
-            <h2 id="blockTitle" style="color: var(--btn); font-weight: 800;">Verifying Session...</h2>
-            <p id="blockDesc" style="color: var(--hint); font-weight: 600;">Please wait while we authorize your access.</p>
-            <div id="openBotBtn" style="display: none;">
-                <a href="https://t.me/Rs5SchoolAndCollegeInfobot" style="display: inline-block; margin-top: 20px; padding: 12px 25px; background: var(--btn); color: var(--btn-text); text-decoration: none; border-radius: 10px; font-weight: 800;">Open Bot</a>
-            </div>
-        </div>
-    </div>
-
     <div class="container" id="mainApp" style="display:none;">
         <div style="text-align:center;"><span style="font-size:45px;">🏫</span><h2 style="margin:10px 0; color:var(--btn);">EMIS Portal</h2></div>
         <div class="search-box">
@@ -366,41 +355,14 @@
 
     <script>
             <script>
-        // টেলিগ্রাম অবজেক্ট ব্রাউজারে যেন এরর না দেয় তার জন্য কন্ডিশনাল চেক
+            <script>
         const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-        const blocker = document.getElementById('tgBlocker');
-        const mainApp = document.getElementById('mainApp');
-        const blockIcon = document.getElementById('blockIcon');
-        const blockTitle = document.getElementById('blockTitle');
-        const blockDesc = document.getElementById('blockDesc');
-        const openBotBtn = document.getElementById('openBotBtn');
-        let globalTeacherMobiles = {};
-        
+        let globalTeacherMobiles = {}; //
+
         if (tg) {
             tg.ready();
             tg.expand();
-            setTimeout(() => {
-                blocker.style.display = 'none';
-                mainApp.style.display = 'block';
-            }, 1500);
-        } else {
-            blocker.style.display = 'none';
-            mainApp.style.display = 'block';
         }
-        function filterPage() {
-            const query = document.getElementById('localFilter').value.toLowerCase();
-            const cards = document.getElementsByClassName('teacher-card');
-            let visibleCount = 0;
-            for (let card of cards) {
-                if (card.innerText.toLowerCase().includes(query)) {
-                    card.style.display = "block";
-                    visibleCount++;
-                } else card.style.display = "none";
-            }
-            const countBadge = document.getElementById('visibleCount');
-            if (countBadge) countBadge.innerText = visibleCount;
-        }
-        // ... (বাকি সব কোড অপরিবর্তিত রাখুন)
 
         async function onSchoolCollegeInfoClick() {
             const input = document.getElementById('searchInput').value.trim();

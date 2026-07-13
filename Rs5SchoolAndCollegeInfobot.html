@@ -192,22 +192,6 @@
             letter-spacing: 0.5px;
         }
 
-        #tgBlocker {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--bg);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 30px;
-            box-sizing: border-box;
-        }
-
         .detail-btn {
             width: 100%;
             margin-top: 15px;
@@ -332,7 +316,8 @@
     </style>
 </head>
 <body>
-    <div class="container" id="mainApp" style="display:none;">
+    <!-- মেইন অ্যাপ কন্টেইনার সরাসরি ওপেন হওয়ার জন্য display:block; করা হলো -->
+    <div class="container" id="mainApp" style="display:block;">
         <div style="text-align:center;"><span style="font-size:45px;">🏫</span><h2 style="margin:10px 0; color:var(--btn);">EMIS Portal</h2></div>
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="Search Institute or EIIN...">
@@ -354,14 +339,31 @@
     </div>
 
     <script>
-            <script>
-            <script>
         const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-        let globalTeacherMobiles = {}; //
+        let globalTeacherMobiles = {}; 
 
         if (tg) {
             tg.ready();
             tg.expand();
+        }
+
+        // লোকাল ফিল্টার ফিল্টারিং ফাংশন
+        function filterPage() {
+            const query = document.getElementById('localFilter').value.toLowerCase();
+            const cards = document.getElementsByClassName('teacher-card');
+            let visibleCount = 0;
+            for (let card of cards) {
+                if (card.innerText.toLowerCase().includes(query)) {
+                    card.style.display = "block";
+                    visibleCount++;
+                } else {
+                    card.style.display = "none";
+                }
+            }
+            const countBadge = document.getElementById('visibleCount');
+            if (countBadge) {
+                countBadge.innerText = visibleCount;
+            }
         }
 
         async function onSchoolCollegeInfoClick() {
@@ -396,7 +398,6 @@
                 console.error("Fetch Error:", e);
                 loader.style.display = "none";
                 
-                // ব্যাকআপ প্রক্সি ট্রাই
                 try {
                     const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/Fullinfo.php?fullinfo=${input}`)}`;
                     const proxyRes = await fetch(proxyUrl);
@@ -667,7 +668,6 @@
             const schoolBtn = document.getElementById('schoolCollegeInfoBtn');
             if (schoolBtn) schoolBtn.style.display = "none";
 
-            // ব্রাউজারের জন্য কন্ডিশনাল আইডি অ্যাসাইনমেন্ট
             const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : 'browser_user';
             
             try {
@@ -682,7 +682,6 @@
                     const res = await fetch(api_url);
                     text = await res.text();
                 } catch (fetchErr) {
-                    // ব্রাউজারে CORS Error এড়াতে অল-অরিজিন প্রক্সি দিয়ে ব্যাকআপ ট্রাই
                     const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(api_url)}`;
                     const res = await fetch(proxyUrl);
                     const proxyData = await res.json();
@@ -746,11 +745,11 @@
         }
 
         function displayInstitutes(text) {
-            const results = document.getElementById('results');
-            results.innerHTML = "";
+            const resultados = document.getElementById('results');
+            resultados.innerHTML = "";
             const blocks = text.split(/(?=EIIN:)/i);
             if (blocks.length > 0 && text.toLowerCase().includes('eiin')) {
-                results.innerHTML = `<div style="margin-bottom:15px; font-weight:800; color:var(--hint); text-align:center; font-size:12px;">🏫 SELECT AN INSTITUTE</div>`;
+                resultados.innerHTML = `<div style="margin-bottom:15px; font-weight:800; color:var(--hint); text-align:center; font-size:12px;">🏫 SELECT AN INSTITUTE</div>`;
                 blocks.forEach(block => {
                     const eiinMatch = block.match(/EIIN:\s*(\d+)/i);
                     if (eiinMatch) {
@@ -765,17 +764,17 @@
                             <div style="font-size:14px; line-height:1.5; color:var(--text);">${block.trim().replace(/\n/g, '<br>')}</div>
                             <div style="margin-top:10px; text-align:right; font-weight:bold; color:var(--btn); font-size:12px;">VIEW TEACHERS ➔</div>
                         `;
-                        results.appendChild(card);
+                        resultados.appendChild(card);
                     }
                 });
             } else {
-                results.innerHTML = `<div style="padding:20px; background:var(--sec-bg); border-radius:15px; border:1px solid var(--btn); white-space:pre-wrap; font-size:14px;">${text.trim()}</div>`;
+                resultados.innerHTML = `<div style="padding:20px; background:var(--sec-bg); border-radius:15px; border:1px solid var(--btn); white-space:pre-wrap; font-size:14px;">${text.trim()}</div>`;
             }
         }
 
         function displayTeachers(data) {
-            const results = document.getElementById('results');
-            results.innerHTML = "";
+            const resultados = document.getElementById('results');
+            resultados.innerHTML = "";
 
             const sections = data.split(/\[Teacher #\d+\]/i);
             sections.shift();
@@ -823,9 +822,9 @@
             const allTeachers = [...withPhoto, ...noPhoto];
 
             if (allTeachers.length > 0) {
-                results.innerHTML = `<div style="margin-bottom:20px; font-weight:800; color:#fff; text-align:center; background:var(--btn); padding:10px; border-radius:10px; font-size:14px;">📊 PHOTOS: <span id="visibleCount">${withPhoto.length}</span> | TOTAL: ${allTeachers.length}</div>`;
+                resultados.innerHTML = `<div style="margin-bottom:20px; font-weight:800; color:#fff; text-align:center; background:var(--btn); padding:10px; border-radius:10px; font-size:14px;">📊 PHOTOS: <span id="visibleCount">${withPhoto.length}</span> | TOTAL: ${allTeachers.length}</div>`;
             } else {
-                results.innerHTML = `<div style="padding:20px; text-align:center; color:var(--hint); font-weight:bold;">No profile photos found.</div>`;
+                resultados.innerHTML = `<div style="padding:20px; text-align:center; color:var(--hint); font-weight:bold;">No profile photos found.</div>`;
             }
 
             allTeachers.forEach(teacher => {
@@ -885,13 +884,13 @@
                     </div>
                     <div class="inst-footer">🏢 ${instituteName}</div>
                     ${hasValidId ? `<button class="detail-btn" onclick="loadFullTeacherInfo('${teacherId}', this)">View Full Details</button>` : ''}`;
-                results.appendChild(card);
+                resultados.appendChild(card);
             });
         }
 
         function displayApplicants(data) {
-            const results = document.getElementById('results');
-            results.innerHTML = "";
+            const resultados = document.getElementById('results');
+            resultados.innerHTML = "";
             const list = Array.isArray(data) ? data : [data];
             const withPhoto = [];
             const noPhoto = [];
@@ -920,9 +919,9 @@
             const allApplicants = [...withPhoto, ...noPhoto];
 
             if (allApplicants.length > 0) {
-                results.innerHTML = `<div style="margin-bottom:20px; font-weight:800; color:#fff; text-align:center; background:var(--btn); padding:10px; border-radius:10px; font-size:14px;">📊 PHOTOS: <span id="visibleCount">${withPhoto.length}</span> | TOTAL: ${allApplicants.length}</div>`;
+                resultados.innerHTML = `<div style="margin-bottom:20px; font-weight:800; color:#fff; text-align:center; background:var(--btn); padding:10px; border-radius:10px; font-size:14px;">📊 PHOTOS: <span id="visibleCount">${withPhoto.length}</span> | TOTAL: ${allApplicants.length}</div>`;
             } else {
-                results.innerHTML = `<div style="padding:20px; text-align:center; color:var(--hint); font-weight:bold;">No profile photos found.</div>`;
+                resultados.innerHTML = `<div style="padding:20px; text-align:center; color:var(--hint); font-weight:bold;">No profile photos found.</div>`;
             }
             allApplicants.forEach(applicant => {
                 const card = document.createElement('div');
@@ -980,7 +979,7 @@
                     </div>
                     <div class="inst-footer">🏢 ${instituteName}</div>
                     ${hasValidId ? `<button class="detail-btn" onclick="loadFullTeacherInfo('${applicantId}', this)">View Full Details</button>` : ''}`;
-                results.appendChild(card);
+                resultados.appendChild(card);
             });
         }
 
@@ -1086,9 +1085,9 @@
                                             let count = parseInt(countBadge.innerText);
                                             countBadge.innerText = count + 1;
                                         }
-                                        const results = document.getElementById('results');
-                                        if (results) {
-                                            const cards = results.querySelectorAll('.teacher-card');
+                                        const resultados = document.getElementById('results');
+                                        if (resultados) {
+                                            const cards = resultados.querySelectorAll('.teacher-card');
                                             let insertBeforeCard = null;
                                             for (let c of cards) {
                                                 if (!c.isSortedAsPhoto && c !== card) {
@@ -1097,9 +1096,9 @@
                                                 }
                                             }
                                             if (insertBeforeCard) {
-                                                results.insertBefore(card, insertBeforeCard);
+                                                resultados.insertBefore(card, insertBeforeCard);
                                             } else {
-                                                results.appendChild(card);
+                                                resultados.appendChild(card);
                                             }
                                         }
                                     }
@@ -1121,9 +1120,9 @@
                                                 let count = parseInt(countBadge.innerText);
                                                 countBadge.innerText = count + 1;
                                             }
-                                            const results = document.getElementById('results');
-                                            if (results) {
-                                                const cards = results.querySelectorAll('.teacher-card');
+                                            const resultados = document.getElementById('results');
+                                            if (resultados) {
+                                                const cards = resultados.querySelectorAll('.teacher-card');
                                                 let insertBeforeCard = null;
                                                 for (let c of cards) {
                                                     if (!c.isSortedAsPhoto && c !== card) {
@@ -1132,9 +1131,9 @@
                                                     }
                                                 }
                                                 if (insertBeforeCard) {
-                                                    results.insertBefore(card, insertBeforeCard);
+                                                    resultados.insertBefore(card, insertBeforeCard);
                                                 } else {
-                                                    results.appendChild(card);
+                                                    resultados.appendChild(card);
                                                 }
                                             }
                                         }
@@ -1199,7 +1198,6 @@
                     }
                 }
                 if (!hasNid) {
-                    // অ্যালার্ট লজিক কন্ডিশনাল করা হলো
                     if (tg && tg.showAlert) {
                         tg.showAlert("Nid Not Found");
                     } else {
@@ -1220,9 +1218,9 @@
             placeholder.style.cssText = "width:140px; height:160px; background:var(--sec-bg); display:flex; align-items:center; justify-content:center; border-radius:18px; margin-bottom:12px; color:var(--hint); border:2px dashed var(--btn); font-weight:bold; font-size:12px;";
             placeholder.innerText = "NO PROFILE PHOTO";
             img.replaceWith(placeholder);
-            const results = document.getElementById('results');
-            if (results && card.nextSibling) {
-                results.appendChild(card);
+            const resultados = document.getElementById('results');
+            if (resultados && card.nextSibling) {
+                resultados.appendChild(card);
             }
             if (card.isSortedAsPhoto && !card.imageErrorHandled) {
                 card.imageErrorHandled = true;
@@ -1289,7 +1287,6 @@
                 .then(res => res.text())
                 .then(processPhotoUrl)
                 .catch(() => {
-                    // ব্রাউজার CORS ব্যাকআপ ট্রাই
                     const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(api_photo_url)}`;
                     fetch(proxyUrl)
                         .then(res => res.json())
@@ -1341,7 +1338,6 @@
         function closePhotoModal() {
             document.getElementById('photoModal').style.display = "none";
         }
-                                                                            
     </script>
 </body>
 </html>

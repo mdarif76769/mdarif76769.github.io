@@ -365,7 +365,8 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
+                // টেলিগ্রাম অবজেক্ট ব্রাউজারে যেন এরর না দেয় তার জন্য কন্ডিশনাল চেক
+        const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
         const blocker = document.getElementById('tgBlocker');
         const mainApp = document.getElementById('mainApp');
         const blockIcon = document.getElementById('blockIcon');
@@ -374,8 +375,10 @@
         const openBotBtn = document.getElementById('openBotBtn');
         let globalTeacherMobiles = {};
 
-        tg.ready();
-        tg.expand();
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
 
         function filterPage() {
             const query = document.getElementById('localFilter').value.toLowerCase();
@@ -392,57 +395,54 @@
         }
 
         async function onSchoolCollegeInfoClick() {
-    const input = document.getElementById('searchInput').value.trim();
-    if (!input || !/^\d+$/.test(input)) return;
-    const results = document.getElementById('results');
-    const loader = document.getElementById('loader');
-    results.innerHTML = "";
-    loader.style.display = "flex";
-    loader.querySelector('.loading-text').innerText = "Fetching School/College Info...";
-    
-    try {
-        const api_url = `https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/Fullinfo.php?fullinfo=${input}`;
-        
-        // টেলিগ্রামের ভেতরের ভেরিফিকেশন এরর এড়াতে headers এবং mode যুক্ত করা হয়েছে
-        const res = await fetch(api_url, {
-            method: 'GET',
-            mode: 'cors', // ক্রস-অরিজিন রিকোয়েস্ট অ্যালাউ করার জন্য
-            headers: {
-                'Accept': 'text/plain, text/html, application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-
-        // যদি রেসপন্স ঠিকঠাক না আসে (যেমন ৪MD বা ৫০০ এরর)
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const text = await res.text();
-        loader.style.display = "none";
-        displayFullInfo(text);
-    } catch(e) {
-        console.error("Fetch Error:", e);
-        loader.style.display = "none";
-        
-        // যদি মূল এপিআই সার্ভার ডাউন থাকে, তাহলে একটি প্রক্সি (CORS Bypass) দিয়ে ব্যাকআপ ট্রাই করার ব্যবস্থা
-        try {
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/Fullinfo.php?fullinfo=${input}`)}`;
-            const proxyRes = await fetch(proxyUrl);
-            const proxyData = await proxyRes.json();
+            const input = document.getElementById('searchInput').value.trim();
+            if (!input || !/^\d+$/.test(input)) return;
+            const results = document.getElementById('results');
+            const loader = document.getElementById('loader');
+            results.innerHTML = "";
+            loader.style.display = "flex";
+            loader.querySelector('.loading-text').innerText = "Fetching School/College Info...";
             
-            if (proxyData.contents) {
-                displayFullInfo(proxyData.contents);
-                return;
+            try {
+                const api_url = `https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/Fullinfo.php?fullinfo=${input}`;
+                
+                const res = await fetch(api_url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'text/plain, text/html, application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+
+                const text = await res.text();
+                loader.style.display = "none";
+                displayFullInfo(text);
+            } catch(e) {
+                console.error("Fetch Error:", e);
+                loader.style.display = "none";
+                
+                // ব্যাকআপ প্রক্সি ট্রাই
+                try {
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/Fullinfo.php?fullinfo=${input}`)}`;
+                    const proxyRes = await fetch(proxyUrl);
+                    const proxyData = await proxyRes.json();
+                    
+                    if (proxyData.contents) {
+                        displayFullInfo(proxyData.contents);
+                        return;
+                    }
+                } catch(proxyError) {
+                    console.error("Proxy also failed:", proxyError);
+                }
+
+                results.innerHTML = "<div style='color:red; text-align:center;'>❌ Connection Failed (Verification Server Error)</div>";
             }
-        } catch(proxyError) {
-            console.error("Proxy also failed:", proxyError);
         }
-
-        results.innerHTML = "<div style='color:red; text-align:center;'>❌ Connection Failed (Verification Server Error)</div>";
-    }
-}
-
 
         function convertBengaliDigits(str) {
             const bengaliDigits = {'০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9'};
@@ -697,15 +697,27 @@
             const schoolBtn = document.getElementById('schoolCollegeInfoBtn');
             if (schoolBtn) schoolBtn.style.display = "none";
 
-            const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'unknown';
+            // ব্রাউজারের জন্য কন্ডিশনাল আইডি অ্যাসাইনমেন্ট
+            const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : 'browser_user';
+            
             try {
                 const isEIIN = /^\d+$/.test(input);
                 const trackingUrl = `?webhook=1&action=search_track&id=${userId}&query=${encodeURIComponent(input)}`;
-                fetch(trackingUrl);
+                fetch(trackingUrl).catch(e => console.log("Tracking request bypassed"));
 
                 const api_url = isEIIN ? `https://w8team.top/Bots/EIIN%20To%20Info%20bot/EIIN%20To%20Info.php?EIINToInfo=${input}` : `https://w8team.top/Bots/EIIN%20To%20Info%20bot/EIIN_Search.php?InstituteName=${encodeURIComponent(input)}`;
-                const res = await fetch(api_url);
-                let text = await res.text();
+                
+                let text = "";
+                try {
+                    const res = await fetch(api_url);
+                    text = await res.text();
+                } catch (fetchErr) {
+                    // ব্রাউজারে CORS Error এড়াতে অল-অরিজিন প্রক্সি দিয়ে ব্যাকআপ ট্রাই
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(api_url)}`;
+                    const res = await fetch(proxyUrl);
+                    const proxyData = await res.json();
+                    text = proxyData.contents || "";
+                }
 
                 loader.style.display = "none";
                 searchBtn.disabled = false;
@@ -1014,8 +1026,18 @@
             button.style.opacity = "0.7";
             try {
                 const api_url = `https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/TeacherInfo.php?TeacherInfo=${id}`;
-                const res = await fetch(api_url);
-                const text = await res.text();
+                
+                let text = "";
+                try {
+                    const res = await fetch(api_url);
+                    text = await res.text();
+                } catch (fetchErr) {
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(api_url)}`;
+                    const res = await fetch(proxyUrl);
+                    const proxyData = await res.json();
+                    text = proxyData.contents || "";
+                }
+
                 let isJson = false;
                 let jsonData = null;
                 try {
@@ -1129,7 +1151,7 @@
                                                 let count = parseInt(countBadge.innerText);
                                                 countBadge.innerText = count + 1;
                                             }
-                                            constresults = document.getElementById('results');
+                                            const results = document.getElementById('results');
                                             if (results) {
                                                 const cards = results.querySelectorAll('.teacher-card');
                                                 let insertBeforeCard = null;
@@ -1207,8 +1229,9 @@
                     }
                 }
                 if (!hasNid) {
-                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                        window.Telegram.WebApp.showAlert("Nid Not Found");
+                    // অ্যালার্ট লজিক কন্ডিশনাল করা হলো
+                    if (tg && tg.showAlert) {
+                        tg.showAlert("Nid Not Found");
                     } else {
                         alert("Nid Not Found");
                     }
@@ -1271,29 +1294,40 @@
             error.style.display = "none";
             modal.style.display = "flex";
 
-            fetch(`https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/EiinToPhoto.php?photo=${mobile}`)
-                .then(res => res.text())
-                .then(url => {
-                    const cleanUrl = url.split('\n')[0].trim();
-                    if (cleanUrl && cleanUrl.startsWith('http')) {
-                        img.onload = () => {
-                            spinner.style.display = "none";
-                            error.style.display = "none";
-                            img.style.display = "block";
-                        };
-                        img.onerror = () => {
-                            spinner.style.display = "none";
-                            error.style.display = "block";
-                        };
-                        img.src = cleanUrl;
-                    } else {
+            const api_photo_url = `https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/EiinToPhoto.php?photo=${mobile}`;
+
+            const processPhotoUrl = (urlText) => {
+                const cleanUrl = urlText.split('\n')[0].trim();
+                if (cleanUrl && cleanUrl.startsWith('http')) {
+                    img.onload = () => {
+                        spinner.style.display = "none";
+                        error.style.display = "none";
+                        img.style.display = "block";
+                    };
+                    img.onerror = () => {
                         spinner.style.display = "none";
                         error.style.display = "block";
-                    }
-                })
-                .catch(() => {
+                    };
+                    img.src = cleanUrl;
+                } else {
                     spinner.style.display = "none";
                     error.style.display = "block";
+                }
+            };
+
+            fetch(api_photo_url)
+                .then(res => res.text())
+                .then(processPhotoUrl)
+                .catch(() => {
+                    // ব্রাউজার CORS ব্যাকআপ ট্রাই
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(api_photo_url)}`;
+                    fetch(proxyUrl)
+                        .then(res => res.json())
+                        .then(proxyData => processPhotoUrl(proxyData.contents || ""))
+                        .catch(() => {
+                            spinner.style.display = "none";
+                            error.style.display = "block";
+                        });
                 });
         }
 
@@ -1337,6 +1371,7 @@
         function closePhotoModal() {
             document.getElementById('photoModal').style.display = "none";
         }
+                                                                            
     </script>
 </body>
 </html>

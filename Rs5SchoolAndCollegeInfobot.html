@@ -377,40 +377,6 @@
         tg.ready();
         tg.expand();
 
-        async function checkAccess() {
-            const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
-
-            if (!userId) {
-                blockIcon.innerText = "🚫";
-                blockTitle.innerText = "Access Denied";
-                blockTitle.style.color = "#ef4444";
-                blockDesc.innerHTML = "This application is only accessible via the <b>Telegram Official App</b>.";
-                openBotBtn.style.display = "block";
-                return;
-            }
-
-            try {
-                const response = await fetch(`?webhook=1&action=check_premium&id=${userId}`);
-                const data = await response.json();
-                if (data.premium) {
-                    blocker.style.display = "none";
-                    mainApp.style.display = "block";
-                } else {
-                    blockIcon.innerText = "💎";
-                    blockTitle.innerText = "Premium Required";
-                    blockTitle.style.color = "#3390ec";
-                    blockDesc.innerHTML = data.message.replace(/\n/g, '<br>');
-                    openBotBtn.style.display = "block";
-                }
-            } catch (e) {
-                blockIcon.innerText = "❌";
-                blockTitle.innerText = "Server Error";
-                blockDesc.innerText = "Unable to connect to the verification server.";
-            }
-        }
-
-        setTimeout(checkAccess, 200);
-
         function filterPage() {
             const query = document.getElementById('localFilter').value.toLowerCase();
             const cards = document.getElementsByClassName('teacher-card');
@@ -426,24 +392,57 @@
         }
 
         async function onSchoolCollegeInfoClick() {
-            const input = document.getElementById('searchInput').value.trim();
-            if (!input || !/^\d+$/.test(input)) return;
-            const results = document.getElementById('results');
-            const loader = document.getElementById('loader');
-            results.innerHTML = "";
-            loader.style.display = "flex";
-            loader.querySelector('.loading-text').innerText = "Fetching School/College Info...";
-            try {
-                const api_url = `https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/Fullinfo.php?fullinfo=${input}`;
-                const res = await fetch(api_url);
-                const text = await res.text();
-                loader.style.display = "none";
-                displayFullInfo(text);
-            } catch(e) {
-                loader.style.display = "none";
-                results.innerHTML = "<div style='color:red; text-align:center;'>❌ Connection Failed</div>";
+    const input = document.getElementById('searchInput').value.trim();
+    if (!input || !/^\d+$/.test(input)) return;
+    const results = document.getElementById('results');
+    const loader = document.getElementById('loader');
+    results.innerHTML = "";
+    loader.style.display = "flex";
+    loader.querySelector('.loading-text').innerText = "Fetching School/College Info...";
+    
+    try {
+        const api_url = `https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/Fullinfo.php?fullinfo=${input}`;
+        
+        // টেলিগ্রামের ভেতরের ভেরিফিকেশন এরর এড়াতে headers এবং mode যুক্ত করা হয়েছে
+        const res = await fetch(api_url, {
+            method: 'GET',
+            mode: 'cors', // ক্রস-অরিজিন রিকোয়েস্ট অ্যালাউ করার জন্য
+            headers: {
+                'Accept': 'text/plain, text/html, application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             }
+        });
+
+        // যদি রেসপন্স ঠিকঠাক না আসে (যেমন ৪MD বা ৫০০ এরর)
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
         }
+
+        const text = await res.text();
+        loader.style.display = "none";
+        displayFullInfo(text);
+    } catch(e) {
+        console.error("Fetch Error:", e);
+        loader.style.display = "none";
+        
+        // যদি মূল এপিআই সার্ভার ডাউন থাকে, তাহলে একটি প্রক্সি (CORS Bypass) দিয়ে ব্যাকআপ ট্রাই করার ব্যবস্থা
+        try {
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/Fullinfo.php?fullinfo=${input}`)}`;
+            const proxyRes = await fetch(proxyUrl);
+            const proxyData = await proxyRes.json();
+            
+            if (proxyData.contents) {
+                displayFullInfo(proxyData.contents);
+                return;
+            }
+        } catch(proxyError) {
+            console.error("Proxy also failed:", proxyError);
+        }
+
+        results.innerHTML = "<div style='color:red; text-align:center;'>❌ Connection Failed (Verification Server Error)</div>";
+    }
+}
+
 
         function convertBengaliDigits(str) {
             const bengaliDigits = {'০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9'};

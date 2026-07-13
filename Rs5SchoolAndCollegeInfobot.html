@@ -365,7 +365,8 @@
     </div>
 
     <script>
-                // টেলিগ্রাম অবজেক্ট ব্রাউজারে যেন এরর না দেয় তার জন্য কন্ডিশনাল চেক
+            <script>
+        // টেলিগ্রাম অবজেক্ট ব্রাউজারে যেন এরর না দেয় তার জন্য কন্ডিশনাল চেক
         const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
         const blocker = document.getElementById('tgBlocker');
         const mainApp = document.getElementById('mainApp');
@@ -374,12 +375,18 @@
         const blockDesc = document.getElementById('blockDesc');
         const openBotBtn = document.getElementById('openBotBtn');
         let globalTeacherMobiles = {};
-
+        
         if (tg) {
             tg.ready();
             tg.expand();
+            setTimeout(() => {
+                blocker.style.display = 'none';
+                mainApp.style.display = 'block';
+            }, 1500);
+        } else {
+            blocker.style.display = 'none';
+            mainApp.style.display = 'block';
         }
-
         function filterPage() {
             const query = document.getElementById('localFilter').value.toLowerCase();
             const cards = document.getElementsByClassName('teacher-card');
@@ -393,6 +400,7 @@
             const countBadge = document.getElementById('visibleCount');
             if (countBadge) countBadge.innerText = visibleCount;
         }
+        // ... (বাকি সব কোড অপরিবর্তিত রাখুন)
 
         async function onSchoolCollegeInfoClick() {
             const input = document.getElementById('searchInput').value.trim();

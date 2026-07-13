@@ -1,670 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>School Info Portal</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: var(--tg-theme-bg-color, #ffffff);
+            --text: var(--tg-theme-text-color, #222222);
+            --hint: var(--tg-theme-hint-color, #707579);
+            --link: var(--tg-theme-link-color, #3390ec);
+            --sec-bg: var(--tg-theme-secondary-bg-color, #f4f4f7);
+            --btn: var(--tg-theme-button-color, #3390ec);
+            --btn-text: var(--tg-theme-button-text-color, #ffffff);
+        }
 
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <title>School Info Portal</title>
-        <script src="https://telegram.org/js/telegram-web-app.js"></script>
-        <style>
-            :root { 
-                --bg: var(--tg-theme-bg-color, #ffffff);
-                --text: var(--tg-theme-text-color, #222222);
-                --hint: var(--tg-theme-hint-color, #707579);
-                --link: var(--tg-theme-link-color, #3390ec);
-                --sec-bg: var(--tg-theme-secondary-bg-color, #f4f4f7);
-                --btn: var(--tg-theme-button-color, #3390ec);
-                --btn-text: var(--tg-theme-button-text-color, #ffffff);
-            }
-            body { font-family: -apple-system, system-ui, sans-serif; background: var(--sec-bg); color: var(--text); margin: 0; padding: 15px; }
-            .container { width: 100%; max-width: 500px; margin: auto; background: var(--bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); box-sizing: border-box; }
-            .search-box { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-            input { padding: 12px; border: 1px solid var(--hint); border-radius: 10px; font-size: 16px; outline: none; background: var(--bg); color: var(--text); }
-            .filter-input { border-color: var(--link); background: rgba(var(--tg-theme-link-color-rgb, 51, 144, 236), 0.05); }
-            button { padding: 14px; background: var(--btn); color: var(--btn-text); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
-            #results { margin-top: 20px; }
-            .teacher-card { background: var(--bg); border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 2px solid rgba(var(--tg-theme-button-color-rgb, 51, 144, 236), 0.15); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-            .profile-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed var(--hint); }
-            .profile-header img { width: 140px; height: 160px; object-fit: cover; border-radius: 18px; border: 4px solid var(--btn); box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 12px; -webkit-user-drag: none; user-drag: none; -webkit-user-select: none; user-select: none; pointer-events: none; -webkit-touch-callout: none; }
-            .teacher-name { font-weight: 900; color: var(--btn); font-size: 20px; text-align: center; line-height: 1.2; }
-            .teacher-name-bn { font-size: 16px; color: var(--text); font-weight: 600; text-align: center; margin-top: 4px; opacity: 0.8; }
-            .info-grid { display: grid; gap: 12px; margin-top: 5px; }
-            .info-box { display: flex; flex-direction: column; padding: 0 5px; }
-            .info-label { font-size: 11px; font-weight: 700; color: var(--hint); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-            .info-content { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; }
-            .inst-footer { margin-top: 20px; padding: 12px; background: var(--sec-bg); color: var(--btn); border-radius: 12px; font-size: 13px; text-align: center; font-weight: 700; border: 1px solid rgba(var(--tg-theme-button-color-rgb, 51, 144, 236), 0.2); }
-            .loader-container { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; }
-            .spinner { width: 40px; height: 40px; border: 4px solid rgba(var(--tg-theme-button-color-rgb, 51, 144, 236), 0.1); border-left-color: var(--btn); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-            @keyframes spin { to { transform: rotate(360deg); } }
-            .loading-text { font-size: 14px; font-weight: 600; color: var(--hint); letter-spacing: 0.5px; }
-            #tgBlocker { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; text-align: center; padding: 30px; box-sizing: border-box; }
-            .detail-btn { width: 100%; margin-top: 15px; padding: 10px; background: transparent; border: 1.5px solid var(--btn); color: var(--btn); border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease-in-out; }
-            .detail-btn:hover { background: var(--btn); color: var(--btn-text); }
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: var(--sec-bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+        }
 
-            /* Red Animated Theme for School/College Info */
-            @keyframes redWave {
-                0% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
-                100% { background-position: 0% 50%; }
-            }
-            @keyframes redCardPulse {
-                0% { box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.2); }
-                50% { box-shadow: 0 12px 40px rgba(239, 68, 68, 0.35), 0 0 12px 2px rgba(239, 68, 68, 0.4); }
-                100% { box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.2); }
-            }
-            .school-info-card {
-                background: linear-gradient(135deg, #1f0404, #490808, #2a0303, #150202);
-                background-size: 400% 400%;
-                animation: redWave 10s ease infinite, redCardPulse 3s ease-in-out infinite;
-                border-radius: 20px;
-                padding: 20px;
-                border: 1px solid rgba(239, 68, 68, 0.35);
-                color: #ffffff;
-                margin-bottom: 20px;
-                transition: transform 0.2s ease-in-out;
-            }
-            .school-info-card:hover {
-                transform: translateY(-3px);
-            }
-            .school-info-card h3 {
-                margin-top: 0;
-                color: #ff4d4d;
-                border-bottom: 2px solid rgba(255, 77, 77, 0.25);
-                padding-bottom: 10px;
-                font-size: 18px;
-                font-weight: 900;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-            }
-            .school-info-card table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 13px;
-                text-align: left;
-                color: #f3f4f6;
-            }
-            .school-info-card th {
-                padding: 12px 14px;
-                font-weight: 800;
-                color: #ffa3a3;
-                border-bottom: 2px solid rgba(255, 77, 77, 0.3) !important;
-                text-transform: uppercase;
-                font-size: 11px;
-                letter-spacing: 0.5px;
-            }
-            .school-info-card td {
-                padding: 12px 14px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                color: #e5e7eb;
-            }
-            .school-info-card tr:hover {
-                background: rgba(255, 77, 77, 0.08);
-            }
-            .school-info-card .info-label-red {
-                font-size: 10px;
-                font-weight: 800;
-                color: #ff9494;
-                text-transform: uppercase;
-                letter-spacing: 0.8px;
-                margin-bottom: 3px;
-                text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-            }
-            .school-info-card .info-content-red {
-                font-size: 15px;
-                font-weight: 600;
-                color: #ffffff;
-                line-height: 1.4;
-                word-break: break-word;
-                text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-            }
-            /* Make School/College Info Button stand out with a red glowing gradient */
-            #schoolCollegeInfoBtn {
-                background: linear-gradient(90deg, #dc2626, #b91c1c) !important;
-                color: #ffffff !important;
-                box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
-                border: 1px solid #ef4444 !important;
-                transition: all 0.3s ease;
-            }
-            #schoolCollegeInfoBtn:hover {
-                background: linear-gradient(90deg, #ef4444, #dc2626) !important;
-                box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
-                transform: translateY(-1px);
-            }
-        </style>
-    </head>
-    <body>
-        <div id="tgBlocker">
-            <div>
-                <div id="blockIcon" style="font-size: 60px; margin-bottom: 20px;">⌛</div>
-                <h2 id="blockTitle" style="color: var(--btn); font-weight: 800;">Verifying Session...</h2>
-                <p id="blockDesc" style="color: var(--hint); font-weight: 600;">Please wait while we authorize your access.</p>
-                <div id="openBotBtn" style="display: none;">
-                    <a href="https://t.me/Rs5SchoolAndCollegeInfobot" style="display: inline-block; margin-top: 20px; padding: 12px 25px; background: var(--btn); color: var(--btn-text); text-decoration: none; border-radius: 10px; font-weight: 800;">Open Bot</a>
-                </div>
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            background: var(--bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+
+        .search-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid var(--hint);
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .filter-input {
+            border-color: var(--link);
+            background: rgba(var(--tg-theme-link-color-rgb, 51, 144, 236), 0.05);
+        }
+
+        button {
+            padding: 14px;
+            background: var(--btn);
+            color: var(--btn-text);
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+
+        .teacher-card {
+            background: var(--bg);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(var(--tg-theme-button-color-rgb, 51, 144, 236), 0.15);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .profile-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed var(--hint);
+        }
+
+        .profile-header img {
+            width: 140px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 18px;
+            border: 4px solid var(--btn);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 12px;
+            -webkit-user-drag: none;
+            user-drag: none;
+            -webkit-user-select: none;
+            user-select: none;
+            pointer-events: none;
+            -webkit-touch-callout: none;
+        }
+
+        .teacher-name {
+            font-weight: 900;
+            color: var(--btn);
+            font-size: 20px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .teacher-name-bn {
+            font-size: 16px;
+            color: var(--text);
+            font-weight: 600;
+            text-align: center;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        .info-box {
+            display: flex;
+            flex-direction: column;
+            padding: 0 5px;
+        }
+
+        .info-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--hint);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .info-content {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.3;
+        }
+
+        .inst-footer {
+            margin-top: 20px;
+            padding: 12px;
+            background: var(--sec-bg);
+            color: var(--btn);
+            border-radius: 12px;
+            font-size: 13px;
+            text-align: center;
+            font-weight: 700;
+            border: 1px solid rgba(var(--tg-theme-button-color-rgb, 51, 144, 236), 0.2);
+        }
+
+        .loader-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(var(--tg-theme-button-color-rgb, 51, 144, 236), 0.1);
+            border-left-color: var(--btn);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--hint);
+            letter-spacing: 0.5px;
+        }
+
+        #tgBlocker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .detail-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            background: transparent;
+            border: 1.5px solid var(--btn);
+            color: var(--btn);
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .detail-btn:hover {
+            background: var(--btn);
+            color: var(--btn-text);
+        }
+
+        /* Red Animated Theme for School/College Info */
+        @keyframes redWave {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes redCardPulse {
+            0% { box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.2); }
+            50% { box-shadow: 0 12px 40px rgba(239, 68, 68, 0.35), 0 0 12px 2px rgba(239, 68, 68, 0.4); }
+            100% { box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.2); }
+        }
+
+        .school-info-card {
+            background: linear-gradient(135deg, #1f0404, #490808, #2a0303, #150202);
+            background-size: 400% 400%;
+            animation: redWave 10s ease infinite, redCardPulse 3s ease-in-out infinite;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #ffffff;
+            margin-bottom: 20px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .school-info-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .school-info-card h3 {
+            margin-top: 0;
+            color: #ff4d4d;
+            border-bottom: 2px solid rgba(255, 77, 77, 0.25);
+            padding-bottom: 10px;
+            font-size: 18px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .school-info-card table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+            color: #f3f4f6;
+        }
+
+        .school-info-card th {
+            padding: 12px 14px;
+            font-weight: 800;
+            color: #ffa3a3;
+            border-bottom: 2px solid rgba(255, 77, 77, 0.3) !important;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .school-info-card td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e5e7eb;
+        }
+
+        .school-info-card tr:hover {
+            background: rgba(255, 77, 77, 0.08);
+        }
+
+        .school-info-card .info-label-red {
+            font-size: 10px;
+            font-weight: 800;
+            color: #ff9494;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 3px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+
+        .school-info-card .info-content-red {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.4;
+            word-break: break-word;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+
+        /* Make School/College Info Button stand out with a red glowing gradient */
+        #schoolCollegeInfoBtn {
+            background: linear-gradient(90deg, #dc2626, #b91c1c) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
+            border: 1px solid #ef4444 !important;
+            transition: all 0.3s ease;
+        }
+
+        #schoolCollegeInfoBtn:hover {
+            background: linear-gradient(90deg, #ef4444, #dc2626) !important;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div id="tgBlocker">
+        <div>
+            <div id="blockIcon" style="font-size: 60px; margin-bottom: 20px;">⌛</div>
+            <h2 id="blockTitle" style="color: var(--btn); font-weight: 800;">Verifying Session...</h2>
+            <p id="blockDesc" style="color: var(--hint); font-weight: 600;">Please wait while we authorize your access.</p>
+            <div id="openBotBtn" style="display: none;">
+                <a href="https://t.me/Rs5SchoolAndCollegeInfobot" style="display: inline-block; margin-top: 20px; padding: 12px 25px; background: var(--btn); color: var(--btn-text); text-decoration: none; border-radius: 10px; font-weight: 800;">Open Bot</a>
             </div>
         </div>
+    </div>
 
-        <div class="container" id="mainApp" style="display:none;">
-            <div style="text-align:center;"><span style="font-size:45px;">🏫</span><h2 style="margin:10px 0; color:var(--btn);">EMIS Portal</h2></div>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search Institute or EIIN...">
-                <button id="searchBtn" onclick="search()">Search Database</button>
-            </div>
-            
-            <div id="extraButtons" style="display: none; margin-top: 15px; flex-direction: column; gap: 10px;">
-                <button id="schoolCollegeInfoBtn" style="background-color: var(--btn);" onclick="onSchoolCollegeInfoClick()">School/College Info</button>
-            </div>
-            
-            <div id="localFilterBox" style="display: none; margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px;">
-                <div style="font-size: 11px; font-weight: 800; color: var(--link); text-transform: uppercase; margin: 15px 0 5px 5px; padding-top: 10px;">Find in Page</div>
-                <input type="text" id="localFilter" class="filter-input" style="width:100%; box-sizing:border-box;" placeholder="Type Name, Mobile, or Designation..." oninput="filterPage()">
-            </div>
-
-            <div id="loader" class="loader-container">
-                <div class="spinner"></div>
-                <div class="loading-text">Querying EMIS Database...</div>
-            </div>
-            <div id="results"></div>
+    <div class="container" id="mainApp" style="display:none;">
+        <div style="text-align:center;"><span style="font-size:45px;">🏫</span><h2 style="margin:10px 0; color:var(--btn);">EMIS Portal</h2></div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search Institute or EIIN...">
+            <button id="searchBtn" onclick="search()">Search Database</button>
+        </div>
+        <div id="extraButtons" style="display: none; margin-top: 15px; flex-direction: column; gap: 10px;">
+            <button id="schoolCollegeInfoBtn" style="background-color: var(--btn);" onclick="onSchoolCollegeInfoClick()">School/College Info</button>
+        </div>
+        <div id="localFilterBox" style="display: none; margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px;">
+            <div style="font-size: 11px; font-weight: 800; color: var(--link); text-transform: uppercase; margin: 15px 0 5px 5px; padding-top: 10px;">Find in Page</div>
+            <input type="text" id="localFilter" class="filter-input" style="width:100%; box-sizing:border-box;" placeholder="Type Name, Mobile, or Designation..." oninput="filterPage()">
         </div>
 
-        <script>
-            const tg = window.Telegram.WebApp;
-            const blocker = document.getElementById('tgBlocker');
-            const mainApp = document.getElementById('mainApp');
-            const blockIcon = document.getElementById('blockIcon');
-            const blockTitle = document.getElementById('blockTitle');
-            const blockDesc = document.getElementById('blockDesc');
-            const openBotBtn = document.getElementById('openBotBtn');
-            let globalTeacherMobiles = {};
+        <div id="loader" class="loader-container">
+            <div class="spinner"></div>
+            <div class="loading-text">Querying EMIS Database...</div>
+        </div>
+        <div id="results"></div>
+    </div>
 
-            tg.ready();
-            tg.expand();
+    <script>
+        const tg = window.Telegram.WebApp;
+        const blocker = document.getElementById('tgBlocker');
+        const mainApp = document.getElementById('mainApp');
+        const blockIcon = document.getElementById('blockIcon');
+        const blockTitle = document.getElementById('blockTitle');
+        const blockDesc = document.getElementById('blockDesc');
+        const openBotBtn = document.getElementById('openBotBtn');
+        let globalTeacherMobiles = {};
 
-            async function checkAccess() {
-                // Get user ID from initDataUnsafe (more reliable in some cases)
-                const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+        tg.ready();
+        tg.expand();
 
-                if (!userId) {
-                    // Not in Telegram context
-                    blockIcon.innerText = "🚫";
-                    blockTitle.innerText = "Access Denied";
-                    blockTitle.style.color = "#ef4444";
-                    blockDesc.innerHTML = "This application is only accessible via the <b>Telegram Official App</b>.";
+        async function checkAccess() {
+            const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+
+            if (!userId) {
+                blockIcon.innerText = "🚫";
+                blockTitle.innerText = "Access Denied";
+                blockTitle.style.color = "#ef4444";
+                blockDesc.innerHTML = "This application is only accessible via the <b>Telegram Official App</b>.";
+                openBotBtn.style.display = "block";
+                return;
+            }
+
+            try {
+                const response = await fetch(`?webhook=1&action=check_premium&id=${userId}`);
+                const data = await response.json();
+                if (data.premium) {
+                    blocker.style.display = "none";
+                    mainApp.style.display = "block";
+                } else {
+                    blockIcon.innerText = "💎";
+                    blockTitle.innerText = "Premium Required";
+                    blockTitle.style.color = "#3390ec";
+                    blockDesc.innerHTML = data.message.replace(/\n/g, '<br>');
                     openBotBtn.style.display = "block";
-                    return;
                 }
+            } catch (e) {
+                blockIcon.innerText = "❌";
+                blockTitle.innerText = "Server Error";
+                blockDesc.innerText = "Unable to connect to the verification server.";
+            }
+        }
 
-                try {
-                    // Check Premium status via server
-                    const response = await fetch(`?webhook=1&action=check_premium&id=${userId}`);
-                    const data = await response.json();
-                    
-                    if (data.premium) {
-                        blocker.style.display = "none";
-                        mainApp.style.display = "block";
-                    } else {
-                        // User exists but is NOT premium
-                        blockIcon.innerText = "💎";
-                        blockTitle.innerText = "Premium Required";
-                        blockTitle.style.color = "#3390ec";
-                        blockDesc.innerHTML = data.message.replace(/\n/g, '<br>');
-                        openBotBtn.style.display = "block";
+        setTimeout(checkAccess, 200);
+
+        function filterPage() {
+            const query = document.getElementById('localFilter').value.toLowerCase();
+            const cards = document.getElementsByClassName('teacher-card');
+            let visibleCount = 0;
+            for (let card of cards) {
+                if (card.innerText.toLowerCase().includes(query)) {
+                    card.style.display = "block";
+                    visibleCount++;
+                } else card.style.display = "none";
+            }
+            const countBadge = document.getElementById('visibleCount');
+            if (countBadge) countBadge.innerText = visibleCount;
+        }
+
+        async function onSchoolCollegeInfoClick() {
+            const input = document.getElementById('searchInput').value.trim();
+            if (!input || !/^\d+$/.test(input)) return;
+            const results = document.getElementById('results');
+            const loader = document.getElementById('loader');
+            results.innerHTML = "";
+            loader.style.display = "flex";
+            loader.querySelector('.loading-text').innerText = "Fetching School/College Info...";
+            try {
+                const api_url = `https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/Fullinfo.php?fullinfo=${input}`;
+                const res = await fetch(api_url);
+                const text = await res.text();
+                loader.style.display = "none";
+                displayFullInfo(text);
+            } catch(e) {
+                loader.style.display = "none";
+                results.innerHTML = "<div style='color:red; text-align:center;'>❌ Connection Failed</div>";
+            }
+        }
+
+        function convertBengaliDigits(str) {
+            const bengaliDigits = {'০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9'};
+            return str.replace(/[০-৯]/g, d => bengaliDigits[d]);
+        }
+
+        function findMobileForName(name, map) {
+            if (!name) return "";
+            const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            for (let key in map) {
+                const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (cleanKey === cleanName) return map[key];
+            }
+            for (let key in map) {
+                const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (cleanKey.includes(cleanName) || cleanName.includes(cleanKey)) return map[key];
+            }
+            const wordsName = name.toLowerCase().split(/\s+/).filter(w => w.length >= 3);
+            for (let key in map) {
+                const wordsKey = key.toLowerCase().split(/\s+/).filter(w => w.length >= 3);
+                let overlap = 0;
+                for (let w of wordsName) {
+                    if (wordsKey.includes(w)) overlap++;
+                }
+                if (overlap >= 2) return map[key];
+            }
+            return "";
+        }
+
+        function displayFullInfo(text) {
+            const results = document.getElementById('results');
+            results.innerHTML = "";
+            const memberMobileMap = {};
+            const scanLines = text.split('\n');
+            scanLines.forEach(l => {
+                const line = l.trim();
+                if (!line) return;
+                const parts = line.split(/\||\t|\s{2,}/).map(p => p.trim()).filter(p => p !== '');
+                if (parts.length > 1) {
+                    let name = parts[1];
+                    let mobile = "";
+                    parts.forEach(p => {
+                        const cleanDigitStr = convertBengaliDigits(p);
+                        const words = cleanDigitStr.split(/\s+/);
+                        for (let word of words) {
+                            const cleanWord = word.replace(/[^0-9]/g, '');
+                            if (cleanWord.length === 11 && cleanWord.startsWith('01')) {
+                                mobile = cleanWord;
+                                break;
+                            }
+                        }
+                    });
+                    if (name && name !== 'Name' && name !== 'Name (English Block letter)' && mobile) {
+                        memberMobileMap[name.toLowerCase()] = mobile;
                     }
-                } catch (e) {
-                    blockIcon.innerText = "❌";
-                    blockTitle.innerText = "Server Error";
-                    blockDesc.innerText = "Unable to connect to the verification server.";
                 }
+            });
+            const container = document.createElement('div');
+            container.style.display = "flex";
+            container.style.flexDirection = "column";
+            container.style.gap = "20px";
+            const lines = text.split('\n');
+            let currentSection = { title: "General Information", content: [] };
+            const sections = [currentSection];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                if (line.startsWith('====') || line.startsWith('----')) {
+                    continue;
+                }
+                const isNewSection = (i < lines.length - 1 && (lines[i+1].trim().startsWith('====') || lines[i+1].trim().startsWith('----'))) || /^[a-z]\)\s+/i.test(line);
+                if (isNewSection) {
+                    currentSection = { title: line, content: [] };
+                    sections.push(currentSection);
+                    continue;
+                }
+                currentSection.content.push(line);
             }
-
-            // Small delay to ensure WebApp is ready
-            setTimeout(checkAccess, 200);
-
-            function filterPage() {
-                const query = document.getElementById('localFilter').value.toLowerCase();
-                const cards = document.getElementsByClassName('teacher-card');
-                let visibleCount = 0;
-                for (let card of cards) {
-                    if (card.innerText.toLowerCase().includes(query)) {
-                        card.style.display = "block";
-                        visibleCount++;
-                    } else card.style.display = "none";
-                }
-                const countBadge = document.getElementById('visibleCount');
-                if (countBadge) countBadge.innerText = visibleCount;
-            }
-
-            async function onSchoolCollegeInfoClick() {
-                const input = document.getElementById('searchInput').value.trim();
-                if (!input || !/^\d+$/.test(input)) return;
-                
-                const results = document.getElementById('results');
-                const loader = document.getElementById('loader');
-                
-                results.innerHTML = "";
-                loader.style.display = "flex";
-                loader.querySelector('.loading-text').innerText = "Fetching School/College Info...";
-                
-                try {
-                    const api_url = `https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/Fullinfo.php?fullinfo=${input}`;
-                    const res = await fetch(api_url);
-                    const text = await res.text();
-                    
-                    loader.style.display = "none";
-                    displayFullInfo(text);
-                } catch(e) {
-                    loader.style.display = "none";
-                    results.innerHTML = "<div style='color:red; text-align:center;'>❌ Connection Failed</div>";
-                }
-            }
-
-            function convertBengaliDigits(str) {
-                const bengaliDigits = {'০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9'};
-                return str.replace(/[০-৯]/g, d => bengaliDigits[d]);
-            }
-
-            function findMobileForName(name, map) {
-                if (!name) return "";
-                const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-                
-                for (let key in map) {
-                    const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-                    if (cleanKey === cleanName) return map[key];
-                }
-                
-                for (let key in map) {
-                    const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-                    if (cleanKey.includes(cleanName) || cleanName.includes(cleanKey)) return map[key];
-                }
-                
-                const wordsName = name.toLowerCase().split(/\s+/).filter(w => w.length >= 3);
-                for (let key in map) {
-                    const wordsKey = key.toLowerCase().split(/\s+/).filter(w => w.length >= 3);
-                    let overlap = 0;
-                    for (let w of wordsName) {
-                        if (wordsKey.includes(w)) overlap++;
-                    }
-                    if (overlap >= 2) return map[key];
-                }
-                
-                return "";
-            }
-
-            function displayFullInfo(text) {
-                const results = document.getElementById('results');
-                results.innerHTML = "";
-                
-                const memberMobileMap = {};
-                const scanLines = text.split('\n');
-                scanLines.forEach(l => {
+            sections.forEach(sec => {
+                if (sec.content.length === 0) return;
+                const isProviderSection = sec.title.toLowerCase().includes('provider');
+                const card = document.createElement('div');
+                card.className = "school-info-card";
+                const header = document.createElement('h3');
+                header.innerText = sec.title;
+                card.appendChild(header);
+                let activeTable = null;
+                let activeTableWrapper = null;
+                let activeGrid = null;
+                sec.content.forEach(l => {
                     const line = l.trim();
                     if (!line) return;
                     const parts = line.split(/\||\t|\s{2,}/).map(p => p.trim()).filter(p => p !== '');
                     if (parts.length > 1) {
-                        let name = parts[1];
-                        let mobile = "";
-                        parts.forEach(p => {
-                            const cleanDigitStr = convertBengaliDigits(p);
-                            const words = cleanDigitStr.split(/\s+/);
-                            for (let word of words) {
-                                const cleanWord = word.replace(/[^0-9]/g, '');
-                                if (cleanWord.length === 11 && cleanWord.startsWith('01')) {
-                                    mobile = cleanWord;
-                                    break;
-                                }
-                            }
-                        });
-                        if (name && name !== 'Name' && name !== 'Name (English Block letter)' && mobile) {
-                            memberMobileMap[name.toLowerCase()] = mobile;
+                        if (activeGrid) {
+                            card.appendChild(activeGrid);
+                            activeGrid = null;
                         }
-                    }
-                });
-                
-                const container = document.createElement('div');
-                container.style.display = "flex";
-                container.style.flexDirection = "column";
-                container.style.gap = "20px";
-                
-                const lines = text.split('\n');
-                let currentSection = { title: "General Information", content: [] };
-                const sections = [currentSection];
-                
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line) continue;
-                    
-                    if (line.startsWith('====') || line.startsWith('----')) {
-                        continue;
-                    }
-                    
-                    const isNewSection = (i < lines.length - 1 && (lines[i+1].trim().startsWith('====') || lines[i+1].trim().startsWith('----'))) 
-                                      || /^[a-z]\)\s+/i.test(line);
-                    
-                    if (isNewSection) {
-                        currentSection = { title: line, content: [] };
-                        sections.push(currentSection);
-                        continue;
-                    }
-                    
-                    currentSection.content.push(line);
-                }
-                
-                sections.forEach(sec => {
-                    if (sec.content.length === 0) return;
-                    
-                    const isProviderSection = sec.title.toLowerCase().includes('provider');
-                    
-                    const card = document.createElement('div');
-                    card.className = "school-info-card";
-                    
-                    const header = document.createElement('h3');
-                    header.innerText = sec.title;
-                    card.appendChild(header);
-                    
-                    let activeTable = null;
-                    let activeTableWrapper = null;
-                    let activeGrid = null;
-                    
-                    sec.content.forEach(l => {
-                        const line = l.trim();
-                        if (!line) return;
-                        
-                        // Check if it's table-like: contains | or \t or two/more spaces
-                        const parts = line.split(/\||\t|\s{2,}/).map(p => p.trim()).filter(p => p !== '');
-                        
-                        if (parts.length > 1) {
-                            // Table row
-                            if (activeGrid) {
-                                card.appendChild(activeGrid);
-                                activeGrid = null;
+                        if (!activeTable) {
+                            activeTableWrapper = document.createElement('div');
+                            activeTableWrapper.style = "overflow-x: auto; margin-top: 10px; margin-bottom: 10px;";
+                            activeTable = document.createElement('table');
+                            activeTableWrapper.appendChild(activeTable);
+                            card.appendChild(activeTableWrapper);
+                            activeTable.isHeaderRow = true;
+                        }
+                        let rowMobile = "";
+                        if (!activeTable.isHeaderRow) {
+                            for (let p of parts) {
+                                const cleanDigitStr = convertBengaliDigits(p);
+                                const words = cleanDigitStr.split(/\s+/);
+                                for (let word of words) {
+                                    const cleanWord = word.replace(/[^0-9]/g, '');
+                                    if (cleanWord.length === 11 && cleanWord.startsWith('01')) {
+                                        rowMobile = cleanWord;
+                                        break;
+                                    }
+                                }
+                                if (rowMobile) break;
                             }
-                            if (!activeTable) {
-                                activeTableWrapper = document.createElement('div');
-                                activeTableWrapper.style = "overflow-x: auto; margin-top: 10px; margin-bottom: 10px;";
-                                activeTable = document.createElement('table');
-                                activeTableWrapper.appendChild(activeTable);
-                                card.appendChild(activeTableWrapper);
-                                activeTable.isHeaderRow = true;
-                            }
-                            
-                            // Pre-scan row parts to extract a mobile number (including Bengali digit support)
-                            let rowMobile = "";
+                        }
+                        const tr = document.createElement('tr');
+                        parts.forEach((p, idx) => {
+                            const cell = document.createElement(activeTable.isHeaderRow ? 'th' : 'td');
+                            cell.innerText = p;
                             if (!activeTable.isHeaderRow) {
-                                for (let p of parts) {
-                                    const cleanDigitStr = convertBengaliDigits(p);
-                                    const words = cleanDigitStr.split(/\s+/);
-                                    for (let word of words) {
-                                        const cleanWord = word.replace(/[^0-9]/g, '');
-                                        if (cleanWord.length === 11 && cleanWord.startsWith('01')) {
-                                            rowMobile = cleanWord;
-                                            break;
-                                        }
-                                    }
-                                    if (rowMobile) break;
-                                }
-                            }
-                            
-                            const tr = document.createElement('tr');
-                            parts.forEach((p, idx) => {
-                                const cell = document.createElement(activeTable.isHeaderRow ? 'th' : 'td');
-                                cell.innerText = p;
-                                
-                                if (!activeTable.isHeaderRow) {
-                                    // Make name cell (index 1) clickable if row has a mobile or map has it
-                                    if (idx === 1 && !isProviderSection) {
-                                        const mobileToUse = rowMobile || findMobileForName(p, memberMobileMap) || findMobileForName(p, globalTeacherMobiles);
-                                        if (mobileToUse) {
-                                            cell.style.cursor = "pointer";
-                                            cell.style.color = "#ffa3a3";
-                                            cell.style.textDecoration = "underline";
-                                            cell.style.fontWeight = "bold";
-                                            cell.onclick = () => showMemberPhoto(p, mobileToUse);
-                                        }
-                                    }
-                                    
-                                    // Style cell containing phone number if it is a mobile
-                                    const cleanDigitStr = convertBengaliDigits(p);
-                                    let isMobile = false;
-                                    const words = cleanDigitStr.split(/\s+/);
-                                    for (let word of words) {
-                                        const cleanWord = word.replace(/[^0-9]/g, '');
-                                        if (cleanWord.length === 11 && cleanWord.startsWith('01')) {
-                                            isMobile = true;
-                                            break;
-                                        }
-                                    }
-                                    if (isMobile) {
-                                        cell.style.color = "#ffb3b3";
+                                if (idx === 1 && !isProviderSection) {
+                                    const mobileToUse = rowMobile || findMobileForName(p, memberMobileMap) || findMobileForName(p, globalTeacherMobiles);
+                                    if (mobileToUse) {
+                                        cell.style.cursor = "pointer";
+                                        cell.style.color = "#ffa3a3";
+                                        cell.style.textDecoration = "underline";
+                                        cell.style.fontWeight = "bold";
+                                        cell.onclick = () => showMemberPhoto(p, mobileToUse);
                                     }
                                 }
-                                tr.appendChild(cell);
-                            });
-                            activeTable.appendChild(tr);
-                            activeTable.isHeaderRow = false;
-                        } else {
-                            // Grid block
-                            if (activeTable) {
-                                activeTable = null;
-                                activeTableWrapper = null;
-                            }
-                            if (!activeGrid) {
-                                activeGrid = document.createElement('div');
-                                activeGrid.className = "info-grid-red";
-                                activeGrid.style.marginBottom = "10px";
-                                card.appendChild(activeGrid);
-                            }
-                            
-                            let key = "", val = "";
-                            if (line.includes(':')) {
-                                const idx = line.indexOf(':');
-                                key = line.substring(0, idx).trim();
-                                val = line.substring(idx + 1).trim();
-                            } else {
-                                val = line;
-                            }
-                            
-                            if (key) {
-                                const cleanKeyDigits = convertBengaliDigits(key);
-                                const cleanValDigits = convertBengaliDigits(val);
-                                
+                                const cleanDigitStr = convertBengaliDigits(p);
                                 let isMobile = false;
-                                let mobileNum = "";
-                                
-                                const cleanKey = cleanKeyDigits.replace(/[^0-9]/g, '');
-                                const cleanVal = cleanValDigits.replace(/[^0-9]/g, '');
-                                
-                                if (cleanKey.length === 11 && cleanKey.startsWith('01')) {
-                                    isMobile = true;
-                                    mobileNum = cleanKey;
-                                } else if (cleanVal.length === 11 && cleanVal.startsWith('01')) {
-                                    isMobile = true;
-                                    mobileNum = cleanVal;
-                                }
-                                
-                                const box = document.createElement('div');
-                                box.style = "display: flex; flex-direction: column;";
-                                
-                                let labelHtml = `<span class="info-label-red">${key}</span>`;
-                                let contentHtml = `<span class="info-content-red" ${isMobile ? 'style="color:#ffb3b3;"' : ''}>${val}</span>`;
-                                
-                                if (isMobile && !isProviderSection) {
-                                    const keyIsMobile = cleanKey.length === 11 && cleanKey.startsWith('01');
-                                    if (keyIsMobile) {
-                                        labelHtml = `<span class="info-label-red" style="color:#ffa3a3; cursor:pointer; text-decoration:underline; font-weight:bold;" onclick="showGridMemberPhoto(this, '${mobileNum}')">${key}</span>`;
-                                        contentHtml = `<span class="info-content-red" style="color:#ffa3a3; cursor:pointer; text-decoration:underline; font-weight:bold;" onclick="showGridMemberPhoto(this, '${mobileNum}')">${val}</span>`;
-                                    } else {
-                                        contentHtml = `<span class="info-content-red" style="color:#ffa3a3; cursor:pointer; text-decoration:underline; font-weight:bold;" onclick="showGridMemberPhoto(this, '${mobileNum}')">${val}</span>`;
-                                    }
-                                }
-                                
-                                box.innerHTML = labelHtml + contentHtml;
-                                activeGrid.appendChild(box);
-                            } else {
-                                const cleanDigitStr = convertBengaliDigits(val);
-                                let isMobile = false;
-                                let mobileNum = "";
                                 const words = cleanDigitStr.split(/\s+/);
                                 for (let word of words) {
                                     const cleanWord = word.replace(/[^0-9]/g, '');
                                     if (cleanWord.length === 11 && cleanWord.startsWith('01')) {
                                         isMobile = true;
-                                        mobileNum = cleanWord;
                                         break;
                                     }
                                 }
-                                
-                                const desc = document.createElement('div');
-                                desc.style = "font-size: 13px; color: #ffffff; line-height: 1.4; word-break: break-word; grid-column: 1 / -1;";
-                                if (isMobile && !isProviderSection) {
-                                    desc.style.cursor = "pointer";
-                                    desc.style.color = "#ffa3a3";
-                                    desc.style.textDecoration = "underline";
-                                    desc.style.fontWeight = "bold";
-                                    desc.onclick = () => showDescMemberPhoto(val, mobileNum);
+                                if (isMobile) {
+                                    cell.style.color = "#ffb3b3";
                                 }
-                                desc.innerHTML = `<span>${val}</span>`;
-                                activeGrid.appendChild(desc);
                             }
-                        }
-                    });
-                    
-                    container.appendChild(card);
-                });
-                
-                results.appendChild(container);
-              }
-
-            async function search() {
-                const input = document.getElementById('searchInput').value.trim();
-                const results = document.getElementById('results');
-                const filterBox = document.getElementById('localFilterBox');
-                const loader = document.getElementById('loader');
-                const searchBtn = document.getElementById('searchBtn');
-                if(!input) return;
-
-                filterBox.style.display = "none";
-                results.innerHTML = "";
-                loader.style.display = "flex";
-                loader.querySelector('.loading-text').innerText = "Querying EMIS Database...";
-                searchBtn.disabled = true;
-                searchBtn.style.opacity = "0.7";
-
-                const extraBtns = document.getElementById('extraButtons');
-                if (extraBtns) extraBtns.style.display = "none";
-                const schoolBtn = document.getElementById('schoolCollegeInfoBtn');
-                if (schoolBtn) schoolBtn.style.display = "none";
-
-                const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'unknown';
-                
-                try {
-                    const isEIIN = /^\d+$/.test(input);
-                    const trackingUrl = `?webhook=1&action=search_track&id=${userId}&query=${encodeURIComponent(input)}`;
-                    fetch(trackingUrl);
-
-                    const api_url = isEIIN 
-                        ? `https://w8team.top/Bots/EIIN%20To%20Info%20bot/EIIN%20To%20Info.php?EIINToInfo=${input}`
-                        : `https://w8team.top/Bots/EIIN%20To%20Info%20bot/EIIN_Search.php?InstituteName=${encodeURIComponent(input)}`;
-                    
-                    const res = await fetch(api_url);
-                    let text = await res.text();
-
-                    loader.style.display = "none";
-                    searchBtn.disabled = false;
-                    searchBtn.style.opacity = "1";
-
-                    let isJson = false;
-                    let jsonData = null;
-                    try {
-                        let cleanText = text.replace(/<[^>]*>?/gm, '').trim();
-                        const startBrace = cleanText.indexOf('{');
-                        const startBracket = cleanText.indexOf('[');
-                        let startIdx = -1;
-                        let endIdx = -1;
-                        
-                        if (startBrace !== -1 && (startBracket === -1 || startBrace < startBracket)) {
-                            startIdx = startBrace;
-                            endIdx = cleanText.lastIndexOf('}');
-                        } else if (startBracket !== -1) {
-                            startIdx = startBracket;
-                            endIdx = cleanText.lastIndexOf(']');
-                        }
-                        
-                        if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-                            const jsonStr = cleanText.substring(startIdx, endIdx + 1);
-                            jsonData = JSON.parse(jsonStr);
-                            isJson = true;
-                        } else {
-                            jsonData = JSON.parse(cleanText);
-                            isJson = true;
-                        }
-                    } catch(e) {}
-
-                    if (isJson && jsonData) {
-                        displayApplicants(jsonData);
-                        filterBox.style.display = "block";
-                        document.getElementById('localFilter').value = "";
-                        if (extraBtns && isEIIN) {
-                            extraBtns.style.display = "flex";
-                            if (schoolBtn) schoolBtn.style.display = "block";
-                        }
-                    } else if (text.includes('Total Teachers')) {
-                        displayTeachers(text);
-                        filterBox.style.display = "block";
-                        document.getElementById('localFilter').value = "";
-                        if (extraBtns && isEIIN) {
-                            extraBtns.style.display = "flex";
-                            if (schoolBtn) schoolBtn.style.display = "block";
-                        }
+                            tr.appendChild(cell);
+                        });
+                        activeTable.appendChild(tr);
+                        activeTable.isHeaderRow = false;
                     } else {
-                        displayInstitutes(text);
-                    }
-                } catch(e) { 
-                    loader.style.display = "none";
-                    searchBtn.disabled = false;
-                    searchBtn.style.opacity = "1";
-                    results.innerHTML = "<div style='color:red; text-align:center;'>❌ Connection Failed</div>"; 
-                }
-            }
-
-            function displayInstitutes(text) {
-                const results = document.getElementById('results');
-                results.innerHTML = "";
-                const blocks = text.split(/(?=EIIN:)/i);
-                
-                if (blocks.length > 0 && text.toLowerCase().includes('eiin')) {
-                    results.innerHTML = `<div style="margin-bottom:15px; font-weight:800; color:var(--hint); text-align:center; font-size:12px;">🏫 SELECT AN INSTITUTE</div>`;
-                    blocks.forEach(block => {
-                        const eiinMatch = block.match(/EIIN:\s*(\d+)/i);
-                        if (eiinMatch) {
-                            const eiin = eiinMatch[1];
-                            const card = document.createElement('div');
-                            card.style = "padding:15px; background:var(--bg); border-radius:15px; margin-bottom:12px; border:1px solid rgba(var(--tg-theme-button-color-rgb, 51, 144, 236), 0.2); cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05);";
-                            card.onclick = () => { document.getElementById('searchInput').value = eiin; search(); };
-                            card.innerHTML = `
-                                <div style="font-size:14px; line-height:1.5; color:var(--text);">${block.trim().replace(/\n/g, '<br>')}</div>
-                                <div style="margin-top:10px; text-align:right; font-weight:bold; color:var(--btn); font-size:12px;">VIEW TEACHERS ➔</div>
-                            `;
-                            results.appendChild(card);
+                        if (activeTable) {
+                            activeTable = null;
+                            activeTableWrapper = null;
                         }
-                    });
+                        if (!activeGrid) {
+                            activeGrid = document.createElement('div');
+                            activeGrid.className = "info-grid-red";
+                            activeGrid.style.marginBottom = "10px";
+                            card.appendChild(activeGrid);
+                        }
+                        let key = "", val = "";
+                        if (line.includes(':')) {
+                            const idx = line.indexOf(':');
+                            key = line.substring(0, idx).trim();
+                            val = line.substring(idx + 1).trim();
+                        } else {
+                            val = line;
+                        }
+                        if (key) {
+                            const cleanKeyDigits = convertBengaliDigits(key);
+                            const cleanValDigits = convertBengaliDigits(val);
+                            let isMobile = false;
+                            let mobileNum = "";
+                            const cleanKey = cleanKeyDigits.replace(/[^0-9]/g, '');
+                            const cleanVal = cleanValDigits.replace(/[^0-9]/g, '');
+                            if (cleanKey.length === 11 && cleanKey.startsWith('01')) {
+                                isMobile = true;
+                                mobileNum = cleanKey;
+                            } else if (cleanVal.length === 11 && cleanVal.startsWith('01')) {
+                                isMobile = true;
+                                mobileNum = cleanVal;
+                            }
+                            const box = document.createElement('div');
+                            box.style = "display: flex; flex-direction: column;";
+                            let labelHtml = `<span class="info-label-red">${key}</span>`;
+                            let contentHtml = `<span class="info-content-red" ${isMobile ? 'style="color:#ffb3b3;"' : ''}>${val}</span>`;
+                            if (isMobile && !isProviderSection) {
+                                const keyIsMobile = cleanKey.length === 11 && cleanKey.startsWith('01');
+                                if (keyIsMobile) {
+                                    labelHtml = `<span class="info-label-red" style="color:#ffa3a3; cursor:pointer; text-decoration:underline; font-weight:bold;" onclick="showGridMemberPhoto(this, '${mobileNum}')">${key}</span>`;
+                                    contentHtml = `<span class="info-content-red" style="color:#ffa3a3; cursor:pointer; text-decoration:underline; font-weight:bold;" onclick="showGridMemberPhoto(this, '${mobileNum}')">${val}</span>`;
+                                } else {
+                                    contentHtml = `<span class="info-content-red" style="color:#ffa3a3; cursor:pointer; text-decoration:underline; font-weight:bold;" onclick="showGridMemberPhoto(this, '${mobileNum}')">${val}</span>`;
+                                }
+                            }
+                            box.innerHTML = labelHtml + contentHtml;
+                            activeGrid.appendChild(box);
+                        } else {
+                            const cleanDigitStr = convertBengaliDigits(val);
+                            let isMobile = false;
+                            let mobileNum = "";
+                            const words = cleanDigitStr.split(/\s+/);
+                            for (let word of words) {
+                                const cleanWord = word.replace(/[^0-9]/g, '');
+                                if (cleanWord.length === 11 && cleanWord.startsWith('01')) {
+                                    isMobile = true;
+                                    mobileNum = cleanWord;
+                                    break;
+                                }
+                            }
+                            const desc = document.createElement('div');
+                            desc.style = "font-size: 13px; color: #ffffff; line-height: 1.4; word-break: break-word; grid-column: 1 / -1;";
+                            if (isMobile && !isProviderSection) {
+                                desc.style.cursor = "pointer";
+                                desc.style.color = "#ffa3a3";
+                                desc.style.textDecoration = "underline";
+                                desc.style.fontWeight = "bold";
+                                desc.onclick = () => showDescMemberPhoto(val, mobileNum);
+                            }
+                            desc.innerHTML = `<span>${val}</span>`;
+                            activeGrid.appendChild(desc);
+                        }
+                    }
+                });
+                container.appendChild(card);
+            });
+            results.appendChild(container);
+        }
+
+        async function search() {
+            const input = document.getElementById('searchInput').value.trim();
+            const results = document.getElementById('results');
+            const filterBox = document.getElementById('localFilterBox');
+            const loader = document.getElementById('loader');
+            const searchBtn = document.getElementById('searchBtn');
+            if(!input) return;
+
+            filterBox.style.display = "none";
+            results.innerHTML = "";
+            loader.style.display = "flex";
+            loader.querySelector('.loading-text').innerText = "Querying EMIS Database...";
+            searchBtn.disabled = true;
+            searchBtn.style.opacity = "0.7";
+
+            const extraBtns = document.getElementById('extraButtons');
+            if (extraBtns) extraBtns.style.display = "none";
+            const schoolBtn = document.getElementById('schoolCollegeInfoBtn');
+            if (schoolBtn) schoolBtn.style.display = "none";
+
+            const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'unknown';
+            try {
+                const isEIIN = /^\d+$/.test(input);
+                const trackingUrl = `?webhook=1&action=search_track&id=${userId}&query=${encodeURIComponent(input)}`;
+                fetch(trackingUrl);
+
+                const api_url = isEIIN ? `https://w8team.top/Bots/EIIN%20To%20Info%20bot/EIIN%20To%20Info.php?EIINToInfo=${input}` : `https://w8team.top/Bots/EIIN%20To%20Info%20bot/EIIN_Search.php?InstituteName=${encodeURIComponent(input)}`;
+                const res = await fetch(api_url);
+                let text = await res.text();
+
+                loader.style.display = "none";
+                searchBtn.disabled = false;
+                searchBtn.style.opacity = "1";
+
+                let isJson = false;
+                let jsonData = null;
+                try {
+                    let cleanText = text.replace(/<[^>]*>?/gm, '').trim();
+                    const startBrace = cleanText.indexOf('{');
+                    const startBracket = cleanText.indexOf('[');
+                    let startIdx = -1;
+                    let endIdx = -1;
+                    if (startBrace !== -1 && (startBracket === -1 || startBrace < startBracket)) {
+                        startIdx = startBrace;
+                        endIdx = cleanText.lastIndexOf('}');
+                    } else if (startBracket !== -1) {
+                        startIdx = startBracket;
+                        endIdx = cleanText.lastIndexOf(']');
+                    }
+                    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+                        const jsonStr = cleanText.substring(startIdx, endIdx + 1);
+                        jsonData = JSON.parse(jsonStr);
+                        isJson = true;
+                    } else {
+                        jsonData = JSON.parse(cleanText);
+                        isJson = true;
+                    }
+                } catch(e) {}
+
+                if (isJson && jsonData) {
+                    displayApplicants(jsonData);
+                    filterBox.style.display = "block";
+                    document.getElementById('localFilter').value = "";
+                    if (extraBtns && isEIIN) {
+                        extraBtns.style.display = "flex";
+                        if (schoolBtn) schoolBtn.style.display = "block";
+                    }
+                } else if (text.includes('Total Teachers')) {
+                    displayTeachers(text);
+                    filterBox.style.display = "block";
+                    document.getElementById('localFilter').value = "";
+                    if (extraBtns && isEIIN) {
+                        extraBtns.style.display = "flex";
+                        if (schoolBtn) schoolBtn.style.display = "block";
+                    }
                 } else {
-                    results.innerHTML = `<div style="padding:20px; background:var(--sec-bg); border-radius:15px; border:1px solid var(--btn); white-space:pre-wrap; font-size:14px;">${text.trim()}</div>`;
+                    displayInstitutes(text);
                 }
+            } catch(e) {
+                loader.style.display = "none";
+                searchBtn.disabled = false;
+                searchBtn.style.opacity = "1";
+                results.innerHTML = "<div style='color:red; text-align:center;'>❌ Connection Failed</div>";
+            }
+        }
+
+        function displayInstitutes(text) {
+            const results = document.getElementById('results');
+            results.innerHTML = "";
+            const blocks = text.split(/(?=EIIN:)/i);
+            if (blocks.length > 0 && text.toLowerCase().includes('eiin')) {
+                results.innerHTML = `<div style="margin-bottom:15px; font-weight:800; color:var(--hint); text-align:center; font-size:12px;">🏫 SELECT AN INSTITUTE</div>`;
+                blocks.forEach(block => {
+                    const eiinMatch = block.match(/EIIN:\s*(\d+)/i);
+                    if (eiinMatch) {
+                        const eiin = eiinMatch[1];
+                        const card = document.createElement('div');
+                        card.style = "padding:15px; background:var(--bg); border-radius:15px; margin-bottom:12px; border:1px solid rgba(var(--tg-theme-button-color-rgb, 51, 144, 236), 0.2); cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05);";
+                        card.onclick = () => {
+                            document.getElementById('searchInput').value = eiin;
+                            search();
+                        };
+                        card.innerHTML = `
+                            <div style="font-size:14px; line-height:1.5; color:var(--text);">${block.trim().replace(/\n/g, '<br>')}</div>
+                            <div style="margin-top:10px; text-align:right; font-weight:bold; color:var(--btn); font-size:12px;">VIEW TEACHERS ➔</div>
+                        `;
+                        results.appendChild(card);
+                    }
+                });
+            } else {
+                results.innerHTML = `<div style="padding:20px; background:var(--sec-bg); border-radius:15px; border:1px solid var(--btn); white-space:pre-wrap; font-size:14px;">${text.trim()}</div>`;
+            }
+        }
+
+        function displayTeachers(data) {
+            const results = document.getElementById('results');
+            results.innerHTML = "";
+
+            const sections = data.split(/\[Teacher #\d+\]/i);
+            sections.shift();
+            const withPhoto = [];
+            const noPhoto = [];
+            sections.forEach(t => {
+                const info = {};
+                const lines = t.split('\n');
+                lines.forEach(l => {
+                    const cleanLine = l.replace(/<[^>]*>?/gm, '').trim();
+                    if (cleanLine.includes(':')) {
+                        const idx = cleanLine.indexOf(':');
+                        const key = cleanLine.substring(0, idx).trim();
+                        let val = cleanLine.substring(idx + 1).trim();
+                        if (val.startsWith("'") && val.endsWith("'")) {
+                            val = val.substring(1, val.length - 1).trim();
+                        }
+                        if (val === 'NULL' || val === '-') {
+                            val = 'N/A';
+                        }
+                        info[key] = val;
+                    }
+                });
+                const name = info.FullName || info.LookupText || info.ApplicantNameEn || 'N/A';
+                const nameBn = info.FullNameBn || info.ApplicantNameBn || '';
+                const mobile = info.MobileNo || info.MobileNumber || 'N/A';
+                let photo = info.Image || 'N/A';
+                let hasOfficialPhoto = false;
+                if (photo !== 'N/A' && photo.trim() !== '') {
+                    if (photo.startsWith('http')) {
+                        hasOfficialPhoto = true;
+                    } else if (photo.startsWith('upload/')) {
+                        photo = 'https://www.emis.gov.bd/EMIS/' + photo;
+                        hasOfficialPhoto = true;
+                    }
+                }
+                const teacherObj = { name: name, nameBn: nameBn, mobile: mobile, photo: hasOfficialPhoto ? photo : '', hasPhoto: hasOfficialPhoto, hasDisplayPhoto: hasOfficialPhoto, raw: info };
+                if (name && name !== 'N/A' && mobile && mobile !== 'N/A') {
+                    globalTeacherMobiles[name.toLowerCase()] = mobile;
+                }
+                if (hasOfficialPhoto) withPhoto.push(teacherObj);
+                else noPhoto.push(teacherObj);
+            });
+
+            const allTeachers = [...withPhoto, ...noPhoto];
+
+            if (allTeachers.length > 0) {
+                results.innerHTML = `<div style="margin-bottom:20px; font-weight:800; color:#fff; text-align:center; background:var(--btn); padding:10px; border-radius:10px; font-size:14px;">📊 PHOTOS: <span id="visibleCount">${withPhoto.length}</span> | TOTAL: ${allTeachers.length}</div>`;
+            } else {
+                results.innerHTML = `<div style="padding:20px; text-align:center; color:var(--hint); font-weight:bold;">No profile photos found.</div>`;
             }
 
-            function displayTeachers(data) {
-                const results = document.getElementById('results');
-                results.innerHTML = "";
+            allTeachers.forEach(teacher => {
+                const card = document.createElement('div');
+                card.className = 'teacher-card';
+                card.rawData = teacher.raw;
+                card.isSortedAsPhoto = teacher.hasPhoto;
+                const fallbackMobile = (teacher.mobile && teacher.mobile !== 'N/A' && teacher.mobile.trim() !== '') ? teacher.mobile.trim() : '';
+                const photoHtml = teacher.hasDisplayPhoto ? `<img src="${teacher.photo}" draggable="false" onerror="handleImageError(this)">` : `<div ${fallbackMobile ? `onclick="showMemberPhoto('${teacher.name.replace(/'/g, "\\'")}', '${fallbackMobile}')" style="cursor:pointer;"` : ''} style="width:140px; height:160px; background:var(--sec-bg); display:flex; align-items:center; justify-content:center; border-radius:18px; margin-bottom:12px; color:var(--hint); border:2px dashed var(--btn); font-weight:bold; font-size:12px;">NO PROFILE PHOTO</div>`;
 
-                const sections = data.split(/\[Teacher #\d+\]/i);
-                sections.shift();
-                
-                const withPhoto = [];
-                const noPhoto = [];
-                sections.forEach(t => {
-                    const info = {};
-                    const lines = t.split('\n');
+                let gridHtml = '';
+                const excludeFields = ['FullName', 'FullNameBn', 'ApplicantNameEn', 'ApplicantNameBn', 'LookupText', 'Image', 'photo', 'ImageNo', '_EIIN', '_InstituteId', '_InstituteName', 'PaymentStatus', 'Payment Status', 'EmployeeStatus', 'Employee Status', 'ParticipantSubjectId', 'SubjectId', 'Subject ID', 'DesignationId', 'Designation ID', 'IsMpo', 'Is MPO', 'IsActive', 'Is Active', 'EmployeeRefId', 'EmpRegUrlType', 'InstituteManagementTypeId', 'InstituteInstituteCategoryId', 'Institute Management Type Id', 'Institute Institute Category Id'];
+                const labels = { 'Id': 'ID', 'Id.': 'ID', 'EmpId': 'Employee ID', 'Emp Id': 'Employee ID', 'EmployeeId': 'Employee ID', 'MobileNo': 'Mobile Number', 'MobileNumber': 'Mobile Number', 'Mobile Number': 'Mobile Number', 'Email': 'Email Address', 'EmailAddress': 'Email Address', 'Email Address': 'Email Address', 'IndexNo': 'Index Number', 'IndexNumber': 'Index Number', 'Index Number': 'Index Number', 'DateofBirth': 'Date of Birth', 'Date of Birth': 'Date of Birth', 'DesignationNameBn': 'Designation', 'Designation': 'Designation', 'DesignationId': 'Designation ID', 'SubjectName': 'Subject', 'Subject': 'Subject', 'ParticipantSubjectId': 'Subject ID', 'FatherNameBn': "Father's Name", 'FatherNameEn': "Father's Name", 'MotherNameBn': "Mother's Name", 'MotherNameEn': "Mother's Name", 'Gender': 'Gender', 'Nid': 'NID', 'NID': 'NID', 'nid': 'NID', 'NID No': 'NID', 'NIDNo': 'NID', 'National ID': 'NID', 'NationalID': 'NID', 'InstituteInstituteNameInBangla': 'Institute Name', 'InstituteInstituteName': 'Institute Name', 'InstituteName': 'Institute Name', 'Institute Name': 'Institute Name', 'PreInstituteName': 'Previous Institute', 'ZoneZoneName': 'Zone', 'DistrictName': 'District', 'UpazillaName': 'Upazila', 'IsMpo': 'Is MPO', 'MpoApproveDate': 'MPO Approve Date', 'EmployeeRefId': 'Employee Ref ID', 'EmpRegUrlType': 'Emp Reg Url Type', 'PaymentStatus': 'Payment Status', 'EmployeeStatus': 'Employee Status', 'IsActive': 'Is Active', 'InstituteId': 'Institute ID' };
+
+                let instituteName = 'N/A';
+                for (const key in teacher.raw) {
+                    if (excludeFields.includes(key)) continue;
+                    let val = teacher.raw[key];
+                    const keyLower = key.toLowerCase();
+                    const isNidKey = keyLower === 'nid' || keyLower === 'nidno' || keyLower === 'nid no' || keyLower === 'nid_no' || keyLower.includes('nationalid') || keyLower.includes('national id') || keyLower.includes('national_id');
+                    if (!isNidKey) {
+                        if (val === 'N/A' || val === '.' || val === '-' || val === null || val === undefined || val === '') continue;
+                    } else {
+                        if (val === null || val === undefined || val === '') {
+                            val = 'N/A';
+                        }
+                    }
+                    if (key === 'InstituteInstituteNameInBangla' || key === 'InstituteInstituteName' || key === 'PreInstituteName' || key === 'InstituteName' || key === '_InstituteName') {
+                        instituteName = val;
+                    }
+                    let label = isNidKey ? 'NID' : (labels[key] || key);
+                    if (!isNidKey && !labels[key]) {
+                        label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+                    }
+                    let style = '';
+                    if (key === 'MobileNo' || key === 'MobileNumber' || key === 'Mobile Number' || key === 'Email' || key === 'EmailAddress' || key === 'Email Address') {
+                        style = 'color:var(--link);';
+                    }
+                    let genderText = val;
+                    if (key === 'Gender') {
+                        genderText = val == 2 ? 'Female' : (val == 1 ? 'Male' : val);
+                    }
+                    gridHtml += `<div class="info-box"><div class="info-label">${label}</div><div class="info-content" style="${style}">${genderText}</div></div>`;
+                }
+
+                const teacherId = teacher.raw.Id || teacher.raw.EmpId || teacher.raw.EmployeeId || teacher.raw.ID || teacher.raw['Id.'];
+                const hasValidId = teacherId && teacherId !== 'N/A';
+                const nameHtml = fallbackMobile ? `<div class="teacher-name" style="cursor:pointer; text-decoration:underline;" onclick="showMemberPhoto('${teacher.name.replace(/'/g, "\\'")}', '${fallbackMobile}')">${teacher.name}</div>` : `<div class="teacher-name">${teacher.name}</div>`;
+                card.innerHTML = `
+                    <div class="profile-header">
+                        ${photoHtml}
+                        ${nameHtml}
+                        <div class="teacher-name-bn">${teacher.nameBn}</div>
+                    </div>
+                    <div class="info-grid">
+                        ${gridHtml}
+                    </div>
+                    <div class="inst-footer">🏢 ${instituteName}</div>
+                    ${hasValidId ? `<button class="detail-btn" onclick="loadFullTeacherInfo('${teacherId}', this)">View Full Details</button>` : ''}`;
+                results.appendChild(card);
+            });
+        }
+
+        function displayApplicants(data) {
+            const results = document.getElementById('results');
+            results.innerHTML = "";
+            const list = Array.isArray(data) ? data : [data];
+            const withPhoto = [];
+            const noPhoto = [];
+            list.forEach(info => {
+                const name = info.LookupText || info.ApplicantNameEn || info.FullName || 'N/A';
+                const nameBn = info.ApplicantNameBn || info.FullNameBn || '';
+                const mobile = info.MobileNo || info.MobileNumber || 'N/A';
+                let photo = info.Image || 'N/A';
+                let hasOfficialPhoto = false;
+                if (photo !== 'N/A' && photo.trim() !== '') {
+                    if (photo.startsWith('http')) {
+                        hasOfficialPhoto = true;
+                    } else if (photo.startsWith('upload/')) {
+                        photo = 'https://www.emis.gov.bd/EMIS/' + photo;
+                        hasOfficialPhoto = true;
+                    }
+                }
+                const applicantObj = { name: name, nameBn: nameBn, mobile: mobile, photo: hasOfficialPhoto ? photo : '', hasPhoto: hasOfficialPhoto, hasDisplayPhoto: hasOfficialPhoto, raw: info };
+                if (name && name !== 'N/A' && mobile && mobile !== 'N/A') {
+                    globalTeacherMobiles[name.toLowerCase()] = mobile;
+                }
+                if (hasOfficialPhoto) withPhoto.push(applicantObj);
+                else noPhoto.push(applicantObj);
+            });
+
+            const allApplicants = [...withPhoto, ...noPhoto];
+
+            if (allApplicants.length > 0) {
+                results.innerHTML = `<div style="margin-bottom:20px; font-weight:800; color:#fff; text-align:center; background:var(--btn); padding:10px; border-radius:10px; font-size:14px;">📊 PHOTOS: <span id="visibleCount">${withPhoto.length}</span> | TOTAL: ${allApplicants.length}</div>`;
+            } else {
+                results.innerHTML = `<div style="padding:20px; text-align:center; color:var(--hint); font-weight:bold;">No profile photos found.</div>`;
+            }
+            allApplicants.forEach(applicant => {
+                const card = document.createElement('div');
+                card.className = 'teacher-card';
+                card.rawData = applicant.raw;
+                card.isSortedAsPhoto = applicant.hasPhoto;
+                const fallbackMobile = (applicant.mobile && applicant.mobile !== 'N/A' && applicant.mobile.trim() !== '') ? applicant.mobile.trim() : '';
+                const photoHtml = applicant.hasDisplayPhoto ? `<img src="${applicant.photo}" draggable="false" onerror="handleImageError(this)">` : `<div ${fallbackMobile ? `onclick="showMemberPhoto('${applicant.name.replace(/'/g, "\\'")}', '${fallbackMobile}')" style="cursor:pointer;"` : ''} style="width:140px; height:160px; background:var(--sec-bg); display:flex; align-items:center; justify-content:center; border-radius:18px; margin-bottom:12px; color:var(--hint); border:2px dashed var(--btn); font-weight:bold; font-size:12px;">NO PROFILE PHOTO</div>`;
+                let gridHtml = '';
+                const excludeFields = ['FullName', 'FullNameBn', 'ApplicantNameEn', 'ApplicantNameBn', 'LookupText', 'Image', 'photo', 'ImageNo', '_EIIN', '_InstituteId', '_InstituteName', 'PaymentStatus', 'Payment Status', 'EmployeeStatus', 'Employee Status', 'ParticipantSubjectId', 'SubjectId', 'Subject ID', 'DesignationId', 'Designation ID', 'IsMpo', 'Is MPO', 'IsActive', 'Is Active', 'EmployeeRefId', 'EmpRegUrlType', 'InstituteManagementTypeId', 'InstituteInstituteCategoryId', 'Institute Management Type Id', 'Institute Institute Category Id'];
+                const labels = { 'Id': 'ID', 'Id.': 'ID', 'EmpId': 'Employee ID', 'Emp Id': 'Employee ID', 'EmployeeId': 'Employee ID', 'MobileNo': 'Mobile Number', 'MobileNumber': 'Mobile Number', 'Mobile Number': 'Mobile Number', 'Email': 'Email Address', 'EmailAddress': 'Email Address', 'Email Address': 'Email Address', 'IndexNo': 'Index Number', 'IndexNumber': 'Index Number', 'Index Number': 'Index Number', 'DateofBirth': 'Date of Birth', 'Date of Birth': 'Date of Birth', 'DesignationNameBn': 'Designation', 'Designation': 'Designation', 'DesignationId': 'Designation ID', 'SubjectName': 'Subject', 'Subject': 'Subject', 'ParticipantSubjectId': 'Subject ID', 'FatherNameBn': "Father's Name", 'FatherNameEn': "Father's Name", 'MotherNameBn': "Mother's Name", 'MotherNameEn': "Mother's Name", 'Gender': 'Gender', 'Nid': 'NID', 'NID': 'NID', 'nid': 'NID', 'NID No': 'NID', 'NIDNo': 'NID', 'National ID': 'NID', 'NationalID': 'NID', 'InstituteInstituteNameInBangla': 'Institute Name', 'InstituteInstituteName': 'Institute Name', 'InstituteName': 'Institute Name', 'Institute Name': 'Institute Name', 'PreInstituteName': 'Previous Institute', 'ZoneZoneName': 'Zone', 'DistrictName': 'District', 'UpazillaName': 'Upazila', 'IsMpo': 'Is MPO', 'MpoApproveDate': 'MPO Approve Date', 'EmployeeRefId': 'Employee Ref ID', 'EmpRegUrlType': 'Emp Reg Url Type', 'PaymentStatus': 'Payment Status', 'EmployeeStatus': 'Employee Status', 'IsActive': 'Is Active', 'InstituteId': 'Institute ID' };
+
+                let instituteName = 'N/A';
+                for (const key in applicant.raw) {
+                    if (excludeFields.includes(key)) continue;
+                    let val = applicant.raw[key];
+                    const keyLower = key.toLowerCase();
+                    const isNidKey = keyLower === 'nid' || keyLower === 'nidno' || keyLower === 'nid no' || keyLower === 'nid_no' || keyLower.includes('nationalid') || keyLower.includes('national id') || keyLower.includes('national_id');
+                    if (!isNidKey) {
+                        if (val === 'N/A' || val === '.' || val === '-' || val === null || val === undefined || val === '') continue;
+                    } else {
+                        if (val === null || val === undefined || val === '') {
+                            val = 'N/A';
+                        }
+                    }
+                    if (key === 'InstituteInstituteNameInBangla' || key === 'InstituteInstituteName' || key === 'PreInstituteName' || key === 'InstituteName' || key === '_InstituteName') {
+                        instituteName = val;
+                    }
+                    let label = isNidKey ? 'NID' : (labels[key] || key);
+                    if (!isNidKey && !labels[key]) {
+                        label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+                    }
+                    let style = '';
+                    if (key === 'MobileNo' || key === 'MobileNumber' || key === 'Mobile Number' || key === 'Email' || key === 'EmailAddress' || key === 'Email Address') {
+                        style = 'color:var(--link);';
+                    }
+                    let genderText = val;
+                    if (key === 'Gender') {
+                        genderText = val == 2 ? 'Female' : (val == 1 ? 'Male' : val);
+                    }
+                    gridHtml += `<div class="info-box"><div class="info-label">${label}</div><div class="info-content" style="${style}">${genderText}</div></div>`;
+                }
+
+                const applicantId = applicant.raw.Id || applicant.raw.EmpId || applicant.raw.EmployeeId || applicant.raw.ID || applicant.raw['Id.'];
+                const hasValidId = applicantId && applicantId !== 'N/A';
+                const nameHtml = fallbackMobile ? `<div class="teacher-name" style="cursor:pointer; text-decoration:underline;" onclick="showMemberPhoto('${applicant.name.replace(/'/g, "\\'")}', '${fallbackMobile}')">${applicant.name}</div>` : `<div class="teacher-name">${applicant.name}</div>`;
+                card.innerHTML = `
+                    <div class="profile-header">
+                        ${photoHtml}
+                        ${nameHtml}
+                        <div class="teacher-name-bn">${applicant.nameBn}</div>
+                    </div>
+                    <div class="info-grid">
+                        ${gridHtml}
+                    </div>
+                    <div class="inst-footer">🏢 ${instituteName}</div>
+                    ${hasValidId ? `<button class="detail-btn" onclick="loadFullTeacherInfo('${applicantId}', this)">View Full Details</button>` : ''}`;
+                results.appendChild(card);
+            });
+        }
+
+        async function loadFullTeacherInfo(id, button) {
+            if (!id || id === 'N/A') {
+                alert('Invalid Teacher ID');
+                return;
+            }
+            const card = button.closest('.teacher-card');
+            const grid = card.querySelector('.info-grid');
+            button.disabled = true;
+            button.innerText = "Loading Details...";
+            button.style.opacity = "0.7";
+            try {
+                const api_url = `https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/TeacherInfo.php?TeacherInfo=${id}`;
+                const res = await fetch(api_url);
+                const text = await res.text();
+                let isJson = false;
+                let jsonData = null;
+                try {
+                    let cleanText = text.replace(/<[^>]*>?/gm, '').trim();
+                    const startBrace = cleanText.indexOf('{');
+                    const startBracket = cleanText.indexOf('[');
+                    let startIdx = -1;
+                    let endIdx = -1;
+                    if (startBrace !== -1 && (startBracket === -1 || startBrace < startBracket)) {
+                        startIdx = startBrace;
+                        endIdx = cleanText.lastIndexOf('}');
+                    } else if (startBracket !== -1) {
+                        startIdx = startBracket;
+                        endIdx = cleanText.lastIndexOf(']');
+                    }
+                    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+                        const jsonStr = cleanText.substring(startIdx, endIdx + 1);
+                        jsonData = JSON.parse(jsonStr);
+                        isJson = true;
+                    } else {
+                        jsonData = JSON.parse(cleanText);
+                        isJson = true;
+                    }
+                } catch(e) {}
+                let newInfo = {};
+                if (isJson && jsonData) {
+                    const infoObj = Array.isArray(jsonData) ? jsonData[0] : jsonData;
+                    newInfo = infoObj;
+                } else {
+                    const lines = text.split('\n');
                     lines.forEach(l => {
                         const cleanLine = l.replace(/<[^>]*>?/gm, '').trim();
                         if (cleanLine.includes(':')) {
@@ -677,469 +1059,70 @@
                             if (val === 'NULL' || val === '-') {
                                 val = 'N/A';
                             }
-                            info[key] = val;
+                            newInfo[key] = val;
                         }
                     });
-                    
-                    const name = info.FullName || info.LookupText || info.ApplicantNameEn || 'N/A';
-                    const nameBn = info.FullNameBn || info.ApplicantNameBn || '';
-                    const mobile = info.MobileNo || info.MobileNumber || 'N/A';
-                    let photo = info.Image || 'N/A';
-                    
-                    let hasOfficialPhoto = false;
-                    if (photo !== 'N/A' && photo.trim() !== '') {
-                        if (photo.startsWith('http')) {
-                            hasOfficialPhoto = true;
-                        } else if (photo.startsWith('upload/')) {
-                            photo = 'https://www.emis.gov.bd/EMIS/' + photo;
-                            hasOfficialPhoto = true;
-                        }
-                    }
-                    
-                    const teacherObj = {
-                        name: name,
-                        nameBn: nameBn,
-                        mobile: mobile,
-                        photo: hasOfficialPhoto ? photo : '',
-                        hasPhoto: hasOfficialPhoto,
-                        hasDisplayPhoto: hasOfficialPhoto,
-                        raw: info
-                    };
-                    
-                    if (name && name !== 'N/A' && mobile && mobile !== 'N/A') {
-                        globalTeacherMobiles[name.toLowerCase()] = mobile;
-                    }
-                    
-                    if (hasOfficialPhoto) withPhoto.push(teacherObj);
-                    else noPhoto.push(teacherObj);
-                });
-
-                const allTeachers = [...withPhoto, ...noPhoto];
-
-                if (allTeachers.length > 0) {
-                    results.innerHTML = `<div style="margin-bottom:20px; font-weight:800; color:#fff; text-align:center; background:var(--btn); padding:10px; border-radius:10px; font-size:14px;">📊 PHOTOS: <span id="visibleCount">${withPhoto.length}</span> | TOTAL: ${allTeachers.length}</div>`;
-                } else {
-                    results.innerHTML = `<div style="padding:20px; text-align:center; color:var(--hint); font-weight:bold;">No profile photos found.</div>`;
                 }
-
-                allTeachers.forEach(teacher => {
-                    const card = document.createElement('div');
-                    card.className = 'teacher-card';
-                    card.rawData = teacher.raw;
-                    card.isSortedAsPhoto = teacher.hasPhoto;
-                    
-                    const fallbackMobile = (teacher.mobile && teacher.mobile !== 'N/A' && teacher.mobile.trim() !== '') ? teacher.mobile.trim() : '';
-                    const photoHtml = teacher.hasDisplayPhoto
-                        ? `<img src="${teacher.photo}" draggable="false" onerror="handleImageError(this)">`
-                        : `<div ${fallbackMobile ? `onclick="showMemberPhoto('${teacher.name.replace(/'/g, "\\'")}', '${fallbackMobile}')" style="cursor:pointer;"` : ''} style="width:140px; height:160px; background:var(--sec-bg); display:flex; align-items:center; justify-content:center; border-radius:18px; margin-bottom:12px; color:var(--hint); border:2px dashed var(--btn); font-weight:bold; font-size:12px;">NO PROFILE PHOTO</div>`;
-
-                    let gridHtml = '';
-                    const excludeFields = ['FullName', 'FullNameBn', 'ApplicantNameEn', 'ApplicantNameBn', 'LookupText', 'Image', 'photo', 'ImageNo', '_EIIN', '_InstituteId', '_InstituteName', 'PaymentStatus', 'Payment Status', 'EmployeeStatus', 'Employee Status', 'ParticipantSubjectId', 'SubjectId', 'Subject ID', 'DesignationId', 'Designation ID', 'IsMpo', 'Is MPO', 'IsActive', 'Is Active', 'EmployeeRefId', 'EmpRegUrlType', 'InstituteManagementTypeId', 'InstituteInstituteCategoryId', 'Institute Management Type Id', 'Institute Institute Category Id'];
-                    
-                    const labels = {
-                        'Id': 'ID',
-                        'Id.': 'ID',
-                        'EmpId': 'Employee ID',
-                        'Emp Id': 'Employee ID',
-                        'EmployeeId': 'Employee ID',
-                        'MobileNo': 'Mobile Number',
-                        'MobileNumber': 'Mobile Number',
-                        'Mobile Number': 'Mobile Number',
-                        'Email': 'Email Address',
-                        'EmailAddress': 'Email Address',
-                        'Email Address': 'Email Address',
-                        'IndexNo': 'Index Number',
-                        'IndexNumber': 'Index Number',
-                        'Index Number': 'Index Number',
-                        'DateofBirth': 'Date of Birth',
-                        'Date of Birth': 'Date of Birth',
-                        'DesignationNameBn': 'Designation',
-                        'Designation': 'Designation',
-                        'DesignationId': 'Designation ID',
-                        'SubjectName': 'Subject',
-                        'Subject': 'Subject',
-                        'ParticipantSubjectId': 'Subject ID',
-                        'FatherNameBn': "Father's Name",
-                        'FatherNameEn': "Father's Name",
-                        'MotherNameBn': "Mother's Name",
-                        'MotherNameEn': "Mother's Name",
-                        'Gender': 'Gender',
-                        'Nid': 'NID',
-                        'NID': 'NID',
-                        'nid': 'NID',
-                        'NID No': 'NID',
-                        'NIDNo': 'NID',
-                        'National ID': 'NID',
-                        'NationalID': 'NID',
-                        'InstituteInstituteNameInBangla': 'Institute Name',
-                        'InstituteInstituteName': 'Institute Name',
-                        'InstituteName': 'Institute Name',
-                        'Institute Name': 'Institute Name',
-                        'PreInstituteName': 'Previous Institute',
-                        'ZoneZoneName': 'Zone',
-                        'DistrictName': 'District',
-                        'UpazillaName': 'Upazila',
-                        'IsMpo': 'Is MPO',
-                        'MpoApproveDate': 'MPO Approve Date',
-                        'EmployeeRefId': 'Employee Ref ID',
-                        'EmpRegUrlType': 'Emp Reg Url Type',
-                        'PaymentStatus': 'Payment Status',
-                        'EmployeeStatus': 'Employee Status',
-                        'IsActive': 'Is Active',
-                        'InstituteId': 'Institute ID'
-                    };
-
-                    let instituteName = 'N/A';
-                    for (const key in teacher.raw) {
-                        if (excludeFields.includes(key)) continue;
-                        
-                        let val = teacher.raw[key];
-                        
-                        // Check if key is NID or its variants
-                        const keyLower = key.toLowerCase();
-                        const isNidKey = keyLower === 'nid' || 
-                                         keyLower === 'nidno' || 
-                                         keyLower === 'nid no' || 
-                                         keyLower === 'nid_no' || 
-                                         keyLower.includes('nationalid') || 
-                                         keyLower.includes('national id') || 
-                                         keyLower.includes('national_id');
-                        
-                        // Skip empty/placeholder values, but NEVER skip NID keys
-                        if (!isNidKey) {
-                            if (val === 'N/A' || val === '.' || val === '-' || val === null || val === undefined || val === '') continue;
-                        } else {
-                            // If NID is missing or empty, show N/A instead of skipping
-                            if (val === null || val === undefined || val === '') {
-                                val = 'N/A';
-                            }
-                        }
-                        
-                        if (key === 'InstituteInstituteNameInBangla' || key === 'InstituteInstituteName' || key === 'PreInstituteName' || key === 'InstituteName' || key === '_InstituteName') {
-                            instituteName = val;
-                        }
-                        
-                        let label = isNidKey ? 'NID' : (labels[key] || key);
-                        if (!isNidKey && !labels[key]) {
-                            label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
-                        }
-                        
-                        let style = '';
-                        if (key === 'MobileNo' || key === 'MobileNumber' || key === 'Mobile Number' || key === 'Email' || key === 'EmailAddress' || key === 'Email Address') {
-                            style = 'color:var(--link);';
-                        }
-                        
-                        let genderText = val;
-                        if (key === 'Gender') {
-                            genderText = val == 2 ? 'Female' : (val == 1 ? 'Male' : val);
-                        }
-                        
-                        gridHtml += `<div class="info-box"><div class="info-label">${label}</div><div class="info-content" style="${style}">${genderText}</div></div>`;
+                const rawData = card.rawData || {};
+                const mergedData = { ...rawData, ...newInfo };
+                card.rawData = mergedData;
+                
+                let newPhoto = mergedData.Image || mergedData.ImageNo || '';
+                if (newPhoto && newPhoto !== 'N/A') {
+                    let actualPhotoUrl = '';
+                    if (newPhoto.startsWith('http')) {
+                        actualPhotoUrl = newPhoto;
+                    } else if (newPhoto.startsWith('upload/')) {
+                        actualPhotoUrl = 'https://www.emis.gov.bd/EMIS/' + newPhoto;
                     }
-
-                    const teacherId = teacher.raw.Id || teacher.raw.EmpId || teacher.raw.EmployeeId || teacher.raw.ID || teacher.raw['Id.'];
-                    const hasValidId = teacherId && teacherId !== 'N/A';
-                    const nameHtml = fallbackMobile
-                        ? `<div class="teacher-name" style="cursor:pointer; text-decoration:underline;" onclick="showMemberPhoto('${teacher.name.replace(/'/g, "\\'")}', '${fallbackMobile}')">${teacher.name}</div>`
-                        : `<div class="teacher-name">${teacher.name}</div>`;
-                        
-                    card.innerHTML = `
-                        <div class="profile-header">
-                            ${photoHtml}
-                            ${nameHtml}
-                            <div class="teacher-name-bn">${teacher.nameBn}</div>
-                        </div>
-                        <div class="info-grid">
-                            ${gridHtml}
-                        </div>
-                        <div class="inst-footer">🏢 ${instituteName}</div>
-                        ${hasValidId ? `<button class="detail-btn" onclick="loadFullTeacherInfo('${teacherId}', this)">View Full Details</button>` : ''}`;
-                    results.appendChild(card);
-                });
-            }
-
-            function displayApplicants(data) {
-                const results = document.getElementById('results');
-                results.innerHTML = "";
-                
-                const list = Array.isArray(data) ? data : [data];
-                
-                const withPhoto = [];
-                const noPhoto = [];
-                list.forEach(info => {
-                    const name = info.LookupText || info.ApplicantNameEn || info.FullName || 'N/A';
-                    const nameBn = info.ApplicantNameBn || info.FullNameBn || '';
-                    const mobile = info.MobileNo || info.MobileNumber || 'N/A';
-                    
-                    let photo = info.Image || 'N/A';
-                    
-                    let hasOfficialPhoto = false;
-                    if (photo !== 'N/A' && photo.trim() !== '') {
-                        if (photo.startsWith('http')) {
-                            hasOfficialPhoto = true;
-                        } else if (photo.startsWith('upload/')) {
-                            photo = 'https://www.emis.gov.bd/EMIS/' + photo;
-                            hasOfficialPhoto = true;
-                        }
-                    }
-                    
-                    const applicantObj = {
-                        name: name,
-                        nameBn: nameBn,
-                        mobile: mobile,
-                        photo: hasOfficialPhoto ? photo : '',
-                        hasPhoto: hasOfficialPhoto,
-                        hasDisplayPhoto: hasOfficialPhoto,
-                        raw: info
-                    };
-                    
-                    if (name && name !== 'N/A' && mobile && mobile !== 'N/A') {
-                        globalTeacherMobiles[name.toLowerCase()] = mobile;
-                    }
-                    
-                    if (hasOfficialPhoto) withPhoto.push(applicantObj);
-                    else noPhoto.push(applicantObj);
-                });
-
-                const allApplicants = [...withPhoto, ...noPhoto];
-
-                if (allApplicants.length > 0) {
-                    results.innerHTML = `<div style="margin-bottom:20px; font-weight:800; color:#fff; text-align:center; background:var(--btn); padding:10px; border-radius:10px; font-size:14px;">📊 PHOTOS: <span id="visibleCount">${withPhoto.length}</span> | TOTAL: ${allApplicants.length}</div>`;
-                } else {
-                    results.innerHTML = `<div style="padding:20px; text-align:center; color:var(--hint); font-weight:bold;">No profile photos found.</div>`;
-                }
-                
-                allApplicants.forEach(applicant => {
-                    const card = document.createElement('div');
-                    card.className = 'teacher-card';
-                    card.rawData = applicant.raw;
-                    card.isSortedAsPhoto = applicant.hasPhoto;
-                    
-                    const fallbackMobile = (applicant.mobile && applicant.mobile !== 'N/A' && applicant.mobile.trim() !== '') ? applicant.mobile.trim() : '';
-                    const photoHtml = applicant.hasDisplayPhoto
-                        ? `<img src="${applicant.photo}" draggable="false" onerror="handleImageError(this)">`
-                        : `<div ${fallbackMobile ? `onclick="showMemberPhoto('${applicant.name.replace(/'/g, "\\'")}', '${fallbackMobile}')" style="cursor:pointer;"` : ''} style="width:140px; height:160px; background:var(--sec-bg); display:flex; align-items:center; justify-content:center; border-radius:18px; margin-bottom:12px; color:var(--hint); border:2px dashed var(--btn); font-weight:bold; font-size:12px;">NO PROFILE PHOTO</div>`;
-                    
-                    let gridHtml = '';
-                    const excludeFields = ['FullName', 'FullNameBn', 'ApplicantNameEn', 'ApplicantNameBn', 'LookupText', 'Image', 'photo', 'ImageNo', '_EIIN', '_InstituteId', '_InstituteName', 'PaymentStatus', 'Payment Status', 'EmployeeStatus', 'Employee Status', 'ParticipantSubjectId', 'SubjectId', 'Subject ID', 'DesignationId', 'Designation ID', 'IsMpo', 'Is MPO', 'IsActive', 'Is Active', 'EmployeeRefId', 'EmpRegUrlType', 'InstituteManagementTypeId', 'InstituteInstituteCategoryId', 'Institute Management Type Id', 'Institute Institute Category Id'];
-                    
-                    const labels = {
-                        'Id': 'ID',
-                        'Id.': 'ID',
-                        'EmpId': 'Employee ID',
-                        'Emp Id': 'Employee ID',
-                        'EmployeeId': 'Employee ID',
-                        'MobileNo': 'Mobile Number',
-                        'MobileNumber': 'Mobile Number',
-                        'Mobile Number': 'Mobile Number',
-                        'Email': 'Email Address',
-                        'EmailAddress': 'Email Address',
-                        'Email Address': 'Email Address',
-                        'IndexNo': 'Index Number',
-                        'IndexNumber': 'Index Number',
-                        'Index Number': 'Index Number',
-                        'DateofBirth': 'Date of Birth',
-                        'Date of Birth': 'Date of Birth',
-                        'DesignationNameBn': 'Designation',
-                        'Designation': 'Designation',
-                        'DesignationId': 'Designation ID',
-                        'SubjectName': 'Subject',
-                        'Subject': 'Subject',
-                        'ParticipantSubjectId': 'Subject ID',
-                        'FatherNameBn': "Father's Name",
-                        'FatherNameEn': "Father's Name",
-                        'MotherNameBn': "Mother's Name",
-                        'MotherNameEn': "Mother's Name",
-                        'Gender': 'Gender',
-                        'Nid': 'NID',
-                        'NID': 'NID',
-                        'nid': 'NID',
-                        'NID No': 'NID',
-                        'NIDNo': 'NID',
-                        'National ID': 'NID',
-                        'NationalID': 'NID',
-                        'InstituteInstituteNameInBangla': 'Institute Name',
-                        'InstituteInstituteName': 'Institute Name',
-                        'InstituteName': 'Institute Name',
-                        'Institute Name': 'Institute Name',
-                        'PreInstituteName': 'Previous Institute',
-                        'ZoneZoneName': 'Zone',
-                        'DistrictName': 'District',
-                        'UpazillaName': 'Upazila',
-                        'IsMpo': 'Is MPO',
-                        'MpoApproveDate': 'MPO Approve Date',
-                        'EmployeeRefId': 'Employee Ref ID',
-                        'EmpRegUrlType': 'Emp Reg Url Type',
-                        'PaymentStatus': 'Payment Status',
-                        'EmployeeStatus': 'Employee Status',
-                        'IsActive': 'Is Active',
-                        'InstituteId': 'Institute ID'
-                    };
-
-                    let instituteName = 'N/A';
-                    for (const key in applicant.raw) {
-                        if (excludeFields.includes(key)) continue;
-                        
-                        let val = applicant.raw[key];
-                        
-                        // Check if key is NID or its variants
-                        const keyLower = key.toLowerCase();
-                        const isNidKey = keyLower === 'nid' || 
-                                         keyLower === 'nidno' || 
-                                         keyLower === 'nid no' || 
-                                         keyLower === 'nid_no' || 
-                                         keyLower.includes('nationalid') || 
-                                         keyLower.includes('national id') || 
-                                         keyLower.includes('national_id');
-                        
-                        // Skip empty/placeholder values, but NEVER skip NID keys
-                        if (!isNidKey) {
-                            if (val === 'N/A' || val === '.' || val === '-' || val === null || val === undefined || val === '') continue;
-                        } else {
-                            // If NID is missing or empty, show N/A instead of skipping
-                            if (val === null || val === undefined || val === '') {
-                                val = 'N/A';
-                            }
-                        }
-                        
-                        if (key === 'InstituteInstituteNameInBangla' || key === 'InstituteInstituteName' || key === 'PreInstituteName' || key === 'InstituteName' || key === '_InstituteName') {
-                            instituteName = val;
-                        }
-                        
-                        let label = isNidKey ? 'NID' : (labels[key] || key);
-                        if (!isNidKey && !labels[key]) {
-                            label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
-                        }
-                        
-                        let style = '';
-                        if (key === 'MobileNo' || key === 'MobileNumber' || key === 'Mobile Number' || key === 'Email' || key === 'EmailAddress' || key === 'Email Address') {
-                            style = 'color:var(--link);';
-                        }
-                        
-                        let genderText = val;
-                        if (key === 'Gender') {
-                            genderText = val == 2 ? 'Female' : (val == 1 ? 'Male' : val);
-                        }
-                        
-                        gridHtml += `<div class="info-box"><div class="info-label">${label}</div><div class="info-content" style="${style}">${genderText}</div></div>`;
-                    }
-
-                    const applicantId = applicant.raw.Id || applicant.raw.EmpId || applicant.raw.EmployeeId || applicant.raw.ID || applicant.raw['Id.'];
-                    const hasValidId = applicantId && applicantId !== 'N/A';
-                    const nameHtml = fallbackMobile
-                        ? `<div class="teacher-name" style="cursor:pointer; text-decoration:underline;" onclick="showMemberPhoto('${applicant.name.replace(/'/g, "\\'")}', '${fallbackMobile}')">${applicant.name}</div>`
-                        : `<div class="teacher-name">${applicant.name}</div>`;
-                        
-                    card.innerHTML = `
-                        <div class="profile-header">
-                            ${photoHtml}
-                            ${nameHtml}
-                            <div class="teacher-name-bn">${applicant.nameBn}</div>
-                        </div>
-                        <div class="info-grid">
-                            ${gridHtml}
-                        </div>
-                        <div class="inst-footer">🏢 ${instituteName}</div>
-                        ${hasValidId ? `<button class="detail-btn" onclick="loadFullTeacherInfo('${applicantId}', this)">View Full Details</button>` : ''}`;
-                    results.appendChild(card);
-                });
-            }
-
-            async function loadFullTeacherInfo(id, button) {
-                if (!id || id === 'N/A') {
-                    alert('Invalid Teacher ID');
-                    return;
-                }
-                
-                const card = button.closest('.teacher-card');
-                const grid = card.querySelector('.info-grid');
-                
-                button.disabled = true;
-                button.innerText = "Loading Details...";
-                button.style.opacity = "0.7";
-                
-                try {
-                    const api_url = `https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/TeacherInfo.php?TeacherInfo=${id}`;
-                    const res = await fetch(api_url);
-                    const text = await res.text();
-                    
-                    let isJson = false;
-                    let jsonData = null;
-                    try {
-                        let cleanText = text.replace(/<[^>]*>?/gm, '').trim();
-                        const startBrace = cleanText.indexOf('{');
-                        const startBracket = cleanText.indexOf('[');
-                        let startIdx = -1;
-                        let endIdx = -1;
-                        
-                        if (startBrace !== -1 && (startBracket === -1 || startBrace < startBracket)) {
-                            startIdx = startBrace;
-                            endIdx = cleanText.lastIndexOf('}');
-                        } else if (startBracket !== -1) {
-                            startIdx = startBracket;
-                            endIdx = cleanText.lastIndexOf(']');
-                        }
-                        
-                        if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-                            const jsonStr = cleanText.substring(startIdx, endIdx + 1);
-                            jsonData = JSON.parse(jsonStr);
-                            isJson = true;
-                        } else {
-                            jsonData = JSON.parse(cleanText);
-                            isJson = true;
-                        }
-                    } catch(e) {}
-                    
-                    let newInfo = {};
-                    if (isJson && jsonData) {
-                        const infoObj = Array.isArray(jsonData) ? jsonData[0] : jsonData;
-                        newInfo = infoObj;
-                    } else {
-                        const lines = text.split('\n');
-                        lines.forEach(l => {
-                            const cleanLine = l.replace(/<[^>]*>?/gm, '').trim();
-                            if (cleanLine.includes(':')) {
-                                const idx = cleanLine.indexOf(':');
-                                const key = cleanLine.substring(0, idx).trim();
-                                let val = cleanLine.substring(idx + 1).trim();
-                                if (val.startsWith("'") && val.endsWith("'")) {
-                                    val = val.substring(1, val.length - 1).trim();
-                                }
-                                if (val === 'NULL' || val === '-') {
-                                    val = 'N/A';
-                                }
-                                newInfo[key] = val;
-                            }
-                        });
-                    }
-                    
-                    const rawData = card.rawData || {};
-                    const mergedData = { ...rawData, ...newInfo };
-                    card.rawData = mergedData;
-                    
-                    // Update photo if new/valid image is found
-                    let newPhoto = mergedData.Image || mergedData.ImageNo || '';
-                    if (newPhoto && newPhoto !== 'N/A') {
-                        let actualPhotoUrl = '';
-                        if (newPhoto.startsWith('http')) {
-                            actualPhotoUrl = newPhoto;
-                        } else if (newPhoto.startsWith('upload/')) {
-                            actualPhotoUrl = 'https://www.emis.gov.bd/EMIS/' + newPhoto;
-                        }
-                        
-                        if (actualPhotoUrl) {
-                            const header = card.querySelector('.profile-header');
-                            if (header) {
-                                let img = header.querySelector('img');
-                                if (img) {
-                                    img.src = actualPhotoUrl;
-                                    img.draggable = false;
-                                    img.style.userDrag = "none";
-                                    img.style.webkitUserDrag = "none";
-                                    img.style.userSelect = "none";
-                                    img.style.webkitUserSelect = "none";
-                                    img.onerror = function() { handleImageError(this); };
-                                    img.onload = function() {
+                    if (actualPhotoUrl) {
+                        const header = card.querySelector('.profile-header');
+                        if (header) {
+                            let img = header.querySelector('img');
+                            if (img) {
+                                img.src = actualPhotoUrl;
+                                img.draggable = false;
+                                img.style.userDrag = "none";
+                                img.style.webkitUserDrag = "none";
+                                img.style.userSelect = "none";
+                                img.style.webkitUserSelect = "none";
+                                img.onerror = function() { handleImageError(this); };
+                                img.onload = function() {
+                                    if (!card.isSortedAsPhoto) {
+                                        card.isSortedAsPhoto = true;
+                                        const countBadge = document.getElementById('visibleCount');
+                                        if (countBadge) {
+                                            let count = parseInt(countBadge.innerText);
+                                            countBadge.innerText = count + 1;
+                                        }
+                                        const results = document.getElementById('results');
+                                        if (results) {
+                                            const cards = results.querySelectorAll('.teacher-card');
+                                            let insertBeforeCard = null;
+                                            for (let c of cards) {
+                                                if (!c.isSortedAsPhoto && c !== card) {
+                                                    insertBeforeCard = c;
+                                                    break;
+                                                }
+                                            }
+                                            if (insertBeforeCard) {
+                                                results.insertBefore(card, insertBeforeCard);
+                                            } else {
+                                                results.appendChild(card);
+                                            }
+                                        }
+                                    }
+                                };
+                            } else {
+                                const placeholder = header.querySelector('div:not(.teacher-name):not(.teacher-name-bn)');
+                                if (placeholder) {
+                                    const newImg = document.createElement('img');
+                                    newImg.src = actualPhotoUrl;
+                                    newImg.draggable = false;
+                                    newImg.className = placeholder.className;
+                                    newImg.style.cssText = "width:140px; height:160px; object-fit:cover; border-radius:18px; border:4px solid var(--btn); box-shadow:0 4px 12px rgba(0,0,0,0.15); margin-bottom:12px; -webkit-user-drag:none; user-drag:none; -webkit-user-select:none; user-select:none;";
+                                    newImg.onerror = function() { handleImageError(this); };
+                                    newImg.onload = function() {
                                         if (!card.isSortedAsPhoto) {
                                             card.isSortedAsPhoto = true;
                                             const countBadge = document.getElementById('visibleCount');
@@ -1147,7 +1130,7 @@
                                                 let count = parseInt(countBadge.innerText);
                                                 countBadge.innerText = count + 1;
                                             }
-                                            const results = document.getElementById('results');
+                                            constresults = document.getElementById('results');
                                             if (results) {
                                                 const cards = results.querySelectorAll('.teacher-card');
                                                 let insertBeforeCard = null;
@@ -1165,317 +1148,196 @@
                                             }
                                         }
                                     };
-                                } else {
-                                    const placeholder = header.querySelector('div:not(.teacher-name):not(.teacher-name-bn)');
-                                    if (placeholder) {
-                                        const newImg = document.createElement('img');
-                                        newImg.src = actualPhotoUrl;
-                                        newImg.draggable = false;
-                                        newImg.className = placeholder.className;
-                                        newImg.style.cssText = "width:140px; height:160px; object-fit:cover; border-radius:18px; border:4px solid var(--btn); box-shadow:0 4px 12px rgba(0,0,0,0.15); margin-bottom:12px; -webkit-user-drag:none; user-drag:none; -webkit-user-select:none; user-select:none;";
-                                        newImg.onerror = function() { handleImageError(this); };
-                                        newImg.onload = function() {
-                                            if (!card.isSortedAsPhoto) {
-                                                card.isSortedAsPhoto = true;
-                                                const countBadge = document.getElementById('visibleCount');
-                                                if (countBadge) {
-                                                    let count = parseInt(countBadge.innerText);
-                                                    countBadge.innerText = count + 1;
-                                                }
-                                                const results = document.getElementById('results');
-                                                if (results) {
-                                                    const cards = results.querySelectorAll('.teacher-card');
-                                                    let insertBeforeCard = null;
-                                                    for (let c of cards) {
-                                                        if (!c.isSortedAsPhoto && c !== card) {
-                                                            insertBeforeCard = c;
-                                                            break;
-                                                        }
-                                                    }
-                                                    if (insertBeforeCard) {
-                                                        results.insertBefore(card, insertBeforeCard);
-                                                    } else {
-                                                        results.appendChild(card);
-                                                    }
-                                                }
-                                            }
-                                        };
-                                        placeholder.replaceWith(newImg);
-                                    }
+                                    placeholder.replaceWith(newImg);
                                 }
                             }
                         }
                     }
-                    
-                    let gridHtml = '';
-                    const excludeFields = ['FullName', 'FullNameBn', 'ApplicantNameEn', 'ApplicantNameBn', 'LookupText', 'Image', 'photo', 'ImageNo', '_EIIN', '_InstituteId', '_InstituteName', 'PaymentStatus', 'Payment Status', 'EmployeeStatus', 'Employee Status', 'ParticipantSubjectId', 'SubjectId', 'Subject ID', 'DesignationId', 'Designation ID', 'IsMpo', 'Is MPO', 'IsActive', 'Is Active', 'EmployeeRefId', 'EmpRegUrlType', 'InstituteManagementTypeId', 'InstituteInstituteCategoryId', 'Institute Management Type Id', 'Institute Institute Category Id'];
-                    
-                    const labels = {
-                        'Id': 'ID',
-                        'Id.': 'ID',
-                        'EmpId': 'Employee ID',
-                        'Emp Id': 'Employee ID',
-                        'EmployeeId': 'Employee ID',
-                        'MobileNo': 'Mobile Number',
-                        'MobileNumber': 'Mobile Number',
-                        'Mobile Number': 'Mobile Number',
-                        'Email': 'Email Address',
-                        'EmailAddress': 'Email Address',
-                        'Email Address': 'Email Address',
-                        'IndexNo': 'Index Number',
-                        'IndexNumber': 'Index Number',
-                        'Index Number': 'Index Number',
-                        'DateofBirth': 'Date of Birth',
-                        'Date of Birth': 'Date of Birth',
-                        'DesignationNameBn': 'Designation',
-                        'Designation': 'Designation',
-                        'DesignationId': 'Designation ID',
-                        'SubjectName': 'Subject',
-                        'Subject': 'Subject',
-                        'ParticipantSubjectId': 'Subject ID',
-                        'FatherNameBn': "Father's Name",
-                        'FatherNameEn': "Father's Name",
-                        'MotherNameBn': "Mother's Name",
-                        'MotherNameEn': "Mother's Name",
-                        'Gender': 'Gender',
-                        'Nid': 'NID',
-                        'NID': 'NID',
-                        'nid': 'NID',
-                        'NID No': 'NID',
-                        'NIDNo': 'NID',
-                        'nid_no': 'NID',
-                        'nidno': 'NID',
-                        'nid no': 'NID',
-                        'National ID': 'NID',
-                        'NationalID': 'NID',
-                        'nationalid': 'NID',
-                        'national id': 'NID',
-                        'InstituteInstituteNameInBangla': 'Institute Name',
-                        'InstituteInstituteName': 'Institute Name',
-                        'InstituteName': 'Institute Name',
-                        'Institute Name': 'Institute Name',
-                        'PreInstituteName': 'Previous Institute',
-                        'ZoneZoneName': 'Zone',
-                        'DistrictName': 'District',
-                        'UpazillaName': 'Upazila',
-                        'IsMpo': 'Is MPO',
-                        'MpoApproveDate': 'MPO Approve Date',
-                        'EmployeeRefId': 'Employee Ref ID',
-                        'EmpRegUrlType': 'Emp Reg Url Type',
-                        'PaymentStatus': 'Payment Status',
-                        'EmployeeStatus': 'Employee Status',
-                        'IsActive': 'Is Active',
-                        'InstituteId': 'Institute ID'
-                    };
-
-                    let instituteName = 'N/A';
-                    for (const key in mergedData) {
-                        if (excludeFields.includes(key)) continue;
-                        
-                        let val = mergedData[key];
-                        const keyLower = key.toLowerCase();
-                        const isNidKey = keyLower === 'nid' || 
-                                         keyLower === 'nidno' || 
-                                         keyLower === 'nid no' || 
-                                         keyLower === 'nid_no' || 
-                                         keyLower.includes('nationalid') || 
-                                         keyLower.includes('national id') || 
-                                         keyLower.includes('national_id');
-                        
-                        if (!isNidKey) {
-                            if (val === 'N/A' || val === '.' || val === '-' || val === null || val === undefined || val === '') continue;
-                        } else {
-                            if (val === null || val === undefined || val === '') {
-                                val = 'N/A';
-                            }
-                        }
-                        
-                        if (key === 'InstituteInstituteNameInBangla' || key === 'InstituteInstituteName' || key === 'PreInstituteName' || key === 'InstituteName' || key === '_InstituteName') {
-                            instituteName = val;
-                        }
-                        
-                        let label = isNidKey ? 'NID' : (labels[key] || key);
-                        if (!isNidKey && !labels[key]) {
-                            label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
-                        }
-                        
-                        let style = '';
-                        if (key === 'MobileNo' || key === 'MobileNumber' || key === 'Mobile Number' || key === 'Email' || key === 'EmailAddress' || key === 'Email Address') {
-                            style = 'color:var(--link);';
-                        }
-                        
-                        let genderText = val;
-                        if (key === 'Gender') {
-                            genderText = val == 2 ? 'Female' : (val == 1 ? 'Male' : val);
-                        }
-                        
-                        gridHtml += `<div class="info-box"><div class="info-label">${label}</div><div class="info-content" style="${style}">${genderText}</div></div>`;
-                    }
-                    
-                    grid.innerHTML = gridHtml;
-                    if (instituteName !== 'N/A') {
-                        const footer = card.querySelector('.inst-footer');
-                        if (footer) footer.innerText = `🏢 ${instituteName}`;
-                    }
-                    button.remove();
-                    
-                    // Check if NID is found in mergedData
-                    let hasNid = false;
-                    for (const key in mergedData) {
-                        const keyLower = key.toLowerCase();
-                        const isNidKey = keyLower === 'nid' || 
-                                         keyLower === 'nidno' || 
-                                         keyLower === 'nid no' || 
-                                         keyLower === 'nid_no' || 
-                                         keyLower.includes('nationalid') || 
-                                         keyLower.includes('national id') || 
-                                         keyLower.includes('national_id');
-                        if (isNidKey) {
-                            const val = mergedData[key];
-                            if (val && val !== 'N/A' && val !== '.' && val !== '-' && val !== 'NULL' && val.toString().trim() !== '') {
-                                hasNid = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!hasNid) {
-                        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                            window.Telegram.WebApp.showAlert("Nid Not Found");
-                        } else {
-                            alert("Nid Not Found");
-                        }
-                    }
-                } catch(e) {
-                    button.disabled = false;
-                    button.innerText = "Failed. Try Again";
-                    button.style.opacity = "1";
                 }
-            }
+                let gridHtml = '';
+                const excludeFields = ['FullName', 'FullNameBn', 'ApplicantNameEn', 'ApplicantNameBn', 'LookupText', 'Image', 'photo', 'ImageNo', '_EIIN', '_InstituteId', '_InstituteName', 'PaymentStatus', 'Payment Status', 'EmployeeStatus', 'Employee Status', 'ParticipantSubjectId', 'SubjectId', 'Subject ID', 'DesignationId', 'Designation ID', 'IsMpo', 'Is MPO', 'IsActive', 'Is Active', 'EmployeeRefId', 'EmpRegUrlType', 'InstituteManagementTypeId', 'InstituteInstituteCategoryId', 'Institute Management Type Id', 'Institute Institute Category Id'];
+                const labels = { 'Id': 'ID', 'Id.': 'ID', 'EmpId': 'Employee ID', 'Emp Id': 'Employee ID', 'EmployeeId': 'Employee ID', 'MobileNo': 'Mobile Number', 'MobileNumber': 'Mobile Number', 'Mobile Number': 'Mobile Number', 'Email': 'Email Address', 'EmailAddress': 'Email Address', 'Email Address': 'Email Address', 'IndexNo': 'Index Number', 'IndexNumber': 'Index Number', 'Index Number': 'Index Number', 'DateofBirth': 'Date of Birth', 'Date of Birth': 'Date of Birth', 'DesignationNameBn': 'Designation', 'Designation': 'Designation', 'DesignationId': 'Designation ID', 'SubjectName': 'Subject', 'Subject': 'Subject', 'ParticipantSubjectId': 'Subject ID', 'FatherNameBn': "Father's Name", 'FatherNameEn': "Father's Name", 'MotherNameBn': "Mother's Name", 'MotherNameEn': "Mother's Name", 'Gender': 'Gender', 'Nid': 'NID', 'NID': 'NID', 'nid': 'NID', 'NID No': 'NID', 'NIDNo': 'NID', 'nid_no': 'NID', 'nidno': 'NID', 'nid no': 'NID', 'National ID': 'NID', 'NationalID': 'NID', 'nationalid': 'NID', 'national id': 'NID', 'InstituteInstituteNameInBangla': 'Institute Name', 'InstituteInstituteName': 'Institute Name', 'InstituteName': 'Institute Name', 'Institute Name': 'Institute Name', 'PreInstituteName': 'Previous Institute', 'ZoneZoneName': 'Zone', 'DistrictName': 'District', 'UpazillaName': 'Upazila', 'IsMpo': 'Is MPO', 'MpoApproveDate': 'MPO Approve Date', 'EmployeeRefId': 'Employee Ref ID', 'EmpRegUrlType': 'Emp Reg Url Type', 'PaymentStatus': 'Payment Status', 'EmployeeStatus': 'Employee Status', 'IsActive': 'Is Active', 'InstituteId': 'Institute ID' };
 
-            function handleImageError(img) {
-                const card = img.closest('.teacher-card');
-                if (!card) return;
-                
-                // Replace img with the placeholder div
-                const placeholder = document.createElement('div');
-                placeholder.style.cssText = "width:140px; height:160px; background:var(--sec-bg); display:flex; align-items:center; justify-content:center; border-radius:18px; margin-bottom:12px; color:var(--hint); border:2px dashed var(--btn); font-weight:bold; font-size:12px;";
-                placeholder.innerText = "NO PROFILE PHOTO";
-                img.replaceWith(placeholder);
-                
-                // Move the card to the bottom of the results container
-                const results = document.getElementById('results');
-                if (results && card.nextSibling) {
-                    results.appendChild(card);
-                }
-                
-                // Decrement the photo count badge if this card was counted as having a photo
-                if (card.isSortedAsPhoto && !card.imageErrorHandled) {
-                    card.imageErrorHandled = true;
-                    const countBadge = document.getElementById('visibleCount');
-                    if (countBadge) {
-                        let count = parseInt(countBadge.innerText);
-                        if (count > 0) countBadge.innerText = count - 1;
-                    }
-                }
-            }
-        </script>
-        <!-- Photo Modal -->
-        <div id="photoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:10000; align-items:center; justify-content:center; transition: all 0.3s ease-in-out;" onclick="closePhotoModal()">
-            <div style="background:var(--bg); padding:20px; border-radius:24px; border:1px solid rgba(255,255,255,0.15); max-width:90%; width:320px; position:relative; text-align:center; box-shadow:0 24px 48px rgba(0,0,0,0.6);" onclick="event.stopPropagation()">
-                <button onclick="closePhotoModal()" style="position:absolute; top:12px; right:12px; background:rgba(0,0,0,0.05); color:var(--text); border:none; width:32px; height:32px; border-radius:50%; font-size:16px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; outline:none;">✕</button>
-                <h4 id="photoModalTitle" style="margin-top:5px; margin-bottom:15px; color:var(--btn); font-weight:900; font-size:16px; text-transform:uppercase; letter-spacing:0.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 20px;">Member Photo</h4>
-                <div id="photoModalBody" style="min-height:220px; display:flex; align-items:center; justify-content:center; background:var(--sec-bg); border-radius:16px; border:1.5px dashed rgba(255,255,255,0.1); padding:10px;">
-                    <div id="photoModalSpinner" class="spinner" style="width:30px; height:30px; border:3px solid rgba(255,255,255,0.1); border-left-color:var(--btn); border-radius:50%; animation:spin 1s linear infinite;"></div>
-                    <img id="photoModalImg" src="" style="width:100%; max-height:280px; object-fit:cover; border-radius:12px; border:3px solid var(--btn); display:none; pointer-events:none; -webkit-touch-callout:none;" draggable="false">
-                    <div id="photoModalError" style="color:#ef4444; font-weight:bold; display:none; font-size:14px;">❌ Photo Not Found</div>
-                </div>
-            </div>
-        </div>
-
-        <script>
-            function showMemberPhoto(name, mobile) {
-                const modal = document.getElementById('photoModal');
-                const title = document.getElementById('photoModalTitle');
-                const img = document.getElementById('photoModalImg');
-                const spinner = document.getElementById('photoModalSpinner');
-                const error = document.getElementById('photoModalError');
-                
-                title.innerText = name;
-                img.onload = null;
-                img.onerror = null;
-                img.src = "";
-                img.style.display = "none";
-                spinner.style.display = "block";
-                error.style.display = "none";
-                modal.style.display = "flex";
-                
-                fetch(`https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/EiinToPhoto.php?photo=${mobile}`)
-                    .then(res => res.text())
-                    .then(url => {
-                        const cleanUrl = url.split('\n')[0].trim();
-                        if (cleanUrl && cleanUrl.startsWith('http')) {
-                            img.onload = () => {
-                                spinner.style.display = "none";
-                                error.style.display = "none";
-                                img.style.display = "block";
-                            };
-                            img.onerror = () => {
-                                spinner.style.display = "none";
-                                error.style.display = "block";
-                            };
-                            img.src = cleanUrl;
-                        } else {
-                            spinner.style.display = "none";
-                            error.style.display = "block";
+                let instituteName = 'N/A';
+                for (const key in mergedData) {
+                    if (excludeFields.includes(key)) continue;
+                    let val = mergedData[key];
+                    const keyLower = key.toLowerCase();
+                    const isNidKey = keyLower === 'nid' || keyLower === 'nidno' || keyLower === 'nid no' || keyLower === 'nid_no' || keyLower.includes('nationalid') || keyLower.includes('national id') || keyLower.includes('national_id');
+                    if (!isNidKey) {
+                        if (val === 'N/A' || val === '.' || val === '-' || val === null || val === undefined || val === '') continue;
+                    } else {
+                        if (val === null || val === undefined || val === '') {
+                            val = 'N/A';
                         }
-                    })
-                    .catch(() => {
-                        spinner.style.display = "none";
-                        error.style.display = "block";
-                    });
-            }
+                    }
+                    if (key === 'InstituteInstituteNameInBangla' || key === 'InstituteInstituteName' || key === 'PreInstituteName' || key === 'InstituteName' || key === '_InstituteName') {
+                        instituteName = val;
+                    }
+                    let label = isNidKey ? 'NID' : (labels[key] || key);
+                    if (!isNidKey && !labels[key]) {
+                        label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+                    }
+                    let style = '';
+                    if (key === 'MobileNo' || key === 'MobileNumber' || key === 'Mobile Number' || key === 'Email' || key === 'EmailAddress' || key === 'Email Address') {
+                        style = 'color:var(--link);';
+                    }
+                    let genderText = val;
+                    if (key === 'Gender') {
+                        genderText = val == 2 ? 'Female' : (val == 1 ? 'Male' : val);
+                    }
+                    gridHtml += `<div class="info-box"><div class="info-label">${label}</div><div class="info-content" style="${style}">${genderText}</div></div>`;
+                }
+                grid.innerHTML = gridHtml;
+                if (instituteName !== 'N/A') {
+                    const footer = card.querySelector('.inst-footer');
+                    if (footer) footer.innerText = `🏢 ${instituteName}`;
+                }
+                button.remove();
 
-            function showGridMemberPhoto(clickedEl, mobile) {
-                let name = "";
-                let prev = clickedEl.closest('div').previousElementSibling;
-                while (prev) {
-                    const contentEl = prev.querySelector('.info-content-red') || prev.querySelector('span');
-                    if (contentEl) {
-                        const txt = contentEl.innerText.trim();
-                        const clean = txt.replace(/[^0-9]/g, '');
-                        if (txt && !txt.includes('@') && !(clean.length === 11 && clean.startsWith('01'))) {
-                            name = txt;
+                let hasNid = false;
+                for (const key in mergedData) {
+                    const keyLower = key.toLowerCase();
+                    const isNidKey = keyLower === 'nid' || keyLower === 'nidno' || keyLower === 'nid no' || keyLower === 'nid_no' || keyLower.includes('nationalid') || keyLower.includes('national id') || keyLower.includes('national_id');
+                    if (isNidKey) {
+                        const val = mergedData[key];
+                        if (val && val !== 'N/A' && val !== '.' && val !== '-' && val !== 'NULL' && val.toString().trim() !== '') {
+                            hasNid = true;
                             break;
                         }
                     }
-                    prev = prev.previousElementSibling;
                 }
-                if (!name) {
-                    const card = clickedEl.closest('.school-info-card');
-                    const header = card ? card.querySelector('h3') : null;
-                    name = header ? header.innerText.trim() : "Member";
+                if (!hasNid) {
+                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
+                        window.Telegram.WebApp.showAlert("Nid Not Found");
+                    } else {
+                        alert("Nid Not Found");
+                    }
                 }
-                showMemberPhoto(name, mobile);
+            } catch(e) {
+                button.disabled = false;
+                button.innerText = "Failed. Try Again";
+                button.style.opacity = "1";
             }
+        }
 
-            function showDescMemberPhoto(text, mobile) {
-                let name = "";
-                const englishDigitsText = convertBengaliDigits(text);
-                const index = englishDigitsText.indexOf(mobile);
-                if (index !== -1) {
-                    name = text.substring(0, index).trim();
-                    name = name.replace(/^\d+[\s\.\:]*/, '').trim();
-                }
-                if (!name) {
-                    name = text;
-                }
-                showMemberPhoto(name, mobile);
+        function handleImageError(img) {
+            const card = img.closest('.teacher-card');
+            if (!card) return;
+            const placeholder = document.createElement('div');
+            placeholder.style.cssText = "width:140px; height:160px; background:var(--sec-bg); display:flex; align-items:center; justify-content:center; border-radius:18px; margin-bottom:12px; color:var(--hint); border:2px dashed var(--btn); font-weight:bold; font-size:12px;";
+            placeholder.innerText = "NO PROFILE PHOTO";
+            img.replaceWith(placeholder);
+            const results = document.getElementById('results');
+            if (results && card.nextSibling) {
+                results.appendChild(card);
             }
+            if (card.isSortedAsPhoto && !card.imageErrorHandled) {
+                card.imageErrorHandled = true;
+                const countBadge = document.getElementById('visibleCount');
+                if (countBadge) {
+                    let count = parseInt(countBadge.innerText);
+                    if (count > 0) countBadge.innerText = count - 1;
+                }
+            }
+        }
+    </script>
 
-            function closePhotoModal() {
-                document.getElementById('photoModal').style.display = "none";
+    <!-- Photo Modal -->
+    <div id="photoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:10000; align-items:center; justify-content:center; transition: all 0.3s ease-in-out;" onclick="closePhotoModal()">
+        <div style="background:var(--bg); padding:20px; border-radius:24px; border:1px solid rgba(255,255,255,0.15); max-width:90%; width:320px; position:relative; text-align:center; box-shadow:0 24px 48px rgba(0,0,0,0.6);" onclick="event.stopPropagation()">
+            <button onclick="closePhotoModal()" style="position:absolute; top:12px; right:12px; background:rgba(0,0,0,0.05); color:var(--text); border:none; width:32px; height:32px; border-radius:50%; font-size:16px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; outline:none;">✕</button>
+            <h4 id="photoModalTitle" style="margin-top:5px; margin-bottom:15px; color:var(--btn); font-weight:900; font-size:16px; text-transform:uppercase; letter-spacing:0.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 20px;">Member Photo</h4>
+            <div id="photoModalBody" style="min-height:220px; display:flex; align-items:center; justify-content:center; background:var(--sec-bg); border-radius:16px; border:1.5px dashed rgba(255,255,255,0.1); padding:10px;">
+                <div id="photoModalSpinner" class="spinner" style="width:30px; height:30px; border:3px solid rgba(255,255,255,0.1); border-left-color:var(--btn); border-radius:50%; animation:spin 1s linear infinite;"></div>
+                <img id="photoModalImg" src="" style="width:100%; max-height:280px; object-fit:cover; border-radius:12px; border:3px solid var(--btn); display:none; pointer-events:none; -webkit-touch-callout:none;" draggable="false">
+                <div id="photoModalError" style="color:#ef4444; font-weight:bold; display:none; font-size:14px;">❌ Photo Not Found</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showMemberPhoto(name, mobile) {
+            const modal = document.getElementById('photoModal');
+            const title = document.getElementById('photoModalTitle');
+            const img = document.getElementById('photoModalImg');
+            const spinner = document.getElementById('photoModalSpinner');
+            const error = document.getElementById('photoModalError');
+            title.innerText = name;
+            img.onload = null;
+            img.onerror = null;
+            img.src = "";
+            img.style.display = "none";
+            spinner.style.display = "block";
+            error.style.display = "none";
+            modal.style.display = "flex";
+
+            fetch(`https://w8team.top/Bots/EIIN%20To%20Info%20bot/New%20Api/EiinToPhoto.php?photo=${mobile}`)
+                .then(res => res.text())
+                .then(url => {
+                    const cleanUrl = url.split('\n')[0].trim();
+                    if (cleanUrl && cleanUrl.startsWith('http')) {
+                        img.onload = () => {
+                            spinner.style.display = "none";
+                            error.style.display = "none";
+                            img.style.display = "block";
+                        };
+                        img.onerror = () => {
+                            spinner.style.display = "none";
+                            error.style.display = "block";
+                        };
+                        img.src = cleanUrl;
+                    } else {
+                        spinner.style.display = "none";
+                        error.style.display = "block";
+                    }
+                })
+                .catch(() => {
+                    spinner.style.display = "none";
+                    error.style.display = "block";
+                });
+        }
+
+        function showGridMemberPhoto(clickedEl, mobile) {
+            let name = "";
+            let prev = clickedEl.closest('div').previousElementSibling;
+            while (prev) {
+                const contentEl = prev.querySelector('.info-content-red') || prev.querySelector('span');
+                if (contentEl) {
+                    const txt = contentEl.innerText.trim();
+                    const clean = txt.replace(/[^0-9]/g, '');
+                    if (txt && !txt.includes('@') && !(clean.length === 11 && clean.startsWith('01'))) {
+                        name = txt;
+                        break;
+                    }
+                }
+                prev = prev.previousElementSibling;
             }
-        </script>
-    </body>
-    </html>
-    
+            if (!name) {
+                const card = clickedEl.closest('.school-info-card');
+                const header = card ? card.querySelector('h3') : null;
+                name = header ? header.innerText.trim() : "Member";
+            }
+            showMemberPhoto(name, mobile);
+        }
+
+        function showDescMemberPhoto(text, mobile) {
+            let name = "";
+            const englishDigitsText = convertBengaliDigits(text);
+            const index = englishDigitsText.indexOf(mobile);
+            if (index !== -1) {
+                name = text.substring(0, index).trim();
+                name = name.replace(/^\d+[\s\.\:]*/, '').trim();
+            }
+            if (!name) {
+                name = text;
+            }
+            showMemberPhoto(name, mobile);
+        }
+
+        function closePhotoModal() {
+            document.getElementById('photoModal').style.display = "none";
+        }
+    </script>
+</body>
+</html>

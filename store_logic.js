@@ -278,9 +278,8 @@ function closeDownloadModal(event) {
     }
 }
 
-
 // =======================================================================
-// 🚀 6. WebView CRASH-PROOF SILENT DOWNLOADER ENGINE
+// 🚀 6. WebView CRASH-PROOF SILENT DOWNLOADER ENGINE (DIRECT BLOB STORAGE FIX)
 // =======================================================================
 async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
     const fileUrl = isRelease ? releaseUrl : `${RAW_CDN_BASE}${DATA_FOLDER}/${encodeURIComponent(filename)}`;
@@ -293,44 +292,74 @@ async function executeSecureStorageDownload(filename, isRelease, releaseUrl) {
     progressPercent.innerText = "⏳ Requesting...";
     progressSpeed.innerText = "Connecting...";
 
-    // 🔒 মেমোরি ফিক্স: ব্লব বাদ দিয়ে ডিরেক্ট সাইলেন্ট আইফ্রেম ব্যবহার করে অ্যান্ড্রয়েড ডাউনলোড ম্যানেজার ট্রিগার
-    let sandboxFrame = document.getElementById('silent-download-frame');
-    if (!sandboxFrame) {
-        sandboxFrame = document.createElement('iframe');
-        sandboxFrame.id = 'silent-download-frame';
-        sandboxFrame.style.setProperty('display', 'none', 'important');
-        document.body.appendChild(sandboxFrame);
-    }
-    sandboxFrame.src = fileUrl; 
-
     // ডাটাবেজ বা ক্লাউড কাউন্টার আপডেট
     await incrementCloudCounter(filename);
 
-    // ইন্টারফেসে রিয়েল-টাইম স্মুথ অগ্রগতি ট্র্যাকিং
-    let currentPercent = 0;
-    const fakeSpeed = (Math.random() * 2 + 1.5).toFixed(2); 
-    progressSpeed.innerText = `⚡ ${fakeSpeed} MB/s`;
+    try {
+        // প্রোগ্রেস বারের ফেক এনিমেশন শুরু করা
+        let currentPercent = 0;
+        const fakeSpeed = (Math.random() * 2 + 1.5).toFixed(2); 
+        progressSpeed.innerText = `⚡ ${fakeSpeed} MB/s`;
 
-    const animationInterval = setInterval(() => {
-        currentPercent += Math.floor(Math.random() * 4) + 2; 
+        const animationInterval = setInterval(() => {
+            currentPercent += Math.floor(Math.random() * 4) + 2; 
+            if (currentPercent >= 95) {
+                clearInterval(animationInterval); // আসল ডাউনলোড শেষ না হওয়া পর্যন্ত ৯৫% এ হোল্ড করবে
+            } else {
+                progressBar.style.width = `${currentPercent}%`;
+                progressPercent.innerText = `📥 Downloading: ${currentPercent}%`;
+            }
+        }, 120);
+
+        // 🔗 সরাসরি মেমরিতে ফাইলটি Blob (বাইনারি ডেটা) হিসেবে ডাউনলোড করা হচ্ছে
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error("ফাইল ডাউনলোড রেসপন্স ব্যর্থ হয়েছে");
+        const fileBlob = await response.blob();
+
+        // ডাউনলোড সম্পন্ন হলে ১০০% করা
+        progressBar.style.width = "100%";
+        progressPercent.innerText = "✅ 100% Downloaded!";
+
+        // 💾 টেলিগ্রামের ভেতরের লোকাল মেমরি থেকে সরাসরি স্টোরেজে ফাইল সেভ করার ট্রিগার
+        const localBlobUrl = window.URL.createObjectURL(fileBlob);
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.href = localBlobUrl;
+        downloadAnchor.download = filename;
         
-        if (currentPercent >= 100) {
-            currentPercent = 100;
-            clearInterval(animationInterval);
-            
-            progressBar.style.width = "100%";
-            progressPercent.innerText = "✅ 100% Downloaded!";
-            
-            // ডাউনলোড শেষ হলে অটোমেটিক মেইন স্ক্রিনে ফিরিয়ে আনা
-            setTimeout(() => {
-                closeDownloadModal(null);
-            }, 1000);
-        } else {
-            progressBar.style.width = `${currentPercent}%`;
-            progressPercent.innerText = `📥 Downloading: ${currentPercent}%`;
-        }
-    }, 150); 
+        // টেলিগ্রামের ইন-অ্যাপ ব্রাউজারে ট্র্যাকিং ফোর্স করার জন্য
+        downloadAnchor.setAttribute('target', '_blank');
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+
+        // ক্লিনআপ প্রসেস
+        document.body.removeChild(downloadAnchor);
+        window.URL.revokeObjectURL(localBlobUrl);
+
+        // ডাউনলোড শেষ হলে পপআপ ক্লোজ করা
+        setTimeout(() => {
+            closeDownloadModal(null);
+        }, 1000);
+
+    } catch (error) {
+        console.error("Direct storage download failed, falling back to direct link:", error);
+        
+        // ব্যাকআপ মেথড: যদি কোনো কারণে ফেচ ব্লক হয়, তবে ডিরেক্ট ক্লিক ট্রিগার করবে
+        const fallbackAnchor = document.createElement('a');
+        fallbackAnchor.href = fileUrl;
+        fallbackAnchor.download = filename;
+        fallbackAnchor.target = "_blank";
+        document.body.appendChild(fallbackAnchor);
+        fallbackAnchor.click();
+        document.body.removeChild(fallbackAnchor);
+
+        progressBar.style.width = "100%";
+        progressPercent.innerText = "✅ Started!";
+        setTimeout(() => {
+            closeDownloadModal(null);
+        }, 1000);
+    }
 }
+
 
 
 // =======================================================================

@@ -532,157 +532,181 @@
       
 
         
-            
-               function renderKeys(security) {
+            function renderKeys(security) {
     const list = document.getElementById('key-list');
     let htmlStr = "";
     let count = 0;
     
-    if (!security || !security.authorized_hwids) {
+    if (!security) {
         document.getElementById('key-count').innerText = "0 Keys";
         list.innerHTML = htmlStr;
         return;
     }
 
-    Object.entries(security.authorized_hwids).reverse().forEach(([keyId, keyVal]) => {
-        if (typeof keyVal !== 'object' || keyVal === null) return;
-        
-        count++;
+    // ১. Authorized HWIDs রেন্ডারিং অংশ
+    if (security.authorized_hwids) {
+        Object.entries(security.authorized_hwids).reverse().forEach(([keyId, keyVal]) => {
+            if (typeof keyVal !== 'object' || keyVal === null) return;
+            
+            count++;
 
-        const expiryDate = keyVal.expiry_date || 'N/A';
-        const expiryTime = keyVal.expiry_time || '';
-        const status = keyVal.status || 'active';
-        const remarks = keyVal.remarks || 'No remarks';
-        const maxDev = keyVal.max_devices || 1;
+            const expiryDate = keyVal.expiry_date || 'N/A';
+            const expiryTime = keyVal.expiry_time || '';
+            const status = keyVal.status || 'active';
+            const remarks = keyVal.remarks || 'No remarks';
+            const maxDev = keyVal.max_devices || 1;
 
-        let isExp = false;
-        if (expiryDate !== 'N/A') {
-            const checkTime = expiryTime ? expiryTime : "23:59";
-            isExp = new Date(`${expiryDate}T${checkTime}`) < new Date();
-        }
+            let isExp = false;
+            if (expiryDate !== 'N/A') {
+                const checkTime = expiryTime ? expiryTime : "23:59";
+                isExp = new Date(`${expiryDate}T${checkTime}`) < new Date();
+            }
 
-        const badgeClass = isExp ? 'b-exp' : (status === 'active' ? 'b-act' : 'b-blk');
-        const displayStatus = isExp ? 'EXPIRED' : status.toUpperCase();
+            const badgeClass = isExp ? 'b-exp' : (status === 'active' ? 'b-act' : 'b-blk');
+            const displayStatus = isExp ? 'EXPIRED' : status.toUpperCase();
 
-        const linked = keyVal.linked_devices || {};
-        const linkedEntries = Object.entries(linked);
-        const linkedCount = linkedEntries.length;
+            const linked = keyVal.linked_devices || {};
+            const linkedEntries = Object.entries(linked);
+            const linkedCount = linkedEntries.length;
 
-        let primaryModel = "No Device Connected";
-        let primaryHWID = "N/A";
+            let primaryModel = "No Device Connected";
+            let primaryHWID = "N/A";
 
-        if (linkedCount > 0) {
-            const [firstHwid, firstDevInfo] = linkedEntries[0];
-            primaryHWID = firstHwid;
-            primaryModel = firstDevInfo.model || firstDevInfo.brand || "Unknown Model";
-        }
+            if (linkedCount > 0) {
+                const [firstHwid, firstDevInfo] = linkedEntries[0];
+                primaryHWID = firstHwid;
+                primaryModel = firstDevInfo.model || firstDevInfo.brand || "Unknown Model";
+            }
 
-        const curDet = document.getElementById(`det-${keyId}`);
-        const isOpen = curDet && curDet.style.display === 'block';
+            const curDet = document.getElementById(`det-${keyId}`);
+            const isOpen = curDet && curDet.style.display === 'block';
 
-        let devicesDetailHTML = "";
-        if (linkedCount === 0) {
-            devicesDetailHTML = `<div style="color:var(--text-dim); font-size:0.8rem; padding:10px 0; text-align:center;">No devices linked with this key yet.</div>`;
-        } else {
-            linkedEntries.forEach(([hwid, devInfo]) => {
-                // ১. ব্যাটারি পার্সেন্টেজ
-                const battery = devInfo.battery_level !== undefined ? `${devInfo.battery_level}%` : 'N/A';
-                
-                // ২. লোকেশন/জোন/সিটি ফিল্ড হ্যান্ডলিং (Firebase Node অনুযায়ী)
-                const locationZone = devInfo.zone || devInfo.city || devInfo.country || 'Unknown Zone';
-                const cityStr = devInfo.city ? `${devInfo.city}, ` : '';
-                const fullLocation = `${cityStr}${devInfo.zone || ''} (${devInfo.country || 'N/A'})`;
+            let devicesDetailHTML = "";
+            if (linkedCount === 0) {
+                devicesDetailHTML = `<div style="color:var(--text-dim); font-size:0.8rem; padding:10px 0; text-align:center;">No devices linked with this key yet.</div>`;
+            } else {
+                linkedEntries.forEach(([hwid, devInfo]) => {
+                    const battery = devInfo.battery_level !== undefined ? `${devInfo.battery_level}%` : 'N/A';
+                    const locationZone = devInfo.zone || devInfo.city || devInfo.country || 'Unknown Zone';
+                    const cityStr = devInfo.city ? `${devInfo.city}, ` : '';
+                    const fullLocation = `${cityStr}${devInfo.zone || ''} (${devInfo.country || 'N/A'})`;
 
-                // ৩. লাস্ট অ্যাক্টিভ টাইম ফরমেটিং (Timestamp to readable string)
-                let lastActiveStr = 'N/A';
-                if (devInfo.last_active) {
-                    const dateObj = new Date(devInfo.last_active);
-                    lastActiveStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                }
+                    let lastActiveStr = 'N/A';
+                    if (devInfo.last_active) {
+                        const dateObj = new Date(devInfo.last_active);
+                        lastActiveStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    }
 
-                devicesDetailHTML += `
-                <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.08);">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="color:#fff; font-weight:700; font-size:0.85rem;">
-                            <i class="fas fa-mobile-alt" style="color:var(--primary); margin-right:6px;"></i> ${devInfo.model || 'Unknown Device'}
-                        </div>
-                        <button class="btn-copy" onclick="copyText(event, '${hwid}', 'HWID')"><i class="fas fa-copy"></i> Copy HWID</button>
-                    </div>
-                    <div style="color:var(--text-dim); font-size:0.75rem; font-family:var(--font-code); margin-top:4px;">
-                        HWID: ${hwid.substring(0, 16)}...
-                    </div>
-                    
-                    <!-- ফায়ারবেসের সকল ডিটেইলস গ্রিড আকারে সাজানো -->
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:10px; font-size:0.75rem; color:var(--text-dim); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px;">
-                        <div><i class="fas fa-battery-three-quarters" style="color:#10b981; margin-right:4px;"></i> <b>Battery:</b> ${battery}</div>
-                        <div><i class="fas fa-wifi" style="color:#3b82f6; margin-right:4px;"></i> <b>Network:</b> ${devInfo.network_type || 'N/A'}</div>
-                        
-                        <div><i class="fas fa-map-marker-alt" style="color:#ef4444; margin-right:4px;"></i> <b>Zone:</b> ${locationZone}</div>
-                        <div><i class="fas fa-network-wired" style="color:#8b5cf6; margin-right:4px;"></i> <b>IP:</b> ${devInfo.ip_address || 'N/A'}</div>
-                        
-                        <div><i class="fas fa-clock" style="color:#f59e0b; margin-right:4px;"></i> <b>TimeZone:</b> ${devInfo.time_zone || 'N/A'}</div>
-                        <div><i class="fas fa-globe" style="color:#ec4899; margin-right:4px;"></i> <b>Country:</b> ${devInfo.country || 'N/A'}</div>
-
-                        <div><b>Brand/Board:</b> ${devInfo.brand || 'N/A'} / ${devInfo.device_board || 'N/A'}</div>
-                        <div><b>Android:</b> v${devInfo.android_version || 'N/A'} (SDK ${devInfo.sdk_level || 'N/A'})</div>
-
-                        <div><b>Memory:</b> RAM: ${devInfo.ram_size || 'N/A'} | ROM: ${devInfo.rom_size || 'N/A'}</div>
-                        <div><i class="fas fa-user-clock" style="color:#10b981; margin-right:4px;"></i> <b>Active:</b> ${lastActiveStr}</div>
-                    </div>
-                </div>`;
-            });
-        }
-
-        htmlStr += `
-            <div class="glass card device-card">
-                <div class="card-header" style="cursor:pointer;" onclick="toggleDet('${keyId}')">
-                    <div>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <i class="fas fa-mobile-alt" style="color:#fff; font-size:0.9rem;"></i>
-                            <span style="font-size:0.9rem; font-weight:700; color:#fff;">${primaryModel}</span>
-                        </div>
-                        <div style="font-size:0.75rem; color:var(--text-dim); font-family:var(--font-code); margin-top:5px;">
-                            HWID: ${primaryHWID !== 'N/A' ? primaryHWID.substring(0, 16) + '...' : 'N/A'}
-                        </div>
-                    </div>
-                    <span class="badge ${badgeClass}">${displayStatus}</span>
-                </div>
-                
-                <div id="det-${keyId}" style="display:${isOpen ? 'block' : 'none'}; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px; margin-top:10px;">
-                    
-                    <div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; margin-bottom:12px;">
+                    devicesDetailHTML += `
+                    <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.08);">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase;">License Key</div>
-                                <code style="font-size:0.9rem; font-weight:800; color:var(--primary); font-family:var(--font-code);">${keyId}</code>
+                            <div style="color:#fff; font-weight:700; font-size:0.85rem;">
+                                <i class="fas fa-mobile-alt" style="color:var(--primary); margin-right:6px;"></i> ${devInfo.model || 'Unknown Device'}
                             </div>
-                            <button class="btn-copy" onclick="copyText(event, '${keyId}', 'Key')"><i class="fas fa-key"></i> COPY KEY</button>
+                            <button class="btn-copy" onclick="copyText(event, '${hwid}', 'HWID')"><i class="fas fa-copy"></i> Copy HWID</button>
                         </div>
-                        <div style="font-size:0.75rem; color:var(--text-dim); margin-top:8px; display:flex; justify-content:space-between;">
-                            <span><i class="far fa-calendar-alt"></i> Exp: ${expiryDate} @ ${expiryTime}</span>
-                            <span>Limit: ${linkedCount}/${maxDev} Dev</span>
+                        <div style="color:var(--text-dim); font-size:0.75rem; font-family:var(--font-code); margin-top:4px;">
+                            HWID: ${hwid.substring(0, 16)}...
                         </div>
-                        <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">
-                            Remarks: ${remarks !== "" ? remarks : "No remarks"}
-                        </div>
-                    </div>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:10px; font-size:0.75rem; color:var(--text-dim); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px;">
+                            <div><i class="fas fa-battery-three-quarters" style="color:#10b981; margin-right:4px;"></i> <b>Battery:</b> ${battery}</div>
+                            <div><i class="fas fa-wifi" style="color:#3b82f6; margin-right:4px;"></i> <b>Network:</b> ${devInfo.network_type || 'N/A'}</div>
+                            
+                            <div><i class="fas fa-map-marker-alt" style="color:#ef4444; margin-right:4px;"></i> <b>Zone:</b> ${locationZone}</div>
+                            <div><i class="fas fa-network-wired" style="color:#8b5cf6; margin-right:4px;"></i> <b>IP:</b> ${devInfo.ip_address || 'N/A'}</div>
+                            
+                            <div><i class="fas fa-clock" style="color:#f59e0b; margin-right:4px;"></i> <b>TimeZone:</b> ${devInfo.time_zone || 'N/A'}</div>
+                            <div><i class="fas fa-globe" style="color:#ec4899; margin-right:4px;"></i> <b>Country:</b> ${devInfo.country || 'N/A'}</div>
 
-                    <div>
-                        <span style="font-size:0.75rem; font-weight:800; color:var(--primary); text-transform:uppercase;">Connected Device Details</span>
-                        ${devicesDetailHTML}
-                    </div>
+                            <div><b>Brand/Board:</b> ${devInfo.brand || 'N/A'} / ${devInfo.device_board || 'N/A'}</div>
+                            <div><b>Android:</b> v${devInfo.android_version || 'N/A'} (SDK ${devInfo.sdk_level || 'N/A'})</div>
 
-                    <button class="btn-remove" style="margin-top:15px; width:100%;" onclick="promptAction('${keyId}', 'revoke')">
-                        <i class="fas fa-trash-alt"></i> REVOKE ACCESS
-                    </button>
+                            <div><b>Memory:</b> RAM: ${devInfo.ram_size || 'N/A'} | ROM: ${devInfo.rom_size || 'N/A'}</div>
+                            <div><i class="fas fa-user-clock" style="color:#10b981; margin-right:4px;"></i> <b>Active:</b> ${lastActiveStr}</div>
+                        </div>
+                    </div>`;
+                });
+            }
+
+            const searchTags = `${keyId.toLowerCase()} ${remarks.toLowerCase()} ${devicesDetailHTML.toLowerCase()}`;
+
+            htmlStr += `
+                <div class="glass card device-card" data-search="${searchTags}">
+                    <div class="card-header" style="cursor:pointer;" onclick="toggleDet('${keyId}')">
+                        <div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fas fa-mobile-alt" style="color:#fff; font-size:0.9rem;"></i>
+                                <span style="font-size:0.9rem; font-weight:700; color:#fff;">${primaryModel}</span>
+                            </div>
+                            <div style="font-size:0.75rem; color:var(--text-dim); font-family:var(--font-code); margin-top:5px;">
+                                HWID: ${primaryHWID !== 'N/A' ? primaryHWID.substring(0, 16) + '...' : 'N/A'}
+                            </div>
+                        </div>
+                        <span class="badge ${badgeClass}">${displayStatus}</span>
+                    </div>
+                    
+                    <div id="det-${keyId}" style="display:${isOpen ? 'block' : 'none'}; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px; margin-top:10px;">
+                        
+                        <div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; margin-bottom:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase;">License Key</div>
+                                    <code style="font-size:0.9rem; font-weight:800; color:var(--primary); font-family:var(--font-code);">${keyId}</code>
+                                </div>
+                                <button class="btn-copy" onclick="copyText(event, '${keyId}', 'Key')"><i class="fas fa-key"></i> COPY KEY</button>
+                            </div>
+                            <div style="font-size:0.75rem; color:var(--text-dim); margin-top:8px; display:flex; justify-content:space-between;">
+                                <span><i class="far fa-calendar-alt"></i> Exp: ${expiryDate} @ ${expiryTime}</span>
+                                <span>Limit: ${linkedCount}/${maxDev} Dev</span>
+                            </div>
+                            <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">
+                                Remarks: ${remarks !== "" ? remarks : "No remarks"}
+                            </div>
+                        </div>
+
+                        <div>
+                            <span style="font-size:0.75rem; font-weight:800; color:var(--primary); text-transform:uppercase;">Connected Device Details</span>
+                            ${devicesDetailHTML}
+                        </div>
+
+                        <button class="btn-remove" style="margin-top:15px; width:100%;" onclick="promptAction('${keyId}', 'revoke')">
+                            <i class="fas fa-trash-alt"></i> REVOKE ACCESS
+                        </button>
+                    </div>
                 </div>
-            </div>
-        `;
-    });
+            `;
+        });
+    }
+
+    // ২. Crash List রেন্ডারিং অংশ (যা কার্ড আকারে যুক্ত করা হয়েছে)
+    if (security.crash_list) {
+        Object.entries(security.crash_list).forEach(([id, val]) => {
+            if (val === true) {
+                count++;
+                htmlStr += `
+                <div class="glass card device-card" data-search="${id.toLowerCase()} crash" style="border-left-color: var(--danger); background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(0,0,0,0.4));">
+                    <div class="card-header">
+                        <code style="font-size:0.85rem; font-weight:800; color:#fff; font-family:var(--font-code); letter-spacing: 0.5px;">${id}</code>
+                        <span class="badge b-blk"><i class="fas fa-skull"></i> CRASHED</span>
+                    </div>
+                    <div style="margin-top:8px; font-size:0.8rem; color:var(--text-dim);">
+                        <div><i class="fas fa-radiation" style="width:20px; color:var(--danger)"></i> Trapped in crash loop.</div>
+                    </div>
+                    <button class="btn-remove btn-restore" style="margin-top:12px; width:100%; background:var(--success);" onclick="promptAction('${id}', 'uncrash')">
+                        <i class="fas fa-undo"></i> RESTORE ACCESS
+                    </button>
+                </div>`;
+            }
+        });
+    }
 
     list.innerHTML = htmlStr;
     document.getElementById('key-count').innerText = count + " Keys";
 }
+
+               
+                
       
       
       function filterDevices() {

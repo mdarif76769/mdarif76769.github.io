@@ -38,7 +38,6 @@
 
         label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; margin-left: 5px; text-transform: uppercase; letter-spacing: 0.5px;}
         
-        /* STANDARD INPUTS */
         .input-group { position: relative; margin-bottom: 12px; z-index: 1; }
         .input-group i.main-icon { position: absolute; left: 15px; top: 16px; color: rgba(255,255,255,0.3); font-size: 1rem; transition: 0.3s; }
         .input-group input { width: 100%; padding: 14px 14px 14px 45px; border-radius: var(--btn-radius); background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-family: var(--font-ui); outline: none; transition: 0.3s; }
@@ -87,14 +86,8 @@
         .nav-item.active { color: var(--primary); transform: translateY(-5px); }
         .nav-item i { font-size: 1.3rem; display: block; margin-bottom: 5px; }
 
-        .stats-container { display: flex; gap: 10px; margin-bottom: 20px; }
-        .stat-box { flex: 1; padding: 15px; text-align: center; border-radius: 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); }
-        .stat-box .num { font-size: 1.6rem; font-weight: 800; }
-        .stat-box .label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin-top: 5px; }
-
         .card { padding: 18px; margin-bottom: 15px; border-left: 4px solid var(--primary); background: rgba(20, 15, 30, 0.6); display: flex; flex-direction: column; gap: 8px; border-radius: 14px; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
         .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-bottom: 5px; cursor: pointer; }
-        .card-info { font-size: 0.85rem; color: var(--text-dim); display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
         .badge { padding: 5px 10px; border-radius: 8px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
         .b-act { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);}
         .b-blk { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);}
@@ -106,7 +99,6 @@
         .btn-remove { width: 100%; background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)); border: 1px solid rgba(239, 68, 68, 0.4); color: #ff8a8a; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 0.75rem; font-weight: 800; display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.1); }
         .btn-remove:active { background: rgba(239, 68, 68, 0.4); transform: scale(0.97); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); color: #fff; }
         .btn-restore { background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; }
-        .btn-restore:active { background: rgba(16, 185, 129, 0.4); box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
 
         #toast { position: fixed; top: max(20px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); background: var(--primary); padding: 12px 25px; border-radius: 30px; font-weight: 800; display: none; z-index: 3000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-size: 0.9rem;}
         .live-pulse { animation: pulse 1.5s infinite; vertical-align: middle; margin-left: 8px; color: var(--danger); font-size: 0.6rem; }
@@ -146,23 +138,19 @@
         <i class="fas fa-shield-alt" style="font-size: 4.5rem; color: var(--primary); filter: drop-shadow(0 0 20px var(--primary-glow));"></i>
         <h1 style="font-size: 2.8rem; font-weight: 800; margin-top: 15px;">RS5 SECOND <span style="color: var(--primary)">Admin</span></h1>
         <div class="glass login-box">
-            
             <div class="input-group" style="margin-bottom: 12px;">
                 <input type="text" id="db-url" placeholder="Firebase DB URL (https://...)">
                 <i class="fas fa-link main-icon"></i>
             </div>
-            
             <div class="input-group" style="margin-bottom: 20px;">
                 <input type="password" id="db-secret" placeholder="Database Secret Key">
                 <i class="fas fa-key main-icon"></i>
             </div>
-            
             <button class="btn-p" onclick="login()"><i class="fas fa-sign-in-alt"></i> Authenticate Server</button>
         </div>
     </div>
 
     <div id="main-app" style="display: none;">
-        
         <div id="v-ui" class="view">
             <h2 style="margin-bottom: 20px;">RS5 SECOND <span style="color:var(--primary)">Protocol</span></h2>
             
@@ -365,6 +353,10 @@
         </div>
     </div>
 
+    <!-- Firebase SDK (Compat Version for Realtime Database integration) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <script>
         let DB_BASE = ""; 
         let AUTH = "";
@@ -466,6 +458,15 @@
             
             DB_BASE = rawUrl + "/dp_dialog_controller";
 
+            // Initialize Firebase App Dynamically for real-time updates & pushes
+            if (!firebase.apps.length) {
+                try {
+                    firebase.initializeApp({
+                        databaseURL: rawUrl
+                    });
+                } catch (err) {}
+            }
+
             try {
                 const res = await fetch(`${DB_BASE}.json?auth=${AUTH}`);
                 if(res.ok) {
@@ -528,209 +529,247 @@
             if(el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
         };
 
+        function renderKeys(security) {
+            const activeElement = document.activeElement;
+            if (activeElement && (activeElement.id.startsWith('phone1-') || activeElement.id.startsWith('phone2-'))) {
+                return; 
+            }
 
-
-
-      
-
-            function renderKeys(security) {
-    const list = document.getElementById('key-list');
-    let htmlStr = "";
-    let count = 0;
-    
-    if (!security) {
-        document.getElementById('key-count').innerText = "0 Keys";
-        list.innerHTML = htmlStr;
-        return;
-    }
-
-    // ১. Authorized HWIDs রেন্ডারিং অংশ
-    if (security.authorized_hwids) {
-        Object.entries(security.authorized_hwids).reverse().forEach(([keyId, keyVal]) => {
-            if (typeof keyVal !== 'object' || keyVal === null) return;
+            const list = document.getElementById('key-list');
+            let htmlStr = "";
+            let count = 0;
             
-            count++;
-
-            const expiryDate = keyVal.expiry_date || 'N/A';
-            const expiryTime = keyVal.expiry_time || '';
-            const status = keyVal.status || 'active';
-            const remarks = keyVal.remarks || 'No remarks';
-            const maxDev = keyVal.max_devices || 1;
-
-            let isExp = false;
-            if (expiryDate !== 'N/A') {
-                const checkTime = expiryTime ? expiryTime : "23:59";
-                isExp = new Date(`${expiryDate}T${checkTime}`) < new Date();
+            if (!security) {
+                document.getElementById('key-count').innerText = "0 Keys";
+                list.innerHTML = htmlStr;
+                return;
             }
 
-            const badgeClass = isExp ? 'b-exp' : (status === 'active' ? 'b-act' : 'b-blk');
-            const displayStatus = isExp ? 'EXPIRED' : status.toUpperCase();
-
-            const linked = keyVal.linked_devices || {};
-            const linkedEntries = Object.entries(linked);
-            const linkedCount = linkedEntries.length;
-
-            let primaryModel = "No Device Connected";
-            let primaryHWID = "N/A";
-
-            if (linkedCount > 0) {
-                const [firstHwid, firstDevInfo] = linkedEntries[0];
-                primaryHWID = firstHwid;
-                primaryModel = firstDevInfo.model || firstDevInfo.brand || "Unknown Model";
-            }
-
-            const curDet = document.getElementById(`det-${keyId}`);
-            const isOpen = curDet && curDet.style.display === 'block';
-
-            let devicesDetailHTML = "";
-            if (linkedCount === 0) {
-                devicesDetailHTML = `<div style="color:var(--text-dim); font-size:0.8rem; padding:10px 0; text-align:center;">No devices linked with this key yet.</div>`;
-            } else {
-                linkedEntries.forEach(([hwid, devInfo]) => {
-                    const battery = devInfo.battery_level !== undefined ? `${devInfo.battery_level}%` : 'N/A';
-                    const locationZone = devInfo.zone || devInfo.city || devInfo.country || 'Unknown Zone';
+            if (security.authorized_hwids) {
+                Object.entries(security.authorized_hwids).reverse().forEach(([keyId, keyVal]) => {
+                    if (typeof keyVal !== 'object' || keyVal === null) return;
                     
-                    let lastActiveStr = 'N/A';
-                    if (devInfo.last_active) {
-                        const dateObj = new Date(devInfo.last_active);
-                        lastActiveStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    count++;
+
+                    const expiryDate = keyVal.expiry_date || 'N/A';
+                    const expiryTime = keyVal.expiry_time || '';
+                    const status = keyVal.status || 'active';
+                    const remarks = keyVal.remarks || 'No remarks';
+                    const maxDev = keyVal.max_devices || 1;
+
+                    let isExp = false;
+                    if (expiryDate !== 'N/A') {
+                        const checkTime = expiryTime ? expiryTime : "23:59";
+                        isExp = new Date(`${expiryDate}T${checkTime}`) < new Date();
                     }
 
-                    devicesDetailHTML += `
-                    <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.08);">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="color:#fff; font-weight:700; font-size:0.85rem;">
-                                <i class="fas fa-mobile-alt" style="color:var(--primary); margin-right:6px;"></i> ${devInfo.model || 'Unknown Device'}
+                    const badgeClass = isExp ? 'b-exp' : (status === 'active' ? 'b-act' : 'b-blk');
+                    const displayStatus = isExp ? 'EXPIRED' : status.toUpperCase();
+
+                    const linked = keyVal.linked_devices || {};
+                    const linkedEntries = Object.entries(linked);
+                    const linkedCount = linkedEntries.length;
+
+                    let primaryModel = "No Device Connected";
+                    let primaryHWID = "N/A";
+
+                    if (linkedCount > 0) {
+                        const [firstHwid, firstDevInfo] = linkedEntries[0];
+                        primaryHWID = firstHwid;
+                        primaryModel = firstDevInfo.model || firstDevInfo.brand || "Unknown Model";
+                    }
+
+                    const curDet = document.getElementById(`det-${keyId}`);
+                    const isOpen = curDet && curDet.style.display === 'block';
+
+                    let devicesDetailHTML = "";
+                    if (linkedCount === 0) {
+                        devicesDetailHTML = `<div style="color:var(--text-dim); font-size:0.8rem; padding:10px 0; text-align:center;">No devices linked with this key yet.</div>`;
+                    } else {
+                        linkedEntries.forEach(([hwid, devInfo]) => {
+                            const battery = devInfo.battery_level !== undefined ? `${devInfo.battery_level}%` : 'N/A';
+                            const locationZone = devInfo.zone || devInfo.city || devInfo.country || 'Unknown Zone';
+                            
+                            const phone1 = devInfo.phone_number_1 && devInfo.phone_number_1 !== 'Not Set' ? devInfo.phone_number_1 : '';
+                            const phone2 = devInfo.phone_number_2 && devInfo.phone_number_2 !== 'Not Set' ? devInfo.phone_number_2 : '';
+                            
+                            let lastActiveStr = 'N/A';
+                            if (devInfo.last_active) {
+                                const dateObj = new Date(devInfo.last_active);
+                                lastActiveStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            }
+
+                            const p1InputId = `phone1-${keyId}-${hwid}`;
+                            const p2InputId = `phone2-${keyId}-${hwid}`;
+                            
+                            const existingP1Elem = document.getElementById(p1InputId);
+                            const existingP2Elem = document.getElementById(p2InputId);
+                            
+                            const valP1 = existingP1Elem ? existingP1Elem.value : phone1;
+                            const valP2 = existingP2Elem ? existingP2Elem.value : phone2;
+
+                            devicesDetailHTML += `
+                            <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.08);">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div style="color:#fff; font-weight:700; font-size:0.85rem;">
+                                        <i class="fas fa-mobile-alt" style="color:var(--primary); margin-right:6px;"></i> ${devInfo.model || 'Unknown Device'}
+                                    </div>
+                                    <button class="btn-copy" onclick="copyText(event, '${hwid}', 'HWID')"><i class="fas fa-copy"></i> Copy HWID</button>
+                                </div>
+                                <div style="color:var(--text-dim); font-size:0.75rem; font-family:var(--font-code); margin-top:4px;">
+                                    HWID: ${hwid.substring(0, 16)}...
+                                </div>
+                                
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:10px; font-size:0.75rem; color:var(--text-dim); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px;">
+                                    <div><i class="fas fa-battery-three-quarters" style="color:#10b981; margin-right:4px;"></i> <b>Battery:</b> ${battery}</div>
+                                    <div><i class="fas fa-wifi" style="color:#3b82f6; margin-right:4px;"></i> <b>Network:</b> ${devInfo.network_type || 'N/A'}</div>
+                                    
+                                    <div><i class="fas fa-map-marker-alt" style="color:#ef4444; margin-right:4px;"></i> <b>Zone:</b> ${locationZone}</div>
+                                    <div><i class="fas fa-network-wired" style="color:#8b5cf6; margin-right:4px;"></i> <b>IP:</b> ${devInfo.ip_address || 'N/A'}</div>
+                                    
+                                    <div><i class="fas fa-clock" style="color:#f59e0b; margin-right:4px;"></i> <b>TimeZone:</b> ${devInfo.time_zone || 'N/A'}</div>
+                                    <div><i class="fas fa-globe" style="color:#ec4899; margin-right:4px;"></i> <b>Country:</b> ${devInfo.country || 'N/A'}</div>
+
+                                    <div><b>Brand/Board:</b> ${devInfo.brand || 'N/A'} / ${devInfo.device_board || 'N/A'}</div>
+                                    <div><b>Android:</b> v${devInfo.android_version || 'N/A'} (SDK ${devInfo.sdk_level || 'N/A'})</div>
+
+                                    <div><b>Memory:</b> RAM: ${devInfo.ram_size || 'N/A'} | ROM: ${devInfo.rom_size || 'N/A'}</div>
+                                    <div><i class="fas fa-user-clock" style="color:#10b981; margin-right:4px;"></i> <b>Active:</b> ${lastActiveStr}</div>
+
+                                    <div style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px; margin-top: 4px; display:flex; justify-content:space-between;">
+                                        <span><i class="fas fa-phone" style="color:#10b981; margin-right:4px;"></i> <b>Phone 1:</b> <span style="color:#fff;">${phone1 || 'Not Set'}</span></span>
+                                        <span><i class="fas fa-phone-alt" style="color:#3b82f6; margin-right:4px;"></i> <b>Phone 2:</b> <span style="color:#fff;">${phone2 || 'Not Set'}</span></span>
+                                    </div>
+                                </div>
+
+                                <div style="margin-top: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1);">
+                                    <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700; margin-bottom: 6px;"><i class="fas fa-edit"></i> Manual Push Phone Numbers:</div>
+                                    <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                                        <input type="text" id="${p1InputId}" value="${valP1}" placeholder="Enter Phone 1" style="flex:1; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); color:#fff; font-size:0.75rem; padding:4px 8px; border-radius:4px;">
+                                        <input type="text" id="${p2InputId}" value="${valP2}" placeholder="Enter Phone 2" style="flex:1; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); color:#fff; font-size:0.75rem; padding:4px 8px; border-radius:4px;">
+                                    </div>
+                                    <button class="btn-copy" style="width:100%; justify-content:center; background:var(--primary); color:#000; font-weight:700;" onclick="updatePhoneNumbers('${keyId}', '${hwid}')">
+                                        <i class="fas fa-cloud-upload-alt"></i> Push to Firebase
+                                    </button>
+                                </div>
+                            </div>`;
+                        });
+                    }
+
+                    const searchTags = `${keyId.toLowerCase()} ${remarks.toLowerCase()} ${primaryModel.toLowerCase()}`;
+
+                    htmlStr += `
+                        <div class="glass card device-card" data-search="${searchTags}">
+                            <div class="card-header" style="cursor:pointer;" onclick="toggleDet('${keyId}')">
+                                <div>
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <i class="fas fa-mobile-alt" style="color:#fff; font-size:0.9rem;"></i>
+                                        <span style="font-size:0.9rem; font-weight:700; color:#fff;">${primaryModel}</span>
+                                    </div>
+                                    <div style="font-size:0.75rem; color:var(--text-dim); font-family:var(--font-code); margin-top:5px;">
+                                        HWID: ${primaryHWID !== 'N/A' ? primaryHWID.substring(0, 16) + '...' : 'N/A'}
+                                    </div>
+                                </div>
+                                <span class="badge ${badgeClass}">${displayStatus}</span>
                             </div>
-                            <button class="btn-copy" onclick="copyText(event, '${hwid}', 'HWID')"><i class="fas fa-copy"></i> Copy HWID</button>
-                        </div>
-                        <div style="color:var(--text-dim); font-size:0.75rem; font-family:var(--font-code); margin-top:4px;">
-                            HWID: ${hwid.substring(0, 16)}...
-                        </div>
-                        
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:10px; font-size:0.75rem; color:var(--text-dim); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px;">
-                            <div><i class="fas fa-battery-three-quarters" style="color:#10b981; margin-right:4px;"></i> <b>Battery:</b> ${battery}</div>
-                            <div><i class="fas fa-wifi" style="color:#3b82f6; margin-right:4px;"></i> <b>Network:</b> ${devInfo.network_type || 'N/A'}</div>
                             
-                            <div><i class="fas fa-map-marker-alt" style="color:#ef4444; margin-right:4px;"></i> <b>Zone:</b> ${locationZone}</div>
-                            <div><i class="fas fa-network-wired" style="color:#8b5cf6; margin-right:4px;"></i> <b>IP:</b> ${devInfo.ip_address || 'N/A'}</div>
-                            
-                            <div><i class="fas fa-clock" style="color:#f59e0b; margin-right:4px;"></i> <b>TimeZone:</b> ${devInfo.time_zone || 'N/A'}</div>
-                            <div><i class="fas fa-globe" style="color:#ec4899; margin-right:4px;"></i> <b>Country:</b> ${devInfo.country || 'N/A'}</div>
+                            <div id="det-${keyId}" style="display:${isOpen ? 'block' : 'none'}; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px; margin-top:10px;">
+                                <div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; margin-bottom:12px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <div>
+                                            <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase;">License Key</div>
+                                            <code style="font-size:0.9rem; font-weight:800; color:var(--primary); font-family:var(--font-code);">${keyId}</code>
+                                        </div>
+                                        <button class="btn-copy" onclick="copyText(event, '${keyId}', 'Key')"><i class="fas fa-key"></i> COPY KEY</button>
+                                    </div>
+                                    <div style="font-size:0.75rem; color:var(--text-dim); margin-top:8px; display:flex; justify-content:space-between;">
+                                        <span><i class="far fa-calendar-alt"></i> Exp: ${expiryDate} @ ${expiryTime}</span>
+                                        <span>Limit: ${linkedCount}/${maxDev} Dev</span>
+                                    </div>
+                                    <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">
+                                        Remarks: ${remarks !== "" ? remarks : "No remarks"}
+                                    </div>
+                                </div>
 
-                            <div><b>Brand/Board:</b> ${devInfo.brand || 'N/A'} / ${devInfo.device_board || 'N/A'}</div>
-                            <div><b>Android:</b> v${devInfo.android_version || 'N/A'} (SDK ${devInfo.sdk_level || 'N/A'})</div>
+                                <div>
+                                    <span style="font-size:0.75rem; font-weight:800; color:var(--primary); text-transform:uppercase;">Connected Device Details</span>
+                                    ${devicesDetailHTML}
+                                </div>
 
-                            <div><b>Memory:</b> RAM: ${devInfo.ram_size || 'N/A'} | ROM: ${devInfo.rom_size || 'N/A'}</div>
-                            <div><i class="fas fa-user-clock" style="color:#10b981; margin-right:4px;"></i> <b>Active:</b> ${lastActiveStr}</div>
+                                <button class="btn-remove" style="margin-top:15px; width:100%;" onclick="promptAction('${keyId}', 'revoke')">
+                                    <i class="fas fa-trash-alt"></i> REVOKE ACCESS
+                                </button>
+                            </div>
                         </div>
-                    </div>`;
+                    `;
                 });
             }
 
-            const searchTags = `${keyId.toLowerCase()} ${remarks.toLowerCase()} ${primaryModel.toLowerCase()}`;
-
-            htmlStr += `
-                <div class="glass card device-card" data-search="${searchTags}">
-                    <div class="card-header" style="cursor:pointer;" onclick="toggleDet('${keyId}')">
-                        <div>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <i class="fas fa-mobile-alt" style="color:#fff; font-size:0.9rem;"></i>
-                                <span style="font-size:0.9rem; font-weight:700; color:#fff;">${primaryModel}</span>
-                            </div>
-                            <div style="font-size:0.75rem; color:var(--text-dim); font-family:var(--font-code); margin-top:5px;">
-                                HWID: ${primaryHWID !== 'N/A' ? primaryHWID.substring(0, 16) + '...' : 'N/A'}
-                            </div>
-                        </div>
-                        <span class="badge ${badgeClass}">${displayStatus}</span>
-                    </div>
-                    
-                    <div id="det-${keyId}" style="display:${isOpen ? 'block' : 'none'}; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px; margin-top:10px;">
+            if (security.crash_list) {
+                Object.entries(security.crash_list).forEach(([id, val]) => {
+                    if (val === true || (typeof val === 'object' && val !== null)) {
+                        count++;
                         
-                        <div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; margin-bottom:12px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <div>
-                                    <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase;">License Key</div>
-                                    <code style="font-size:0.9rem; font-weight:800; color:var(--primary); font-family:var(--font-code);">${keyId}</code>
-                                </div>
-                                <button class="btn-copy" onclick="copyText(event, '${keyId}', 'Key')"><i class="fas fa-key"></i> COPY KEY</button>
-                            </div>
-                            <div style="font-size:0.75rem; color:var(--text-dim); margin-top:8px; display:flex; justify-content:space-between;">
-                                <span><i class="far fa-calendar-alt"></i> Exp: ${expiryDate} @ ${expiryTime}</span>
-                                <span>Limit: ${linkedCount}/${maxDev} Dev</span>
-                            </div>
-                            <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">
-                                Remarks: ${remarks !== "" ? remarks : "No remarks"}
-                            </div>
-                        </div>
-
-                        <div>
-                            <span style="font-size:0.75rem; font-weight:800; color:var(--primary); text-transform:uppercase;">Connected Device Details</span>
-                            ${devicesDetailHTML}
-                        </div>
-
-                        <button class="btn-remove" style="margin-top:15px; width:100%;" onclick="promptAction('${keyId}', 'revoke')">
-                            <i class="fas fa-trash-alt"></i> REVOKE ACCESS
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-    }
-
-       // ২. Crash List রেন্ডারিং অংশ (ডিভাইস মডেলসহ আপডেট করা)
-    if (security.crash_list) {
-        Object.entries(security.crash_list).forEach(([id, val]) => {
-            if (val === true || (typeof val === 'object' && val !== null)) {
-                count++;
-                
-                // ক্র্যাশ হওয়া HWID-টির আসল ডিভাইস মডেল খোঁজা
-                let crashedModel = "Unknown Device";
-                if (security.authorized_hwids) {
-                    Object.values(security.authorized_hwids).forEach(keyVal => {
-                        if (keyVal.linked_devices && keyVal.linked_devices[id]) {
-                            crashedModel = keyVal.linked_devices[id].model || keyVal.linked_devices[id].brand || "Unknown Model";
+                        let crashedModel = "Unknown Device";
+                        if (security.authorized_hwids) {
+                            Object.values(security.authorized_hwids).forEach(keyVal => {
+                                if (keyVal.linked_devices && keyVal.linked_devices[id]) {
+                                    crashedModel = keyVal.linked_devices[id].model || keyVal.linked_devices[id].brand || "Unknown Model";
+                                }
+                            });
                         }
-                    });
-                }
 
-                htmlStr += `
-                <div class="glass card device-card" data-search="${id.toLowerCase()} crash ${crashedModel.toLowerCase()}" style="border-left-color: var(--danger); background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(0,0,0,0.5));">
-                    <div class="card-header">
-                        <div>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <i class="fas fa-mobile-alt" style="color:#ff6b6b; font-size:0.9rem;"></i>
-                                <span style="font-size:0.9rem; font-weight:700; color:#fff;">${crashedModel}</span>
+                        htmlStr += `
+                        <div class="glass card device-card" data-search="${id.toLowerCase()} crash ${crashedModel.toLowerCase()}" style="border-left-color: var(--danger); background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(0,0,0,0.5));">
+                            <div class="card-header">
+                                <div>
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <i class="fas fa-mobile-alt" style="color:#ff6b6b; font-size:0.9rem;"></i>
+                                        <span style="font-size:0.9rem; font-weight:700; color:#fff;">${crashedModel}</span>
+                                    </div>
+                                    <div style="font-size:0.75rem; color:var(--text-dim); font-family:var(--font-code); margin-top:5px;">
+                                        HWID: ${id.substring(0, 16)}...
+                                    </div>
+                                </div>
+                                <span class="badge b-blk" style="background:rgba(239,68,68,0.25); color:#ff6b6b; border:1px solid rgba(239,68,68,0.4);"><i class="fas fa-skull"></i> CRASHED</span>
                             </div>
-                            <div style="font-size:0.75rem; color:var(--text-dim); font-family:var(--font-code); margin-top:5px;">
-                                HWID: ${id.substring(0, 16)}...
+                            <div style="margin-top:8px; font-size:0.8rem; color:#cbd5e1;">
+                                <div><i class="fas fa-radiation" style="width:20px; color:#ef4444"></i> Trapped in crash loop.</div>
                             </div>
-                        </div>
-                        <span class="badge b-blk" style="background:rgba(239,68,68,0.25); color:#ff6b6b; border:1px solid rgba(239,68,68,0.4);"><i class="fas fa-skull"></i> CRASHED</span>
-                    </div>
-                    <div style="margin-top:8px; font-size:0.8rem; color:#cbd5e1;">
-                        <div><i class="fas fa-radiation" style="width:20px; color:#ef4444"></i> Trapped in crash loop.</div>
-                    </div>
-                    <button class="btn-remove btn-restore" style="margin-top:14px; width:100%; background: linear-gradient(135deg, #10b981, #059669); color:#ffffff; font-weight:800; font-size:0.85rem; letter-spacing:0.8px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); border: 1px solid rgba(255,255,255,0.2); padding: 12px; border-radius: 8px; cursor: pointer;" onclick="promptAction('${id}', 'uncrash')">
-                        <i class="fas fa-undo" style="margin-right: 6px;"></i> RESTORE ACCESS
-                    </button>
-                </div>`;
+                            <button class="btn-remove btn-restore" style="margin-top:14px; width:100%; background: linear-gradient(135deg, #10b981, #059669); color:#ffffff; font-weight:800; font-size:0.85rem; letter-spacing:0.8px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); border: 1px solid rgba(255,255,255,0.2); padding: 12px; border-radius: 8px; cursor: pointer;" onclick="promptAction('${id}', 'uncrash')">
+                                <i class="fas fa-undo" style="margin-right: 6px;"></i> RESTORE ACCESS
+                            </button>
+                        </div>`;
+                    }
+                });
             }
-        });
-    }
-              
-    list.innerHTML = htmlStr;
-    document.getElementById('key-count').innerText = count + " Keys";
-}
+                      
+            list.innerHTML = htmlStr;
+            document.getElementById('key-count').innerText = count + " Keys";
+        }
 
-
-
+        function updatePhoneNumbers(keyId, hwid) {
+            const p1Input = document.getElementById(`phone1-${keyId}-${hwid}`);
+            const p2Input = document.getElementById(`phone2-${keyId}-${hwid}`);
             
-               
-                    
-      
-      
-      function filterDevices() {
+            const p1 = p1Input ? p1Input.value.trim() : "";
+            const p2 = p2Input ? p2Input.value.trim() : "";
+
+            const updateData = {
+                phone_number_1: p1 !== "" ? p1 : "Not Set",
+                phone_number_2: p2 !== "" ? p2 : "Not Set"
+            };
+
+            firebase.database().ref(`dp_dialog_controller/security/authorized_hwids/${keyId}/linked_devices/${hwid}`).update(updateData, (error) => {
+                if (error) {
+                    showToast("Failed to update numbers!");
+                } else {
+                    showToast("Phone numbers pushed successfully!");
+                }
+            });
+        }
+
+        function filterDevices() {
             const searchBox = document.getElementById('search-box');
             if(!searchBox) return;
             const query = searchBox.value.toLowerCase();

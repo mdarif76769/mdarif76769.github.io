@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     checkLimit();
 
-    // Add Target Button Event
+    // Add Target API Hit Handler
     addBtn.addEventListener('click', async () => {
         if (isProcessing) return;
         if (remainingCount <= 0) {
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isProcessing = false;
     });
 
-    // Remove Target Button Event
+    // Remove Target API Hit Handler
     removeBtn.addEventListener('click', async () => {
         if (isProcessing) return;
         const uid = validateUID(uidInput.value);
@@ -153,10 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
         isProcessing = false;
     });
 
-    // Complete Ad Task Button (UI সচল রাখা হয়েছে, ক্লিক করলে জাস্ট একটি নোটিফিকেশন দেখাবে যাতে ক্র্যাশ না করে)
+    // Ad Task বাটনটি এখন সেফ মোডে রাখা হয়েছে (কোনো রিডায়রেক্ট বা টাস্ক ক্র্যাশ ছাড়াই স্মুথ মেসেজ দেখাবে)
     if (adTaskBtn) {
         adTaskBtn.addEventListener('click', () => {
-            showToast('Ad task feature is currently disabled.', 'success');
+            showToast('Ad task is currently bypassed. Use your daily limits directly!', 'success');
         });
     }
 

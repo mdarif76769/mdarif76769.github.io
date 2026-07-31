@@ -11,10 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const MASTER_PASSWORD = 'Team_X_Corp_bolbona_Master_password_ki_hehe';
     const API_BASE = window.location.origin;
+    const FIREBASE_URL = 'https://my-custom-app-fa3d2-default-rtdb.firebaseio.com/Free_limit.json';
 
     let toastTimer = null;
     let isProcessing = false;
-    let remainingCount = 10000; // লিমিট ১০,০০০ সেট করা হয়েছে
+    let currentRemaining = 1;
+    let totalLimit = 10000;
 
     function showToast(msg, type) {
         toastMsg.textContent = msg;
@@ -59,14 +61,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // নতুন GitHub Raw লিংক থেকে লিমিট ডেটা ফেচ করার জন্য ফাংশন
-    async function fetchExternalLimit() {
+    // ফায়ারবেস থেকে লিমিট ফেচ করা
+    async function fetchFirebaseLimit() {
         try {
-            const response = await fetch('https://raw.githubusercontent.com/mdarif76769/mdarif76769.github.io/refs/heads/main/FFBOT/Free_limit.js');
+            const response = await fetch(FIREBASE_URL);
             const data = await response.json();
             return data;
         } catch (err) {
             return null;
+        }
+    }
+
+    // ফায়ারবেসে নতুন কাউন্ট আপডেট (PUT রিকোয়েস্ট) করার ফাংশন
+    async function updateFirebaseLimit(newRemaining, limitMax) {
+        try {
+            await fetch(FIREBASE_URL, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    limit: limitMax,
+                    remaining: newRemaining,
+                    success: true
+                })
+            });
+        } catch (err) {
+            console.error('Firebase update failed:', err);
         }
     }
 
@@ -84,23 +105,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function checkLimit() {
-        // প্রথমে এক্সটার্নাল লিংক থেকে ডাটা নেওয়ার চেষ্টা করবে, না পেলে ডিফল্ট ১০,০০০ সেট থাকবে
-        const extData = await fetchExternalLimit();
-        if (extData && extData.remaining !== undefined) {
-            remainingCount = extData.remaining;
+        const extData = await fetchFirebaseLimit();
+        if (extData) {
+            currentRemaining = extData.remaining !== undefined ? extData.remaining : 1;
+            totalLimit = extData.limit !== undefined ? extData.limit : 10000;
         } else {
-            remainingCount = 10000;
+            currentRemaining = 1;
+            totalLimit = 10000;
         }
 
-        if (limitDisplay) limitDisplay.textContent = remainingCount;
-        if (limitTotalDisplay) limitTotalDisplay.textContent = extData && extData.limit ? extData.limit : 10000;
+        if (limitDisplay) limitDisplay.textContent = currentRemaining;
+        if (limitTotalDisplay) limitTotalDisplay.textContent = totalLimit;
         updateLimitUI();
     }
 
     function updateLimitUI() {
         const limitInfo = document.querySelector('.limit-info');
         if (!limitInfo) return;
-        limitInfo.classList.remove('limit-exceeded');
+        if (currentRemaining >= totalLimit) {
+            addBtn.disabled = true;
+            addBtn.querySelector('.btn-text').textContent = 'Daily Limit Reached';
+            limitInfo.classList.add('limit-exceeded');
+        } else {
+            limitInfo.classList.remove('limit-exceeded');
+            addBtn.disabled = false;
+            addBtn.querySelector('.btn-text').textContent = 'Add Target';
+        }
     }
 
     checkLimit();
@@ -108,12 +138,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // URL parameters check
     const urlParams = new URLSearchParams(window.location.search);
     const claimStatus = urlParams.get('claim');
-    const claimMsg = urlParams.get('msg');
     if (claimStatus) {
         if (claimStatus === 'success') {
-            showToast("Bonus Claimed! 10000 Extra adds added to your limit.", "success");
-        } else if (claimStatus === 'error') {
-            showToast("Ad Task completed successfully via bypass!", "success");
+            showToast("Bonus Claimed successfully!", "success");
         }
         window.history.replaceState({}, document.title, window.location.pathname);
         checkLimit();
@@ -121,6 +148,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addBtn.addEventListener('click', async () => {
         if (isProcessing) return;
+        if (currentRemaining >= totalLimit) {
+            showToast('Limit reached! Cannot add more targets.', 'error');
+            return;
+        }
         const uid = validateUID(uidInput.value);
         if (!uid) return;
 
@@ -134,6 +165,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (result.success) {
             uidInput.value = '';
             showToast(`Target ${uid} added successfully`, 'success');
+            
+            // সফলভাবে টার্গেট অ্যাড হওয়ার পর ফায়ারবেসের 'remaining' মান ১ বাড়িয়ে সেভ করবে (যেমন: ১ থেকে ২, ৩ এভাবে বাড়বে)
+            currentRemaining += 1;
+            await updateFirebaseLimit(currentRemaining, totalLimit);
+            
             checkLimit();
         } else {
             showToast(result.error || 'Failed to add target', 'error');
@@ -170,17 +206,17 @@ document.addEventListener('DOMContentLoaded', () => {
         isProcessing = false;
     });
 
-    // টাস্ক বাটন ক্লিক করলে অটো-কমপ্লিট হয়ে যাবে এবং কোনো রিডায়রেক্ট ছাড়াই কাজ করবে
+    // টাস্ক বাটন ক্লিক হ্যান্ডলার
     adTaskBtn.addEventListener('click', async () => {
         if (isProcessing) return;
         isProcessing = true;
         adTaskBtn.disabled = true;
-        adTaskBtn.querySelector('.btn-text').textContent = 'Completing Task...';
+        adTaskBtn.querySelector('.btn-text').textContent = 'Processing...';
 
         const deviceId = getDeviceId();
         await apiCall(`/api/free/gen_task?device_id=${deviceId}`);
 
-        showToast('Ad task completed automatically!', 'success');
+        showToast('Ad task completed successfully!', 'success');
         checkLimit();
 
         adTaskBtn.disabled = false;

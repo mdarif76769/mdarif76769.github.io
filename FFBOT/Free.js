@@ -11,7 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const MASTER_PASSWORD = 'Team_X_Corp_bolbona_Master_password_ki_hehe';
     const API_BASE = window.location.origin;
-    const FIREBASE_URL = 'https://my-custom-app-fa3d2-default-rtdb.firebaseio.com/Free_limit.json';
+
+    // ফায়ারবেসের মেইন বেস ইউআরএল এবং নির্দিষ্ট পাথ আলাদা করা হলো
+    const FIREBASE_DATABASE_URL = 'https://my-custom-app-fa3d2-default-rtdb.firebaseio.com';
+    const FIREBASE_PATH = '/Free_limit.json';
 
     let toastTimer = null;
     let isProcessing = false;
@@ -61,21 +64,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ফায়ারবেস থেকে লিমিট ফেচ করা
+    // ফায়ারবেस থেকে রিড (GET) করার লজিক
     async function fetchFirebaseLimit() {
         try {
-            const response = await fetch(FIREBASE_URL);
+            const response = await fetch(`${FIREBASE_DATABASE_URL}${FIREBASE_PATH}`);
             const data = await response.json();
             return data;
         } catch (err) {
+            console.error('Firebase read failed:', err);
             return null;
         }
     }
 
-    // ফায়ারবেসে নতুন কাউন্ট আপডেট (PUT রিকোয়েস্ট) করার ফাংশন
+    // ফায়ারবেসে রাইট বা আপডেট (PUT) করার লজিক
     async function updateFirebaseLimit(newRemaining, limitMax) {
         try {
-            await fetch(FIREBASE_URL, {
+            await fetch(`${FIREBASE_DATABASE_URL}${FIREBASE_PATH}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -87,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
         } catch (err) {
-            console.error('Firebase update failed:', err);
+            console.error('Firebase write failed:', err);
         }
     }
 
@@ -135,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     checkLimit();
 
-    // URL parameters check
     const urlParams = new URLSearchParams(window.location.search);
     const claimStatus = urlParams.get('claim');
     if (claimStatus) {
@@ -166,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             uidInput.value = '';
             showToast(`Target ${uid} added successfully`, 'success');
             
-            // সফলভাবে টার্গেট অ্যাড হওয়ার পর ফায়ারবেসের 'remaining' মান ১ বাড়িয়ে সেভ করবে (যেমন: ১ থেকে ২, ৩ এভাবে বাড়বে)
+            // সফলভাবে টার্গেট অ্যাড হলে ফায়ারবেসে রিয়েল-টাইমে রিমেইনিং কাউంట్ ১ বাড়িয়ে আপডেট করবে
             currentRemaining += 1;
             await updateFirebaseLimit(currentRemaining, totalLimit);
             
@@ -206,7 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isProcessing = false;
     });
 
-    // টাস্ক বাটন ক্লিক হ্যান্ডলার
     adTaskBtn.addEventListener('click', async () => {
         if (isProcessing) return;
         isProcessing = true;

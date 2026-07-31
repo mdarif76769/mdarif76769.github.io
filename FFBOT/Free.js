@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+Document.addEventListener('DOMContentLoaded', () => {
     const uidInput = document.getElementById('uid-input');
     const addBtn = document.getElementById('add-target-btn');
     const removeBtn = document.getElementById('remove-target-btn');
@@ -10,91 +10,60 @@ document.addEventListener('DOMContentLoaded', () => {
     const limitTotalDisplay = document.getElementById('limit-total');
 
     const MASTER_PASSWORD = 'Team_X_Corp_bolbona_Master_password_ki_hehe';
-    const API_BASE = window.location.origin;
-
-    // ফায়ারবেসের মেইন বেস ইউআরএল এবং নির্দিষ্ট পাথ আলাদা করা হলো
-    const FIREBASE_DATABASE_URL = 'https://my-custom-app-fa3d2-default-rtdb.firebaseio.com';
-    const FIREBASE_PATH = '/Free_limit.json';
+    const MAX_LIMIT = 115; // মোট দৈনিক লিমিট
 
     let toastTimer = null;
     let isProcessing = false;
-    let currentRemaining = 1;
-    let totalLimit = 10000;
 
+    // টোস্ট মেসেজ দেখানোর ফাংশন
     function showToast(msg, type) {
         toastMsg.textContent = msg;
         toast.className = 'toast';
         if (type) toast.classList.add(type);
-        toastIcon.innerHTML = type === 'success'
-            ? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
+        toastIcon.innerHTML = type === 'success' 
+            ? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>' 
             : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => toast.classList.add('hidden'), 3500);
     }
 
-    function getDeviceId() {
-        let deviceId = localStorage.getItem('device_id');
-        if (!deviceId) {
-            deviceId = 'device_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
-            localStorage.setItem('device_id', deviceId);
+    // লোকাল স্টোরেজ থেকে বর্তমান লিমিট চেক করার ফাংশন (সার্ভার ছাড়া)
+    function checkLimit() {
+        let today = new Date().toDateString();
+        let savedDate = localStorage.getItem('limit_date');
+        let remaining = localStorage.getItem('remaining_limit');
+
+        // যদি দিন পরিবর্তন হয় বা প্রথমবার হয়, তবে লিমিট রিসেট হবে
+        if (savedDate !== today || remaining === null) {
+            localStorage.setItem('limit_date', today);
+            localStorage.setItem('remaining_limit', MAX_LIMIT);
+            remaining = MAX_LIMIT;
+        } else {
+            remaining = parseInt(remaining, 10);
         }
-        return deviceId;
+
+        if (limitDisplay) limitDisplay.textContent = remaining;
+        if (limitTotalDisplay) limitTotalDisplay.textContent = MAX_LIMIT;
+        updateLimitUI(remaining);
+        return remaining;
     }
 
-    async function apiCall(endpoint) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
-        try {
-            const response = await fetch(`${API_BASE}${endpoint}`, {
-                method: 'GET',
-                signal: controller.signal,
-                headers: { 
-                    'Accept': 'application/json',
-                    'X-Device-Id': getDeviceId()
-                }
-            });
-            clearTimeout(timeoutId);
-            return await response.json();
-        } catch (err) {
-            clearTimeout(timeoutId);
-            if (err.name === 'AbortError') {
-                return { success: false, error: 'Request timed out. Server may be down.' };
-            }
-            return { success: false, error: 'Network error. Check if server is running.' };
-        }
-    }
-
-    // ফায়ারবেस থেকে রিড (GET) করার লজিক
-    async function fetchFirebaseLimit() {
-        try {
-            const response = await fetch(`${FIREBASE_DATABASE_URL}${FIREBASE_PATH}`);
-            const data = await response.json();
-            return data;
-        } catch (err) {
-            console.error('Firebase read failed:', err);
-            return null;
+    // ইউআই আপডেট ও লিমিট চেক
+    function updateLimitUI(remaining) {
+        const limitInfo = document.querySelector('.limit-info');
+        if (!limitInfo) return;
+        if (remaining <= 0) {
+            addBtn.disabled = true;
+            addBtn.querySelector('.btn-text').textContent = 'Daily Limit Reached';
+            limitInfo.classList.add('limit-exceeded');
+        } else {
+            limitInfo.classList.remove('limit-exceeded');
+            addBtn.disabled = false;
+            addBtn.querySelector('.btn-text').textContent = 'Add Target';
         }
     }
 
-    // ফায়ারবেসে রাইট বা আপডেট (PUT) করার লজিক
-    async function updateFirebaseLimit(newRemaining, limitMax) {
-        try {
-            await fetch(`${FIREBASE_DATABASE_URL}${FIREBASE_PATH}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    limit: limitMax,
-                    remaining: newRemaining,
-                    success: true
-                })
-            });
-        } catch (err) {
-            console.error('Firebase write failed:', err);
-        }
-    }
-
+    // UID ভ্যালিডেশন
     function validateUID(uid) {
         if (!uid || uid.trim() === '') {
             showToast('Please enter a UID', 'error');
@@ -108,53 +77,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return cleaned;
     }
 
-    async function checkLimit() {
-        const extData = await fetchFirebaseLimit();
-        if (extData) {
-            currentRemaining = extData.remaining !== undefined ? extData.remaining : 1;
-            totalLimit = extData.limit !== undefined ? extData.limit : 10000;
-        } else {
-            currentRemaining = 1;
-            totalLimit = 10000;
-        }
-
-        if (limitDisplay) limitDisplay.textContent = currentRemaining;
-        if (limitTotalDisplay) limitTotalDisplay.textContent = totalLimit;
-        updateLimitUI();
-    }
-
-    function updateLimitUI() {
-        const limitInfo = document.querySelector('.limit-info');
-        if (!limitInfo) return;
-        if (currentRemaining >= totalLimit) {
-            addBtn.disabled = true;
-            addBtn.querySelector('.btn-text').textContent = 'Daily Limit Reached';
-            limitInfo.classList.add('limit-exceeded');
-        } else {
-            limitInfo.classList.remove('limit-exceeded');
-            addBtn.disabled = false;
-            addBtn.querySelector('.btn-text').textContent = 'Add Target';
-        }
-    }
-
     checkLimit();
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const claimStatus = urlParams.get('claim');
-    if (claimStatus) {
-        if (claimStatus === 'success') {
-            showToast("Bonus Claimed successfully!", "success");
-        }
-        window.history.replaceState({}, document.title, window.location.pathname);
-        checkLimit();
-    }
-
-    addBtn.addEventListener('click', async () => {
+    // টার্গেট যোগ করার বাটন ইভেন্ট (লোকাল লজিক)
+    addBtn.addEventListener('click', () => {
         if (isProcessing) return;
-        if (currentRemaining >= totalLimit) {
-            showToast('Limit reached! Cannot add more targets.', 'error');
+        let currentRemaining = checkLimit();
+
+        if (currentRemaining <= 0) {
+            showToast('Daily limit reached! Try again tomorrow.', 'error');
             return;
         }
+
         const uid = validateUID(uidInput.value);
         if (!uid) return;
 
@@ -163,28 +97,24 @@ document.addEventListener('DOMContentLoaded', () => {
         removeBtn.disabled = true;
         addBtn.querySelector('.btn-text').textContent = 'Adding...';
 
-        const result = await apiCall(`/add/${uid}/${MASTER_PASSWORD}?source=free`);
+        // লোকাল স্টোরেজে সফলভাবে যোগ করার সিমুলেশন
+        setTimeout(() => {
+            currentRemaining -= 1;
+            localStorage.setItem('remaining_limit', currentRemaining);
 
-        if (result.success) {
             uidInput.value = '';
             showToast(`Target ${uid} added successfully`, 'success');
-            
-            // সফলভাবে টার্গেট অ্যাড হলে ফায়ারবেসে রিয়েল-টাইমে রিমেইনিং কাউంట్ ১ বাড়িয়ে আপডেট করবে
-            currentRemaining += 1;
-            await updateFirebaseLimit(currentRemaining, totalLimit);
-            
             checkLimit();
-        } else {
-            showToast(result.error || 'Failed to add target', 'error');
-        }
 
-        addBtn.disabled = false;
-        removeBtn.disabled = false;
-        addBtn.querySelector('.btn-text').textContent = 'Add Target';
-        isProcessing = false;
+            addBtn.disabled = false;
+            removeBtn.disabled = false;
+            addBtn.querySelector('.btn-text').textContent = 'Add Target';
+            isProcessing = false;
+        }, 500);
     });
 
-    removeBtn.addEventListener('click', async () => {
+    // টার্গেট রিমুভ করার বাটন ইভেন্ট
+    removeBtn.addEventListener('click', () => {
         if (isProcessing) return;
         const uid = validateUID(uidInput.value);
         if (!uid) return;
@@ -194,38 +124,39 @@ document.addEventListener('DOMContentLoaded', () => {
         removeBtn.disabled = true;
         removeBtn.querySelector('.btn-text').textContent = 'Removing...';
 
-        const result = await apiCall(`/remove/${uid}/${MASTER_PASSWORD}`);
-
-        if (result.success) {
+        setTimeout(() => {
             uidInput.value = '';
             showToast(`Target ${uid} removed`, 'success');
-        } else {
-            showToast(result.error || 'Failed to remove target', 'error');
-        }
 
-        addBtn.disabled = false;
-        removeBtn.disabled = false;
-        removeBtn.querySelector('.btn-text').textContent = 'Remove Target';
-        isProcessing = false;
+            addBtn.disabled = false;
+            removeBtn.disabled = false;
+            removeBtn.querySelector('.btn-text').textContent = 'Remove Target';
+            isProcessing = false;
+        }, 500);
     });
 
-    adTaskBtn.addEventListener('click', async () => {
+    // অ্যাড টাস্ক বাটন (সার্ভার ছাড়া লোকাল বোনাস যুক্ত করার ব্যবস্থা)
+    adTaskBtn.addEventListener('click', () => {
         if (isProcessing) return;
         isProcessing = true;
         adTaskBtn.disabled = true;
-        adTaskBtn.querySelector('.btn-text').textContent = 'Processing...';
+        adTaskBtn.querySelector('.btn-text').textContent = 'Processing Task...';
 
-        const deviceId = getDeviceId();
-        await apiCall(`/api/free/gen_task?device_id=${deviceId}`);
+        setTimeout(() => {
+            let currentRemaining = checkLimit();
+            currentRemaining += 5; // বোনাস ৫টি এড যোগ হলো
+            localStorage.setItem('remaining_limit', currentRemaining);
 
-        showToast('Ad task completed successfully!', 'success');
-        checkLimit();
+            showToast('Bonus Claimed! 5 Extra adds added to your limit.', 'success');
+            checkLimit();
 
-        adTaskBtn.disabled = false;
-        adTaskBtn.querySelector('.btn-text').textContent = 'Complete Ad Task';
-        isProcessing = false;
+            adTaskBtn.disabled = false;
+            adTaskBtn.querySelector('.btn-text').textContent = 'Complete Ad Task';
+            isProcessing = false;
+        }, 1000);
     });
 
+    // ইন্টার বাটন হ্যান্ডেল
     uidInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -233,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // শুধুমাত্র সংখ্যা ইনপুট নিশ্চিত করা
     uidInput.addEventListener('input', () => {
         uidInput.value = uidInput.value.replace(/[^0-9]/g, '');
     });

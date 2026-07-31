@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const uidInput = document.getElementById('uid-input');
     const addBtn = document.getElementById('add-target-btn');
     const removeBtn = document.getElementById('remove-target-btn');
-    const adTaskBtn = document.getElementById('ad-task-btn');
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toast-message');
     const toastIcon = document.getElementById('toast-icon');
@@ -96,26 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     checkLimit();
 
-    // Check URL parameters for Claim status
-    const urlParams = new URLSearchParams(window.location.search);
-    const claimStatus = urlParams.get('claim');
-    const claimMsg = urlParams.get('msg');
-    if (claimStatus) {
-        if (claimStatus === 'success') {
-            showToast("Bonus Claimed! 5 Extra adds added to your limit.", "success");
-        } else if (claimStatus === 'error') {
-            let errorText = "Ad Task not completed or token expired.";
-            if (claimMsg === 'Ad_Task_Not_Completed_Or_Expired') {
-                errorText = "Ad Task not completed or token expired!";
-            }
-            showToast(errorText, "error");
-        }
-        // Remove query parameters from URL to avoid re-triggering toast on refresh
-        window.history.replaceState({}, document.title, window.location.pathname);
-        // Refresh limit info immediately
-        checkLimit();
-    }
-
     addBtn.addEventListener('click', async () => {
         if (isProcessing) return;
         if (remainingCount <= 0) {
@@ -169,27 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
         removeBtn.disabled = false;
         removeBtn.querySelector('.btn-text').textContent = 'Remove Target';
         isProcessing = false;
-    });
-
-    adTaskBtn.addEventListener('click', async () => {
-        if (isProcessing) return;
-        
-        isProcessing = true;
-        adTaskBtn.disabled = true;
-        adTaskBtn.querySelector('.btn-text').textContent = 'Loading Task...';
-
-        const deviceId = getDeviceId();
-        const result = await apiCall(`/api/free/gen_task?device_id=${deviceId}`);
-
-        if (result.success && result.redirect) {
-            // Redirect to the shortlink
-            window.location.href = result.redirect;
-        } else {
-            showToast(result.error || 'Failed to initialize Ad Task. Try again.', 'error');
-            adTaskBtn.disabled = false;
-            adTaskBtn.querySelector('.btn-text').textContent = 'Complete Ad Task';
-            isProcessing = false;
-        }
     });
 
     uidInput.addEventListener('keydown', (e) => {

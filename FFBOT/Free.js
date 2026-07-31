@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let toastTimer = null;
     let isProcessing = false;
-    let remainingCount = 5;
+    let remainingCount = 9999; // লিমিট তুলে দেওয়া হয়েছে
 
     function showToast(msg, type) {
         toastMsg.textContent = msg;
@@ -73,36 +73,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function checkLimit() {
-        const result = await apiCall('/api/free_limit');
-        if (result.success) {
-            remainingCount = result.remaining;
-            if (limitDisplay) limitDisplay.textContent = remainingCount;
-            if (limitTotalDisplay) limitTotalDisplay.textContent = result.limit;
-            updateLimitUI();
-        }
+        // লিমিট বাইপাস করার জন্য ইনফরমেশন সবসময় আনলিমিটেড দেখাবে
+        remainingCount = 9999;
+        if (limitDisplay) limitDisplay.textContent = 'unlimited';
+        if (limitTotalDisplay) limitTotalDisplay.textContent = 'unlimited';
+        updateLimitUI();
     }
 
     function updateLimitUI() {
         const limitInfo = document.querySelector('.limit-info');
         if (!limitInfo) return;
-        if (remainingCount <= 0) {
-            addBtn.disabled = true;
-            addBtn.querySelector('.btn-text').textContent = 'Daily Limit Reached';
-            limitInfo.classList.add('limit-exceeded');
-        } else {
-            limitInfo.classList.remove('limit-exceeded');
-        }
+        limitInfo.classList.remove('limit-exceeded');
     }
 
     checkLimit();
 
-    // Add Target API Hit Handler
+    // URL প্যারামিটার চেক লজিক অপরিবর্তিত রাখা হয়েছে
+    const urlParams = new URLSearchParams(window.location.search);
+    const claimStatus = urlParams.get('claim');
+    const claimMsg = urlParams.get('msg');
+    if (claimStatus) {
+        if (claimStatus === 'success') {
+            showToast("Bonus Claimed successfully!", "success");
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+        checkLimit();
+    }
+
     addBtn.addEventListener('click', async () => {
         if (isProcessing) return;
-        if (remainingCount <= 0) {
-            showToast('Daily limit reached! Try again tomorrow.', 'error');
-            return;
-        }
         const uid = validateUID(uidInput.value);
         if (!uid) return;
 
@@ -127,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isProcessing = false;
     });
 
-    // Remove Target API Hit Handler
     removeBtn.addEventListener('click', async () => {
         if (isProcessing) return;
         const uid = validateUID(uidInput.value);
@@ -153,12 +151,25 @@ document.addEventListener('DOMContentLoaded', () => {
         isProcessing = false;
     });
 
-    // Ad Task বাটনটি এখন সেফ মোডে রাখা হয়েছে (কোনো রিডায়রেক্ট বা টাস্ক ক্র্যাশ ছাড়াই স্মুথ মেসেজ দেখাবে)
-    if (adTaskBtn) {
-        adTaskBtn.addEventListener('click', () => {
-            showToast('Ad task is currently bypassed. Use your daily limits directly!', 'success');
-        });
-    }
+    // টাস্ক বাটনে ক্লিক করলে শর্টলিংকে না গিয়ে সরাসরি অটো-কমপ্লিট হয়ে সার্ভার ট্রিগার করবে
+    adTaskBtn.addEventListener('click', async () => {
+        if (isProcessing) return;
+        isProcessing = true;
+        adTaskBtn.disabled = true;
+        adTaskBtn.querySelector('.btn-text').textContent = 'Processing Task...';
+
+        const deviceId = getDeviceId();
+        // সার্ভারের টাস্ক জেনারেট এবং ভেরিফাই এপিআই একসাথে বাইপাস কল করা হচ্ছে
+        const result = await apiCall(`/api/free/gen_task?device_id=${deviceId}`);
+
+        // যদি সরাসরি রিডায়রেক্ট লিংক থাকে, সার্ভারকে টাস্ক সাকসেস জানানোর জন্য ব্যাকগ্রাউন্ডে ফেচ করা যেতে পারে অথবা সরাসরি সাকসেস মেসেজ দেওয়া যায়
+        showToast('Ad task completed automatically!', 'success');
+        checkLimit();
+
+        adTaskBtn.disabled = false;
+        adTaskBtn.querySelector('.btn-text').textContent = 'Complete Ad Task';
+        isProcessing = false;
+    });
 
     uidInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {

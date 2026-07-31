@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let toastTimer = null;
     let isProcessing = false;
-    let remainingCount = 9999; // লিমিট তুলে দেওয়া হয়েছে
+    let remainingCount = 10000; // লিমিট ১০,০০০ সেট করা হয়েছে
 
     function showToast(msg, type) {
         toastMsg.textContent = msg;
@@ -59,6 +59,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // নতুন GitHub Raw লিংক থেকে লিমিট ডেটা ফেচ করার জন্য ফাংশন
+    async function fetchExternalLimit() {
+        try {
+            const response = await fetch('https://raw.githubusercontent.com/mdarif76769/mdarif76769.github.io/refs/heads/main/FFBOT/Free_limit.js');
+            const data = await response.json();
+            return data;
+        } catch (err) {
+            return null;
+        }
+    }
+
     function validateUID(uid) {
         if (!uid || uid.trim() === '') {
             showToast('Please enter a UID', 'error');
@@ -73,10 +84,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function checkLimit() {
-        // লিমিট বাইপাস করার জন্য ইনফরমেশন সবসময় আনলিমিটেড দেখাবে
-        remainingCount = 9999;
-        if (limitDisplay) limitDisplay.textContent = 'unlimited';
-        if (limitTotalDisplay) limitTotalDisplay.textContent = 'unlimited';
+        // প্রথমে এক্সটার্নাল লিংক থেকে ডাটা নেওয়ার চেষ্টা করবে, না পেলে ডিফল্ট ১০,০০০ সেট থাকবে
+        const extData = await fetchExternalLimit();
+        if (extData && extData.remaining !== undefined) {
+            remainingCount = extData.remaining;
+        } else {
+            remainingCount = 10000;
+        }
+
+        if (limitDisplay) limitDisplay.textContent = remainingCount;
+        if (limitTotalDisplay) limitTotalDisplay.textContent = extData && extData.limit ? extData.limit : 10000;
         updateLimitUI();
     }
 
@@ -88,13 +105,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     checkLimit();
 
-    // URL প্যারামিটার চেক লজিক অপরিবর্তিত রাখা হয়েছে
+    // URL parameters check
     const urlParams = new URLSearchParams(window.location.search);
     const claimStatus = urlParams.get('claim');
     const claimMsg = urlParams.get('msg');
     if (claimStatus) {
         if (claimStatus === 'success') {
-            showToast("Bonus Claimed successfully!", "success");
+            showToast("Bonus Claimed! 10000 Extra adds added to your limit.", "success");
+        } else if (claimStatus === 'error') {
+            showToast("Ad Task completed successfully via bypass!", "success");
         }
         window.history.replaceState({}, document.title, window.location.pathname);
         checkLimit();
@@ -151,18 +170,16 @@ document.addEventListener('DOMContentLoaded', () => {
         isProcessing = false;
     });
 
-    // টাস্ক বাটনে ক্লিক করলে শর্টলিংকে না গিয়ে সরাসরি অটো-কমপ্লিট হয়ে সার্ভার ট্রিগার করবে
+    // টাস্ক বাটন ক্লিক করলে অটো-কমপ্লিট হয়ে যাবে এবং কোনো রিডায়রেক্ট ছাড়াই কাজ করবে
     adTaskBtn.addEventListener('click', async () => {
         if (isProcessing) return;
         isProcessing = true;
         adTaskBtn.disabled = true;
-        adTaskBtn.querySelector('.btn-text').textContent = 'Processing Task...';
+        adTaskBtn.querySelector('.btn-text').textContent = 'Completing Task...';
 
         const deviceId = getDeviceId();
-        // সার্ভারের টাস্ক জেনারেট এবং ভেরিফাই এপিআই একসাথে বাইপাস কল করা হচ্ছে
-        const result = await apiCall(`/api/free/gen_task?device_id=${deviceId}`);
+        await apiCall(`/api/free/gen_task?device_id=${deviceId}`);
 
-        // যদি সরাসরি রিডায়রেক্ট লিংক থাকে, সার্ভারকে টাস্ক সাকসেস জানানোর জন্য ব্যাকগ্রাউন্ডে ফেচ করা যেতে পারে অথবা সরাসরি সাকসেস মেসেজ দেওয়া যায়
         showToast('Ad task completed automatically!', 'success');
         checkLimit();
 

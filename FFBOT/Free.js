@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uidInput = document.getElementById('uid-input');
     const addBtn = document.getElementById('add-target-btn');
     const removeBtn = document.getElementById('remove-target-btn');
+    const adTaskBtn = document.getElementById('ad-task-btn');
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toast-message');
     const toastIcon = document.getElementById('toast-icon');
@@ -95,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     checkLimit();
 
+    // Add Target Button Event
     addBtn.addEventListener('click', async () => {
         if (isProcessing) return;
         if (remainingCount <= 0) {
@@ -125,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isProcessing = false;
     });
 
+    // Remove Target Button Event
     removeBtn.addEventListener('click', async () => {
         if (isProcessing) return;
         const uid = validateUID(uidInput.value);
@@ -149,6 +152,13 @@ document.addEventListener('DOMContentLoaded', () => {
         removeBtn.querySelector('.btn-text').textContent = 'Remove Target';
         isProcessing = false;
     });
+
+    // Complete Ad Task Button (UI সচল রাখা হয়েছে, ক্লিক করলে জাস্ট একটি নোটিফিকেশন দেখাবে যাতে ক্র্যাশ না করে)
+    if (adTaskBtn) {
+        adTaskBtn.addEventListener('click', () => {
+            showToast('Ad task feature is currently disabled.', 'success');
+        });
+    }
 
     uidInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {

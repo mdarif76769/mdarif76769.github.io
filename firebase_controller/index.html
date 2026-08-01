@@ -10,7 +10,7 @@
     <style>
         /* PRO THEMES */
         :root {
-            --bg: #05050a; --glass-bg: rgba(15, 10, 25, 0.7); --glass-blur: blur(20px);
+            --bg: #05050a; --glass-bg: rgba(15, 10, 25, 0.75); --glass-blur: blur(20px);
             --primary: #8b5cf6; --primary-glow: rgba(139, 92, 246, 0.5);
             --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
             --text: #ffffff; --text-dim: #a78bfa;
@@ -27,7 +27,7 @@
         body { background: var(--bg); color: var(--text); font-family: var(--font-ui); overflow-x: hidden; overflow-y: auto; transition: 0.4s ease; padding-bottom: 140px; }
         #particles-js { position: fixed; inset: 0; z-index: -1; opacity: 0.6; }
         
-        .glass { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 8px 32px rgba(0,0,0,0.5); border-radius: var(--radius); }
+        .glass { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 32px rgba(0,0,0,0.6); border-radius: var(--radius); }
 
         .view { display: none; padding: max(45px, env(safe-area-inset-top)) 15px 150px 15px; animation: fadeIn 0.3s ease; max-width: 500px; margin: 0 auto; }
         .view.active { display: block; }
@@ -116,11 +116,173 @@
         .btn-cancel:active { background: rgba(255,255,255,0.2); }
         .btn-confirm { flex: 1; padding: 12px; border-radius: 10px; background: var(--danger); color: #fff; border: none; font-weight: 800; cursor: pointer; transition: 0.2s; box-shadow: 0 5px 15px rgba(239,68,68,0.4); }
         .btn-confirm:active { transform: scale(0.95); }
+
+        /* ULTRA GORGEOUS ADMIN PROFILE STYLES */
+        .admin-profile-card {
+            background: linear-gradient(135deg, rgba(25, 18, 45, 0.9), rgba(10, 8, 20, 0.95));
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 35px rgba(139, 92, 246, 0.2);
+            border-radius: 26px;
+            padding: 30px 20px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        .admin-profile-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, transparent, var(--primary), #3b82f6, var(--primary), transparent);
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+        .admin-avatar-container {
+            position: relative;
+            width: 100px; height: 100px;
+            margin: 0 auto 18px auto;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.35) 0%, rgba(0,0,0,0.85) 75%);
+            display: flex; justify-content: center; align-items: center;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 30px var(--primary-glow);
+            overflow: hidden;
+        }
+        .admin-avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .admin-avatar-container i {
+            font-size: 2.8rem;
+            color: var(--primary);
+            filter: drop-shadow(0 0 12px var(--primary-glow));
+        }
+        .admin-badge-glow {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.18);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-top: 8px;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+        }
+        .admin-info-grid {
+            text-align: left;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .admin-info-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            padding-bottom: 10px;
+        }
+        .admin-info-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .admin-info-item i {
+            width: 28px;
+            font-size: 1rem;
+            text-align: center;
+        }
+        .admin-info-item span {
+            color: #fff;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        /* SOCIAL MEDIA BUTTONS GRID */
+        .social-links-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 15px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .social-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.15);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+        }
+        .social-btn:active {
+            transform: scale(0.96);
+        }
+        .social-btn.telegram { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+        .social-btn.telegram:hover { background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; box-shadow: 0 6px 20px rgba(56, 189, 248, 0.3); }
+        
+        .social-btn.github { color: #f8fafc; border-color: rgba(248, 250, 252, 0.3); }
+        .social-btn.github:hover { background: rgba(248, 250, 252, 0.15); border-color: #f8fafc; box-shadow: 0 6px 20px rgba(248, 250, 252, 0.3); }
+        
+        .social-btn.youtube { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+        .social-btn.youtube:hover { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3); }
+        
+        .social-btn.discord { color: #5865F2; border-color: rgba(88, 101, 242, 0.3); }
+        .social-btn.discord:hover { background: rgba(88, 101, 242, 0.15); border-color: #5865F2; box-shadow: 0 6px 20px rgba(88, 101, 242, 0.3); }
+
+        .media-container-box {
+            background: linear-gradient(145deg, rgba(15, 10, 25, 0.9), rgba(5, 5, 12, 0.95));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            border-radius: 22px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        /* PULL TO REFRESH SPINNER */
+        #ptr-indicator {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            z-index: 4000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: top 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
     </style>
 </head>
 <body>
     <div id="particles-js"></div>
     <div id="toast"><i class="fas fa-check-circle"></i> <span id="toast-msg">Update Successful!</span></div>
+    <div id="ptr-indicator"><i class="fas fa-sync-alt fa-spin"></i> Refreshing Data...</div>
 
     <div id="delete-modal" class="custom-modal">
         <div class="modal-content">
@@ -345,23 +507,77 @@
             <button onclick="logoutConsole()" style="width:100%; margin-top:20px; background:rgba(239,68,68,0.1); border:1px solid var(--danger); color:var(--danger); padding:15px; border-radius:12px; font-weight:800; cursor:pointer; text-transform: uppercase; letter-spacing: 1px;"><i class="fas fa-sign-out-alt"></i> Logout Console</button>
         </div>
 
+        <div id="v-admin" class="view">
+            <h2 style="margin-bottom: 20px;">Admin <span style="color:var(--primary)">Command Center</span></h2>
+            
+            <div class="admin-profile-card">
+                <div class="admin-avatar-container" id="admin-avatar-box">
+                    <i id="ext-avatar-icon" class="fas fa-user-secret"></i>
+                </div>
+                
+                <div style="text-align: center;">
+                    <h3 id="ext-admin-name" style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-bottom: 3px; letter-spacing: 0.5px;">Loading...</h3>
+                    <div id="ext-admin-handle" style="font-size: 0.85rem; color: var(--primary); font-family: var(--font-code); font-weight: 700;">@LOADING</div>
+                    <div><span class="admin-badge-glow" id="ext-admin-badge"><i class="fas fa-shield-alt"></i> LOADING STATUS</span></div>
+                </div>
+                
+                <div class="admin-info-grid">
+                    <div class="admin-info-item">
+                        <i class="fas fa-terminal" style="color: var(--success);"></i>
+                        <span>Role:</span> <span id="ext-admin-role" style="font-weight: 400; margin-left: auto;">Loading...</span>
+                    </div>
+                    <div class="admin-info-item">
+                        <i class="fas fa-microchip" style="color: var(--warning);"></i>
+                        <span>Lab Environment:</span> <span id="ext-admin-lab" style="font-weight: 400; margin-left: auto;">Loading...</span>
+                    </div>
+                    <div class="admin-info-item">
+                        <i class="fas fa-satellite-dish" style="color: #3b82f6;"></i>
+                        <span>Contact Security:</span> <span id="ext-admin-contact" style="font-weight: 400; margin-left: auto;">Loading...</span>
+                    </div>
+                </div>
+
+                <div class="social-links-grid" id="admin-social-grid">
+                    <a id="soc-telegram" href="#" target="_blank" class="social-btn telegram" style="display:none;"><i class="fab fa-telegram-plane"></i> Telegram</a>
+                    <a id="soc-github" href="#" target="_blank" class="social-btn github" style="display:none;"><i class="fab fa-github"></i> GitHub</a>
+                    <a id="soc-youtube" href="#" target="_blank" class="social-btn youtube" style="display:none;"><i class="fab fa-youtube"></i> YouTube</a>
+                    <a id="soc-discord" href="#" target="_blank" class="social-btn discord" style="display:none;"><i class="fab fa-discord"></i> Discord</a>
+                </div>
+            </div>
+
+            <div class="media-container-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label style="margin: 0;"><i class="fas fa-globe-americas"></i> Live Universal Media Viewport</label>
+                    <span style="font-size: 0.65rem; color: var(--success); background: rgba(16,185,129,0.1); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(16,185,129,0.2);">Autoplay Active</span>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 12px;">Firebase connented High seceurity</p>
+                
+                <div style="width: 100%; height: 260px; border-radius: 14px; overflow: hidden; background: rgba(0,0,0,0.8); border: 1px solid rgba(139, 92, 246, 0.3); box-shadow: inset 0 0 15px rgba(0,0,0,0.8);">
+                    <iframe id="dynamic-custom-iframe" src="about:blank" style="width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"></iframe>
+                </div>
+            </div>
+        </div>
+
         <div class="navbar" id="nav">
             <div class="nav-item active" onclick="showView('ui', this)"><i class="fas fa-paint-brush"></i>UI</div>
             <div class="nav-item" onclick="showView('security', this)"><i class="fas fa-shield-alt"></i>Keys</div>
             <div class="nav-item" onclick="showView('devices', this)"><i class="fas fa-users"></i>Users</div>
             <div class="nav-item" onclick="showView('settings', this)"><i class="fas fa-cog"></i>System</div>
+            <div class="nav-item" onclick="showView('admin', this)"><i class="fas fa-user-shield"></i>Admin</div>
         </div>
     </div>
 
-    <!-- Firebase SDK (Compat Version for Realtime Database integration) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <script>
+        let ROOT_DB_URL = ""; 
         let DB_BASE = ""; 
+        let ADMIN_DB_URL = "";
         let AUTH = "";
         let pendingDeleteId = null;
         let pendingActionType = null;
+        let iframeInitialized = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('input').forEach(el => {
@@ -371,6 +587,7 @@
                     }, 300);
                 });
             });
+            initPullToRefresh();
         });
 
         window.onload = () => {
@@ -383,6 +600,44 @@
             }
             addDays(1); 
         };
+
+        function initPullToRefresh() {
+            let touchStartY = 0;
+            const ptrIndicator = document.getElementById('ptr-indicator');
+
+            window.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0) {
+                    touchStartY = e.touches[0].clientY;
+                }
+            }, {passive: true});
+
+            window.addEventListener('touchmove', (e) => {
+                if (window.scrollY === 0 && touchStartY > 0) {
+                    const touchY = e.touches[0].clientY;
+                    const diff = touchY - touchStartY;
+                    if (diff > 70) {
+                        ptrIndicator.style.top = "20px";
+                    }
+                }
+            }, {passive: true});
+
+            window.addEventListener('touchend', async (e) => {
+                if (window.scrollY === 0 && touchStartY > 0) {
+                    const touchY = e.changedTouches[0].clientY;
+                    if (touchY - touchStartY > 90) {
+                        ptrIndicator.style.top = "20px";
+                        if (AUTH) {
+                            await loadData(false);
+                            showToast("Data Refreshed Successfully!");
+                        }
+                    }
+                    setTimeout(() => {
+                        ptrIndicator.style.top = "-50px";
+                    }, 800);
+                }
+                touchStartY = 0;
+            }, {passive: true});
+        }
 
         function toggleDrop(dropId, wrapId) {
             document.querySelectorAll('.dropdown-menu').forEach(m => { if(m.id !== dropId) m.classList.remove('show'); });
@@ -408,19 +663,12 @@
 
         setInterval(async () => {
             if (AUTH && DB_BASE && document.getElementById('main-app').style.display === 'block') {
-                try {
-                    const res = await fetch(`${DB_BASE}/security.json?auth=${AUTH}`, {cache: "no-store"});
-                    if (res.ok) {
-                        const security = await res.json();
-                        renderKeys(security);
-                        filterDevices(); 
-                    }
-                } catch(e) {}
+                loadData(true);
             }
-        }, 5000);
+        }, 4000);
 
         function generateRandomKey() {
-            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@π";
             let result = "VIP-";
             for (let i = 0; i < 10; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
             document.getElementById('new-key').value = result;
@@ -456,14 +704,13 @@
             if (!rawUrl.startsWith("http")) rawUrl = "https://" + rawUrl;
             if (rawUrl.endsWith("/")) rawUrl = rawUrl.slice(0, -1);
             
+            ROOT_DB_URL = rawUrl;
             DB_BASE = rawUrl + "/dp_dialog_controller";
+            ADMIN_DB_URL = rawUrl + "/Admin/admin";
 
-            // Initialize Firebase App Dynamically for real-time updates & pushes
             if (!firebase.apps.length) {
                 try {
-                    firebase.initializeApp({
-                        databaseURL: rawUrl
-                    });
+                    firebase.initializeApp({ databaseURL: rawUrl });
                 } catch (err) {}
             }
 
@@ -476,7 +723,7 @@
                     document.getElementById('main-app').style.display = 'block';
                     document.getElementById('nav').style.display = 'flex';
                     showView('ui', document.querySelector('.nav-item'));
-                    loadData();
+                    loadData(false);
                     showToast("AlphA Protocol Authorized");
                 } else { 
                     localStorage.removeItem('alpha_admin_auth'); 
@@ -493,35 +740,103 @@
             location.reload(); 
         }
 
-        async function loadData() {
+        async function loadData(isBackground = false) {
             try {
-                const res = await fetch(`${DB_BASE}.json?auth=${AUTH}`);
+                const res = await fetch(`${DB_BASE}.json?auth=${AUTH}`, {cache: "no-store"});
                 const data = await res.json();
-                if (!data) return;
-                
-                if(data.ui_settings) {
-                    const ui = data.ui_settings;
-                    document.getElementById('main_name').value = ui.main_name || "";
-                    document.getElementById('main_bio').value = ui.main_bio || "";
-                    document.getElementById('tag_1').value = ui.tag_1 || "";
-                    document.getElementById('tag_2').value = ui.tag_2 || "";
-                    document.getElementById('verify_btn_text').value = ui.verify_btn_text || "";
-                    document.getElementById('cfg-maint').checked = ui.maintenance || false;
-                    document.getElementById('cfg-maint-msg').value = ui.maintenance_msg || "";
-                    document.getElementById('cfg-show-bc').checked = ui.show_broadcast || false;
-                    document.getElementById('cfg-bc-msg').value = ui.broadcast_msg || "";
-                }
-                if(data.info_dialog) {
-                    const info = data.info_dialog;
-                    document.getElementById('info_title').value = info.title || "";
-                    document.getElementById('dev_name').value = info.dev_name || "";
-                    document.getElementById('dev_telegram').value = info.dev_telegram || "";
-                    document.getElementById('dev_skills').value = info.dev_skills || "";
-                }
-                if(data.links) document.getElementById('admin_link').value = data.links.admin_redirect_url || "";
+                if (data) {
+                    if(!isBackground && data.ui_settings) {
+                        const ui = data.ui_settings;
+                        document.getElementById('main_name').value = ui.main_name || "";
+                        document.getElementById('main_bio').value = ui.main_bio || "";
+                        document.getElementById('tag_1').value = ui.tag_1 || "";
+                        document.getElementById('tag_2').value = ui.tag_2 || "";
+                        document.getElementById('verify_btn_text').value = ui.verify_btn_text || "";
+                        document.getElementById('cfg-maint').checked = ui.maintenance || false;
+                        document.getElementById('cfg-maint-msg').value = ui.maintenance_msg || "";
+                        document.getElementById('cfg-show-bc').checked = ui.show_broadcast || false;
+                        document.getElementById('cfg-bc-msg').value = ui.broadcast_msg || "";
+                    }
+                    if(!isBackground && data.info_dialog) {
+                        const info = data.info_dialog;
+                        document.getElementById('info_title').value = info.title || "";
+                        document.getElementById('dev_name').value = info.dev_name || "";
+                        document.getElementById('dev_telegram').value = info.dev_telegram || "";
+                        document.getElementById('dev_skills').value = info.dev_skills || "";
+                    }
+                    if(!isBackground && data.links) document.getElementById('admin_link').value = data.links.admin_redirect_url || "";
 
-                renderKeys(data.security);
+                    renderKeys(data.security);
+                }
+
+                const adminRes = await fetch(`${ADMIN_DB_URL}.json?auth=${AUTH}`, {cache: "no-store"});
+                const adminData = await adminRes.json();
+                if (adminData) {
+                    if (adminData.profile) {
+                        const p = adminData.profile;
+                        if(document.getElementById('ext-admin-name')) document.getElementById('ext-admin-name').innerText = p.name || "";
+                        if(document.getElementById('ext-admin-handle')) document.getElementById('ext-admin-handle').innerText = p.handle || "";
+                        if(document.getElementById('ext-admin-role')) document.getElementById('ext-admin-role').innerText = p.role || "";
+                        if(document.getElementById('ext-admin-lab')) document.getElementById('ext-admin-lab').innerText = p.labEnvironment || "";
+                        if(document.getElementById('ext-admin-contact')) document.getElementById('ext-admin-contact').innerText = p.contactSecurity || "";
+                        if(document.getElementById('ext-admin-badge')) document.getElementById('ext-admin-badge').innerHTML = `<i class="fas fa-shield-alt"></i> ${p.statusBadge || 'VERIFIED OPERATIVE'}`;
+                        
+                        // ডাইনামিক এভার্টার ইউআরএল লজিক (Firebase থেকে avatarUrl ফেচ করে ইমেজ ট্যাগ রেন্ডার করবে)
+                        const avatarBox = document.getElementById('admin-avatar-box');
+                        if (avatarBox) {
+                            if (p.avatarUrl && p.avatarUrl.trim() !== "") {
+                                avatarBox.innerHTML = `<img src="${p.avatarUrl}" alt="Admin Avatar" onerror="this.onerror=null; this.parentElement.innerHTML='<i id=\'ext-avatar-icon\' class=\'fas fa-user-secret\'></i>';">`;
+                            } else {
+                                avatarBox.innerHTML = `<i id="ext-avatar-icon" class="${p.avatarIcon || 'fas fa-user-secret'}"></i>`;
+                            }
+                        }
+                    }
+
+                    if (adminData.socialLinks) {
+                        const s = adminData.socialLinks;
+                        updateSocialButton('soc-telegram', s.telegram);
+                        updateSocialButton('soc-github', s.github);
+                        updateSocialButton('soc-youtube', s.youtube);
+                        updateSocialButton('soc-discord', s.discord);
+                    }
+
+                    if (adminData.iframeConfig && adminData.iframeConfig.enabled) {
+                        let srcUrl = adminData.iframeConfig.defaultSource || "";
+                        
+                        if (srcUrl.includes("youtu.be/")) {
+                            const videoId = srcUrl.split("youtu.be/")[1].split("?")[0];
+                            srcUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&enablejsapi=1`;
+                        } else if (srcUrl.includes("watch?v=")) {
+                            const urlParams = new URLSearchParams(srcUrl.split('?')[1]);
+                            const videoId = urlParams.get('v');
+                            if(videoId) srcUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&enablejsapi=1`;
+                        }
+                        
+                        const iframeEl = document.getElementById('dynamic-custom-iframe');
+                        if (iframeEl && srcUrl !== "") {
+                            if (!iframeInitialized || iframeEl.getAttribute('data-loaded-url') !== srcUrl) {
+                                iframeEl.src = srcUrl;
+                                iframeEl.setAttribute('data-loaded-url', srcUrl);
+                                iframeInitialized = true;
+                            }
+                            if (adminData.iframeConfig.sandboxAttributes) {
+                                iframeEl.setAttribute('sandbox', adminData.iframeConfig.sandboxAttributes);
+                            }
+                        }
+                    }
+                }
             } catch(e) {}
+        }
+
+        function updateSocialButton(elementId, url) {
+            const btn = document.getElementById(elementId);
+            if (!btn) return;
+            if (url && url.trim() !== "") {
+                btn.href = url;
+                btn.style.display = "flex";
+            } else {
+                btn.style.display = "none";
+            }
         }
 
         window.toggleDet = function(id) {
@@ -746,6 +1061,7 @@
                       
             list.innerHTML = htmlStr;
             document.getElementById('key-count').innerText = count + " Keys";
+            filterDevices();
         }
 
         function updatePhoneNumbers(keyId, hwid) {
@@ -820,7 +1136,7 @@
                 await fetch(`${DB_BASE}/security/crash_list/${id}.json?auth=${AUTH}`, { method: 'DELETE' });
                 showToast("Key Restored!");
             }
-            loadData();
+            loadData(false);
         }
 
         async function saveUI() {
@@ -855,7 +1171,7 @@
             document.getElementById('new-key').value = "";
             document.getElementById('new-remarks').value = "";
             
-            loadData(); showToast("Key Generated & Saved");
+            loadData(false); showToast("Key Generated & Saved");
         }
 
         async function addCrash() {
@@ -863,7 +1179,7 @@
             if(!id) return;
             await fetch(`${DB_BASE}/security/crash_list/${id}.json?auth=${AUTH}`, { method: 'PUT', body: JSON.stringify(true) });
             document.getElementById('crash-key').value = "";
-            loadData(); showToast("Crash Protocol Executed");
+            loadData(false); showToast("Crash Protocol Executed");
         }
 
         async function saveInfo() {
@@ -885,6 +1201,8 @@
             document.getElementById('v-' + v).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
             if(el) el.classList.add('active');
+            
+            if (AUTH) loadData(false);
         }
 
         function changeTheme() { document.body.setAttribute('data-theme', document.getElementById('theme-sel').value); }

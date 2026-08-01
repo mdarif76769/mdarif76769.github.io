@@ -86,7 +86,23 @@
         .nav-item.active { color: var(--primary); transform: translateY(-5px); }
         .nav-item i { font-size: 1.3rem; display: block; margin-bottom: 5px; }
 
-        .card { padding: 18px; margin-bottom: 15px; border-left: 4px solid var(--primary); background: rgba(20, 15, 30, 0.6); display: flex; flex-direction: column; gap: 8px; border-radius: 14px; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        /* কার্ডের শুধু দুই সাইডে (বাম ও ডান) বর্ডার এবং গ্লো এফেক্ট */
+        .card { 
+            padding: 18px; 
+            margin-bottom: 15px; 
+            background: rgba(20, 15, 30, 0.6); 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            border-radius: 14px; 
+            overflow: hidden; 
+            border-top: 1px solid rgba(255,255,255,0.05); 
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-left: 2px solid var(--primary);
+            border-right: 2px solid var(--primary);
+            box-shadow: -4px 0 15px var(--primary-glow), 4px 0 15px var(--primary-glow);
+        }
+
         .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-bottom: 5px; cursor: pointer; }
         .badge { padding: 5px 10px; border-radius: 8px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
         .b-act { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);}
@@ -117,35 +133,39 @@
         .btn-confirm { flex: 1; padding: 12px; border-radius: 10px; background: var(--danger); color: #fff; border: none; font-weight: 800; cursor: pointer; transition: 0.2s; box-shadow: 0 5px 15px rgba(239,68,68,0.4); }
         .btn-confirm:active { transform: scale(0.95); }
 
-        /* ULTRA GORGEOUS ADMIN PROFILE STYLES */
+        /* ADMIN PROFILE CARD - দুই সাইডে বর্ডার ও গ্লো */
         .admin-profile-card {
-            background: linear-gradient(135deg, rgba(25, 18, 45, 0.9), rgba(10, 8, 20, 0.95));
-            border: 1px solid rgba(139, 92, 246, 0.4);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 35px rgba(139, 92, 246, 0.2);
-            border-radius: 26px;
-            padding: 30px 20px;
+            background: linear-gradient(135deg, rgba(20, 15, 30, 0.6), rgba(10, 8, 20, 0.9));
+            box-shadow: -4px 0 20px var(--primary-glow), 4px 0 20px var(--primary-glow);
+            border-radius: var(--radius);
+            padding: 18px;
             position: relative;
             overflow: hidden;
             text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-left: 2px solid var(--primary);
+            border-right: 2px solid var(--primary);
+            margin-bottom: 15px;
         }
         .admin-profile-card::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 4px;
-            background: linear-gradient(90deg, transparent, var(--primary), #3b82f6, var(--primary), transparent);
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
             animation: shimmer 3s infinite;
         }
         @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
         .admin-avatar-container {
             position: relative;
-            width: 100px; height: 100px;
-            margin: 0 auto 18px auto;
+            width: 75px; height: 75px;
+            margin: 0 auto 12px auto;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(139, 92, 246, 0.35) 0%, rgba(0,0,0,0.85) 75%);
+            background: rgba(0,0,0,0.4);
             display: flex; justify-content: center; align-items: center;
             border: 2px solid var(--primary);
-            box-shadow: 0 0 30px var(--primary-glow);
+            box-shadow: 0 0 15px var(--primary-glow);
             overflow: hidden;
         }
         .admin-avatar-container img {
@@ -154,49 +174,48 @@
             object-fit: cover;
         }
         .admin-avatar-container i {
-            font-size: 2.8rem;
+            font-size: 2.2rem;
             color: var(--primary);
-            filter: drop-shadow(0 0 12px var(--primary-glow));
+            filter: drop-shadow(0 0 8px var(--primary-glow));
         }
         .admin-badge-glow {
             display: inline-block;
-            background: rgba(16, 185, 129, 0.18);
+            background: rgba(16, 185, 129, 0.15);
             color: var(--success);
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            padding: 5px 14px;
-            border-radius: 20px;
-            font-size: 0.72rem;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.6rem;
             font-weight: 800;
-            letter-spacing: 1px;
-            margin-top: 8px;
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+            letter-spacing: 0.5px;
+            margin-top: 6px;
         }
         .admin-info-grid {
             text-align: left;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 16px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px;
+            border-radius: var(--btn-radius);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 15px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         .admin-info-item {
             display: flex;
             align-items: center;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-dim);
             border-bottom: 1px solid rgba(255,255,255,0.04);
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
         .admin-info-item:last-child {
             border-bottom: none;
             padding-bottom: 0;
         }
         .admin-info-item i {
-            width: 28px;
-            font-size: 1rem;
+            width: 24px;
+            font-size: 0.9rem;
             text-align: center;
         }
         .admin-info-item span {
@@ -209,53 +228,55 @@
         .social-links-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 20px;
+            gap: 8px;
+            margin-top: 15px;
         }
         .social-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            padding: 12px 15px;
-            border-radius: 12px;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 10px;
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #fff;
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             font-weight: 700;
             text-decoration: none;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         .social-btn:hover {
             transform: translateY(-2px);
             border-color: var(--primary);
             background: rgba(139, 92, 246, 0.15);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
         }
         .social-btn:active {
             transform: scale(0.96);
         }
         .social-btn.telegram { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
-        .social-btn.telegram:hover { background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; box-shadow: 0 6px 20px rgba(56, 189, 248, 0.3); }
+        .social-btn.telegram:hover { background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; }
         
         .social-btn.github { color: #f8fafc; border-color: rgba(248, 250, 252, 0.3); }
-        .social-btn.github:hover { background: rgba(248, 250, 252, 0.15); border-color: #f8fafc; box-shadow: 0 6px 20px rgba(248, 250, 252, 0.3); }
+        .social-btn.github:hover { background: rgba(248, 250, 252, 0.15); border-color: #f8fafc; }
         
         .social-btn.youtube { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
-        .social-btn.youtube:hover { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3); }
+        .social-btn.youtube:hover { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; }
         
         .social-btn.discord { color: #5865F2; border-color: rgba(88, 101, 242, 0.3); }
-        .social-btn.discord:hover { background: rgba(88, 101, 242, 0.15); border-color: #5865F2; box-shadow: 0 6px 20px rgba(88, 101, 242, 0.3); }
+        .social-btn.discord:hover { background: rgba(88, 101, 242, 0.15); border-color: #5865F2; }
 
+        /* MEDIA CONTAINER BOX - দুই সাইডে বর্ডার ও গ্লো */
         .media-container-box {
-            background: linear-gradient(145deg, rgba(15, 10, 25, 0.9), rgba(5, 5, 12, 0.95));
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
-            border-radius: 22px;
-            padding: 20px;
+            background: rgba(20, 15, 30, 0.6);
+            box-shadow: -4px 0 20px var(--primary-glow), 4px 0 20px var(--primary-glow);
+            border-radius: var(--radius);
+            padding: 18px;
             margin-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-left: 2px solid var(--primary);
+            border-right: 2px solid var(--primary);
         }
 
         /* PULL TO REFRESH SPINNER */
@@ -516,8 +537,8 @@
                 </div>
                 
                 <div style="text-align: center;">
-                    <h3 id="ext-admin-name" style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-bottom: 3px; letter-spacing: 0.5px;">Loading...</h3>
-                    <div id="ext-admin-handle" style="font-size: 0.85rem; color: var(--primary); font-family: var(--font-code); font-weight: 700;">@LOADING</div>
+                    <h3 id="ext-admin-name" style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 2px; letter-spacing: 0.5px;">Loading...</h3>
+                    <div id="ext-admin-handle" style="font-size: 0.75rem; color: var(--primary); font-family: var(--font-code); font-weight: 700;">@LOADING</div>
                     <div><span class="admin-badge-glow" id="ext-admin-badge"><i class="fas fa-shield-alt"></i> LOADING STATUS</span></div>
                 </div>
                 
@@ -545,13 +566,13 @@
             </div>
 
             <div class="media-container-box">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <label style="margin: 0;"><i class="fas fa-globe-americas"></i> Live Universal Media Viewport</label>
-                    <span style="font-size: 0.65rem; color: var(--success); background: rgba(16,185,129,0.1); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(16,185,129,0.2);">Autoplay Active</span>
+                    <span style="font-size: 0.6rem; color: var(--success); background: rgba(16,185,129,0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.2);">Autoplay</span>
                 </div>
-                <p style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 12px;">Firebase connented High seceurity</p>
+                <p style="font-size: 0.72rem; color: var(--text-dim); margin-bottom: 10px;">Firebase connected High security stream</p>
                 
-                <div style="width: 100%; height: 260px; border-radius: 14px; overflow: hidden; background: rgba(0,0,0,0.8); border: 1px solid rgba(139, 92, 246, 0.3); box-shadow: inset 0 0 15px rgba(0,0,0,0.8);">
+                <div style="width: 100%; height: 220px; border-radius: 12px; overflow: hidden; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 15px rgba(0,0,0,0.8);">
                     <iframe id="dynamic-custom-iframe" src="about:blank" style="width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"></iframe>
                 </div>
             </div>
@@ -781,7 +802,6 @@
                         if(document.getElementById('ext-admin-contact')) document.getElementById('ext-admin-contact').innerText = p.contactSecurity || "";
                         if(document.getElementById('ext-admin-badge')) document.getElementById('ext-admin-badge').innerHTML = `<i class="fas fa-shield-alt"></i> ${p.statusBadge || 'VERIFIED OPERATIVE'}`;
                         
-                        // ডাইনামিক এভার্টার ইউআরএল লজিক (Firebase থেকে avatarUrl ফেচ করে ইমেজ ট্যাগ রেন্ডার করবে)
                         const avatarBox = document.getElementById('admin-avatar-box');
                         if (avatarBox) {
                             if (p.avatarUrl && p.avatarUrl.trim() !== "") {

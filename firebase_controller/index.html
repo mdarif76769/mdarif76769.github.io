@@ -86,7 +86,6 @@
         .nav-item.active { color: var(--primary); transform: translateY(-5px); }
         .nav-item i { font-size: 1.3rem; display: block; margin-bottom: 5px; }
 
-        /* কার্ডের শুধু দুই সাইডে (বাম ও ডান) বর্ডার এবং গ্লো এফেক্ট */
         .card { 
             padding: 18px; 
             margin-bottom: 15px; 
@@ -133,7 +132,6 @@
         .btn-confirm { flex: 1; padding: 12px; border-radius: 10px; background: var(--danger); color: #fff; border: none; font-weight: 800; cursor: pointer; transition: 0.2s; box-shadow: 0 5px 15px rgba(239,68,68,0.4); }
         .btn-confirm:active { transform: scale(0.95); }
 
-        /* ADMIN PROFILE CARD - দুই সাইডে বর্ডার ও গ্লো */
         .admin-profile-card {
             background: linear-gradient(135deg, rgba(20, 15, 30, 0.6), rgba(10, 8, 20, 0.9));
             box-shadow: -4px 0 20px var(--primary-glow), 4px 0 20px var(--primary-glow);
@@ -266,7 +264,6 @@
         .social-btn.discord { color: #5865F2; border-color: rgba(88, 101, 242, 0.3); }
         .social-btn.discord:hover { background: rgba(88, 101, 242, 0.15); border-color: #5865F2; }
 
-        /* MEDIA CONTAINER BOX - দুই সাইডে বর্ডার ও গ্লো */
         .media-container-box {
             background: rgba(20, 15, 30, 0.6);
             box-shadow: -4px 0 20px var(--primary-glow), 4px 0 20px var(--primary-glow);
@@ -279,7 +276,6 @@
             border-right: 2px solid var(--primary);
         }
 
-        /* PULL TO REFRESH SPINNER */
         #ptr-indicator {
             position: fixed;
             top: -50px;
@@ -557,6 +553,7 @@
                     </div>
                 </div>
 
+                <!-- সোশ্যাল মিডিয়া বাটনসমূহ (লং প্রেস বা রাইট ক্লিক করলে লিঙ্ক কপি হবে) -->
                 <div class="social-links-grid" id="admin-social-grid">
                     <a id="soc-telegram" href="#" target="_blank" class="social-btn telegram" style="display:none;"><i class="fab fa-telegram-plane"></i> Telegram</a>
                     <a id="soc-github" href="#" target="_blank" class="social-btn github" style="display:none;"><i class="fab fa-github"></i> GitHub</a>
@@ -814,10 +811,10 @@
 
                     if (adminData.socialLinks) {
                         const s = adminData.socialLinks;
-                        updateSocialButton('soc-telegram', s.telegram);
-                        updateSocialButton('soc-github', s.github);
-                        updateSocialButton('soc-youtube', s.youtube);
-                        updateSocialButton('soc-discord', s.discord);
+                        updateSocialButton('soc-telegram', s.telegram, 'Telegram Link');
+                        updateSocialButton('soc-github', s.github, 'GitHub Link');
+                        updateSocialButton('soc-youtube', s.youtube, 'YouTube Link');
+                        updateSocialButton('soc-discord', s.discord, 'Discord Link');
                     }
 
                     if (adminData.iframeConfig && adminData.iframeConfig.enabled) {
@@ -848,12 +845,20 @@
             } catch(e) {}
         }
 
-        function updateSocialButton(elementId, url) {
+        // সোশ্যাল মিডিয়া বাটনে লিঙ্ক সেট করা এবং লং প্রেস (Right Click / Long Press) এ লিঙ্ক কপি করার মেথড
+        function updateSocialButton(elementId, url, label) {
             const btn = document.getElementById(elementId);
             if (!btn) return;
             if (url && url.trim() !== "") {
                 btn.href = url;
                 btn.style.display = "flex";
+                
+                // লং প্রেস বা রাইট ক্লিক করলে লিঙ্ক কপি করার হ্যান্ডলার
+                btn.oncontextmenu = function(e) {
+                    e.preventDefault(); // ডিফল্ট মেনু বন্ধ করবে
+                    navigator.clipboard.writeText(url);
+                    showToast(label + " Copied!");
+                };
             } else {
                 btn.style.display = "none";
             }

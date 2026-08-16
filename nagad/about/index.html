@@ -1,0 +1,675 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <title>About Us - Nagad Help</title>
+
+    <link data-n-head="ssr" data-hid="shortcut-icon" rel="shortcut icon"
+        href="https://nagadloan.online/frontend/assets/img/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            touch-action: manipulation;
+        }
+
+        * {
+            touch-action: manipulation;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --orange: #F15A24;
+            --deep-orange: #E04800;
+        }
+
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background: #f0f0f0;
+            color: #1a1a1a;
+            overflow-x: hidden;
+            overscroll-behavior: none;
+        }
+
+        .preloader {
+            position: fixed;
+            inset: 0;
+            background: #fff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            transition: opacity 0.6s ease;
+        }
+
+        .preloader.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .preloader-logo {
+            width: 140px;
+            animation: preloaderPulse 1.6s ease-in-out infinite;
+        }
+
+        .preloader-bar {
+            width: 140px;
+            height: 3px;
+            background: rgba(238, 30, 37, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .preloader-bar-inner {
+            height: 100%;
+            width: 40%;
+            background: #f7480f;
+            border-radius: 10px;
+            animation: loadingBar 1.4s ease-in-out infinite;
+        }
+
+        @keyframes preloaderPulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.04);
+                opacity: 0.85;
+            }
+        }
+
+        @keyframes loadingBar {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(400%);
+            }
+        }
+
+        .page-watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 340px;
+            height: 340px;
+            opacity: 0.04;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            pointer-events: none;
+            z-index: 0;
+            background-image: url('https://nagadloan.online/frontend/assets/img/logo.png');
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(30, 30, 30, 0.92);
+            color: white;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-family: 'Hind Siliguri', sans-serif;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .top-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: #fff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+        }
+
+        .top-header nav {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 14px 10px;
+        }
+
+        .top-header nav a {
+            text-decoration: none;
+            color: #666;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .3px;
+        }
+
+        .top-header nav a.active {
+            color: var(--orange);
+        }
+
+        .page-wrap {
+            max-width: 480px;
+            margin: 0 auto;
+            background: #f0f0f0;
+            min-height: 100vh;
+            padding-bottom: 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-hero-block {
+            background: linear-gradient(135deg, var(--orange), var(--deep-orange));
+            color: white;
+            padding: 26px 0 22px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-watermark {
+            position: absolute;
+            right: -10px;
+            top: -20px;
+            width: 190px;
+            height: 190px;
+            opacity: 0.08;
+            background-image: url('https://nagadloan.online/frontend/assets/img/logo.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+        }
+
+        .header-inner {
+            position: relative;
+            z-index: 1;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-text h1 {
+            font-size: 34px;
+            line-height: 1;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .logo-text p {
+            font-size: 13px;
+            opacity: .95;
+        }
+
+        .bell-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+
+        .bell-icon svg {
+            width: 30px;
+            height: 30px;
+            fill: white;
+        }
+
+        .balance-wrap {
+            position: relative;
+            z-index: 1;
+            padding: 0 20px;
+            margin-top: 18px;
+        }
+
+        .balance-btn {
+            background: white;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto;
+            font-family: 'Hind Siliguri', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--orange);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+        }
+
+        .section {
+            background: white;
+            margin: 12px 0;
+            padding: 24px 20px;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 18px;
+        }
+
+        .about-card {
+            background: linear-gradient(180deg, #fff, #fff8f5);
+            border: 1px solid #f2e2db;
+            border-radius: 18px;
+            padding: 20px 18px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .about-card h3 {
+            font-size: 20px;
+            color: var(--orange);
+            margin-bottom: 10px;
+        }
+
+        .about-card p {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .about-mini-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 16px 14px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f1f1;
+        }
+
+        .about-mini-card h4 {
+            font-size: 15px;
+            color: #222;
+            margin-bottom: 8px;
+        }
+
+        .about-mini-card p {
+            font-size: 13px;
+            line-height: 1.7;
+            color: #666;
+        }
+
+        .info-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .info-item {
+            background: #fff;
+            border-radius: 16px;
+            padding: 16px;
+            border-left: 4px solid var(--orange);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+        }
+
+        .info-item strong {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 6px;
+            color: #222;
+        }
+
+        .info-item span {
+            font-size: 13px;
+            line-height: 1.7;
+            color: #666;
+            display: block;
+        }
+
+        .promo-banner {
+            width: 100%;
+            margin: 12px 0;
+            padding: 0 10px;
+        }
+
+        .promo-banner img {
+            width: 100%;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 0 16px;
+            z-index: 999;
+            box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            min-width: 60px;
+            color: #888;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        .nav-item.active {
+            color: var(--orange);
+        }
+
+        .nav-item.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-item span {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 380px) {
+            .logo-text h1 {
+                font-size: 28px;
+            }
+
+            .header-watermark {
+                width: 150px;
+                height: 150px;
+            }
+
+            .page-watermark {
+                width: 240px;
+                height: 240px;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 481px) {
+            .page-wrap {
+                max-width: 100%;
+            }
+
+            .section {
+                padding: 25px 25px;
+            }
+
+            .balance-wrap {
+                padding: 0 60px;
+            }
+
+            .header-watermark {
+                width: 250px;
+                height: 250px;
+                right: 30px;
+            }
+
+            .page-watermark {
+                width: 420px;
+                height: 420px;
+            }
+        }
+
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .bottom-nav {
+                padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            }
+
+            .page-wrap {
+                padding-bottom: calc(80px + env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="preloader" id="preloader">
+        <img src="nagad/new-logo.14fe8a5.png" alt="Nagad" class="preloader-logo">
+        <div class="preloader-bar">
+            <div class="preloader-bar-inner"></div>
+        </div>
+    </div>
+
+    <div class="page-watermark"></div>
+
+    <div class="toast" id="toast">
+        <span>🚧</span>
+        <span id="toast-msg">সেবাটি শীঘ্রই আসছে</span>
+    </div>
+
+    <header class="top-header">
+        <nav>
+            <a href="#">SERVICES</a>
+            <a href="https://mdarif76769.github.io/nagad/apply">LOAN</a>
+            <a href="#">OFFERS</a>
+            <a href="https://mdarif76769.github.io/nagad/about/" class="active">ABOUT US</a>
+        </nav>
+    </header>
+
+    <div class="page-wrap">
+
+        <div class="header-hero-block">
+            <div class="header-watermark"></div>
+            <div class="header-inner">
+                <div class="logo-text">
+                    <h1>নগদ</h1>
+                    <p>ডাক বিভাগের ডিজিটাল লেনদেন</p>
+                </div>
+                <div class="bell-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="balance-wrap">
+                <button class="balance-btn" onclick="window.location.href='https://mdarif76769.github.io/nagad/apply/'">
+                    লোন সচল ও আবেদনের জন্য
+                </button>
+            </div>
+        </div>
+
+        <div class="section">
+            <p class="section-title">আমাদের সম্পর্কে</p>
+
+            <div class="about-card">
+                <h3>নগদ কী?</h3>
+                <p>
+                    নগদ হলো ডাক বিভাগের ডিজিটাল লেনদেন সেবা, যা ব্যবহারকারীদের জন্য সহজ, দ্রুত ও নিরাপদ আর্থিক সেবা
+                    প্রদানের লক্ষ্যে তৈরি। মোবাইলের মাধ্যমে টাকা পাঠানো, গ্রহণ, পেমেন্ট, মোবাইল রিচার্জ এবং বিভিন্ন
+                    ডিজিটাল সেবা আরও সহজভাবে ব্যবহার করার অভিজ্ঞতা দিতে এই প্ল্যাটফর্ম কাজ করে।
+                </p>
+            </div>
+
+            <div class="about-grid">
+                <div class="about-mini-card">
+                    <h4>আমাদের লক্ষ্য</h4>
+                    <p>
+                        দেশের মানুষের কাছে সহজ ও নির্ভরযোগ্য ডিজিটাল আর্থিক সেবা পৌঁছে দেওয়া।
+                    </p>
+                </div>
+                <div class="about-mini-card">
+                    <h4>আমাদের অঙ্গীকার</h4>
+                    <p>
+                        নিরাপদ লেনদেন, উন্নত ব্যবহারকারী অভিজ্ঞতা এবং দ্রুত সেবা নিশ্চিত করা।
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="promo-banner">
+            <img src="banner.jpg" alt="About Banner">
+        </div>
+
+        <div class="section">
+            <p class="section-title">কেন নগদ?</p>
+            <div class="info-list">
+                <div class="info-item">
+                    <strong>দ্রুত লেনদেন</strong>
+                    <span>সহজ ইন্টারফেসের মাধ্যমে খুব দ্রুত টাকা পাঠানো, গ্রহণ ও পেমেন্ট করা যায়।</span>
+                </div>
+
+                <div class="info-item">
+                    <strong>নিরাপত্তা</strong>
+                    <span>ব্যবহারকারীর তথ্য ও লেনদেন সুরক্ষিত রাখতে একাধিক নিরাপত্তা স্তর ব্যবহৃত হয়।</span>
+                </div>
+
+                <div class="info-item">
+                    <strong>সবার জন্য সহজ</strong>
+                    <span>গ্রাম থেকে শহর—সব ধরনের ব্যবহারকারীর জন্য ব্যবহারযোগ্য ও সহজ ডিজাইন।</span>
+                </div>
+
+                <div class="info-item">
+                    <strong>ডিজিটাল ভবিষ্যৎ</strong>
+                    <span>ক্যাশলেস ও স্মার্ট বাংলাদেশ গঠনে ডিজিটাল আর্থিক সেবা গুরুত্বপূর্ণ ভূমিকা রাখে।</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <p class="section-title">যোগাযোগ</p>
+            <div class="about-card">
+                <p>
+                    সেবার মান উন্নয়ন, গ্রাহক সহায়তা এবং নতুন ডিজিটাল সুবিধা যুক্ত করার মাধ্যমে নগদ সবসময় ব্যবহারকারীদের
+                    আরও ভালো অভিজ্ঞতা দেওয়ার চেষ্টা করে যাচ্ছে।
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="window.location.href='https://mdarif76769.github.io/nagad/'">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+            </svg>
+            <span>হোম</span>
+        </div>
+
+        <div class="nav-item disabled" onclick="showToast('লেনদেন সেবা শীঘ্রই আসছে')">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+            </svg>
+            <span>লেনদেন</span>
+        </div>
+
+        <div class="nav-item disabled" onclick="showToast('কন্টাক্টস সেবা শীঘ্রই আসছে')">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+            </svg>
+            <span>কন্টাক্টস</span>
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='https://nagadloan.online/loan/apply'">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm1 17h-2v-2h2v2zm0-4h-2V8h2v6z" />
+            </svg>
+            <span>লোন</span>
+        </div>
+    </nav>
+
+    <script>
+        let toastTimer;
+
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.add('show');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(function() {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        var lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            var now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, {
+            passive: false
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, {
+            passive: false
+        });
+
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.getElementById('preloader').classList.add('fade-out');
+            }, 1800);
+        });
+
+        setTimeout(() => {
+            const preloader = document.getElementById('preloader');
+            if (preloader) preloader.classList.add('fade-out');
+        }, 4000);
+    </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"6a9d2ac5190b4b5cb0e290f5c362b2ef","r":1}' crossorigin="anonymous"></script>
+</body>
+
+</html>

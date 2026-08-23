@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Apps Controlor - Pro Dashboard</title>
+    <!-- ক্রিপ্টো-জেএস (AES Encryption-এর জন্য লাইব্রেরি) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0914;
+            --card-bg: rgba(22, 19, 38, 0.75);
+            --border-glow: rgba(138, 43, 226, 0.4);
+            --accent-purple: #8a2be2;
+            --accent-green: #00ff88;
+            --accent-orange: #ffaa00;
+            --accent-red: #ff4d4d;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            max-height: 880px;
+            background: linear-gradient(135deg, #0b0914 0%, #151026 100%);
+            border: 1px solid rgba(138, 43, 226, 0.2);
+            box-shadow: 0 0 40px rgba(138, 43, 226, 0.25);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+        }
+
+        .app-header {
+            background: #7c3aed;
+            padding: 16px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 90px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .live-badge {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .search-box {
+            background: #131022;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 13px;
+            width: 100%;
+            outline: none;
+        }
+
+        .item-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 12px rgba(138, 43, 226, 0.15);
+        }
+
+        .item-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .item-info p {
+            margin: 0;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        .card-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .del-btn {
+            background: rgba(255, 77, 77, 0.15);
+            color: var(--accent-red);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .del-btn:hover {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: #131022;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            color: white;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            font-family: monospace;
+        }
+
+        .form-group input[type="date"] { color-scheme: dark; }
+
+        .quick-btn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .q-btn {
+            background: #1a1530;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            color: #d8b4fe;
+            padding: 6px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .q-btn:hover { background: var(--accent-purple); color: white; }
+
+        .action-btn {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 8px;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+        }
+
+        #status_msg {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #0f0c1b;
+            border-top: 1px solid rgba(138, 43, 226, 0.2);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            font-size: 9px;
+            gap: 3px;
+        }
+
+        .nav-item svg { width: 18px; height: 18px; fill: currentColor; }
+        .nav-item.active { color: #c084fc; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="app-header">Firebase Apps Controlor</div>
+
+    <div class="content-area">
+        <!-- ১. UI / Config Tab -->
+        <div id="tab-ui" class="tab-content active">
+            <div class="section-title" style="margin-bottom:8px;">⚙️ GitHub API Config</div>
+            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 15px;">টোকেন ও রিপো নাম দিয়ে ডেটা লোড করুন।</p>
+            
+            <div class="form-group"><label>GitHub PAT Token:</label><input type="password" id="token" placeholder="ghp_xxxxxxxx"></div>
+            <div class="form-group"><label>Repository Name:</label><input type="text" id="repo" value="mdarif76769/api"></div>
+            <button class="action-btn" onclick="loadAllData()">Connect & Load All Files</button>
+        </div>
+
+        <!-- ২. Keys Tab -->
+        <div id="tab-keys" class="tab-content">
+            <div class="section-header">
+                <div class="section-title">🔑 Key Verification</div>
+                <div id="keys_count" class="live-badge">0 Keys</div>
+            </div>
+            <div class="search-box"><input type="text" id="searchKeys" placeholder="Search Key or HWID..."></div>
+            <details style="background: #131022; padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(138,43,226,0.3);">
+                <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 12px;">➕ Add New Key</summary>
+                <div style="margin-top: 10px;">
+                    <div class="form-group"><label>HWID:</label><input type="text" id="key_hwid" placeholder="Device HWID"></div>
+                    <div class="form-group"><label>Key String:</label><input type="text" id="key_str" placeholder="Secret Key"></div>
+                    <div class="form-group">
+                        <label>Allow Offline:</label>
+                        <select id="key_offline">
+                            <option value="true">True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date:</label>
+                        <input type="date" id="key_exp">
+                        <div class="quick-btn-grid">
+                            <button class="q-btn" onclick="setExp('key', 1)">1D</button>
+                            <button class="q-btn" onclick="setExp('key', 30)">1M</button>
+                            <button class="q-btn" onclick="setExp('key', 'life')">Life</button>
+                        </div>
+                    </div>
+                    <button class="action-btn" onclick="addItem('Key_verify.json')">Push Key</button>
+                </div>
+            </details>
+            <div id="keys_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">কানেক্ট করুন...</p></div>
+        </div>
+
+        <!-- ৩. Users Tab -->
+        <div id="tab-users" class="tab-content">
+            <div class="section-header">
+                <div class="section-title">👥 User Accounts</div>
+                <div id="users_count" class="live-badge">0 Users</div>
+            </div>
+            <div class="search-box"><input type="text" id="searchUsers" placeholder="Search Username/HWID..."></div>
+            <details style="background: #131022; padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(138,43,226,0.3);">
+                <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 12px;">➕ Add New User</summary>
+                <div style="margin-top: 10px;">
+                    <div class="form-group"><label>HWID:</label><input type="text" id="up_hwid" placeholder="HWID"></div>
+                    <div class="form-group"><label>Username:</label><input type="text" id="up_username" placeholder="Username"></div>
+                    <div class="form-group"><label>Password:</label><input type="text" id="up_password" placeholder="Password"></div>
+                    <div class="form-group">
+                        <label>Allow Offline:</label>
+                        <select id="up_offline">
+                            <option value="true">True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date:</label>
+                        <input type="date" id="up_exp">
+                        <div class="quick-btn-grid">
+                            <button class="q-btn" onclick="setExp('up', 1)">1D</button>
+                            <button class="q-btn" onclick="setExp('up', 30)">1M</button>
+                            <button class="q-btn" onclick="setExp('up', 'life')">Life</button>
+                        </div>
+                    </div>
+                    <button class="action-btn" onclick="addItem('user-pass_verify.json')">Push User</button>
+                </div>
+            </details>
+            <div id="users_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">ডেটা লোড করুন।</p></div>
+        </div>
+
+        <!-- ৪. System Tab -->
+        <div id="tab-system" class="tab-content">
+            <div class="section-header">
+                <div class="section-title">🚀 Update Info Config</div>
+                <div id="sys_count" class="live-badge">0 Updates</div>
+            </div>
+            <details style="background: #131022; padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(138,43,226,0.3);" open>
+                <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 12px;">➕ Add / Edit Update</summary>
+                <div style="margin-top: 10px;">
+                    <div class="form-group"><label>Version:</label><input type="text" id="uv_version" placeholder="4.0.1"></div>
+                    <div class="form-group"><label>Title:</label><input type="text" id="uv_title" placeholder="Update"></div>
+                    <div class="form-group"><label>Subtitle:</label><input type="text" id="uv_subtitle" placeholder="New update available"></div>
+                    <div class="form-group"><label>Update URL:</label><input type="text" id="uv_url" placeholder="https://..."></div>
+                    <button class="action-btn" onclick="updateSystemFile()">Save Update Info</button>
+                </div>
+            </details>
+            <div id="sys_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">কোনো আপডেট নেই</p></div>
+        </div>
+
+        <!-- ৫. Admin Tab -->
+        <div id="tab-admin" class="tab-content">
+            <div class="section-header">
+                <div class="section-title">📦 Package Management</div>
+                <div id="pkg_count" class="live-badge">0 Packages</div>
+            </div>
+            <details style="background: #131022; padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(138,43,226,0.3);">
+                <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 12px;">➕ Add New Package</summary>
+                <div style="margin-top: 10px;">
+                    <div class="form-group"><label>Package Name:</label><input type="text" id="pv_name" placeholder="com.app.name"></i></div>
+                    <div class="form-group"><label>Latest Version:</label><input type="text" id="pv_ver" placeholder="1.0.0"></div>
+                    <div class="form-group"><label>Download URL:</label><input type="text" id="pv_dl" placeholder="https://..."></div>
+                    <button class="action-btn" onclick="addPackageData()">Push Package</button>
+                </div>
+            </details>
+            <div id="pkg_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">ডেটা লোড করুন।</p></div>
+        </div>
+
+        <!-- ৬. Encrypted Notepad Tab -->
+        <div id="tab-notepad" class="tab-content">
+            <div class="section-header">
+                <div class="section-title">📝 Secure Encrypted Notepad</div>
+                <div class="live-badge" style="background: rgba(255,170,0,0.15); color: var(--accent-orange); border-color: var(--accent-orange);">AES-256 Encrypted</div>
+            </div>
+
+            <!-- Lock Screen Wrapper -->
+            <div id="note_lock_screen" style="background: var(--card-bg); border: 1px solid var(--border-glow); padding: 20px; border-radius: 12px; text-align: center; margin-top: 20px;">
+                <p style="font-size: 14px; color: #c084fc; font-weight: bold; margin-bottom: 15px;">🔒 Enter Your Custom Password</p>
+                <div class="form-group">
+                    <input type="password" id="note_pass_input" placeholder="Enter your secret password" style="text-align: center;">
+                </div>
+                <button class="action-btn" onclick="unlockNotepad()">Unlock & Decrypt</button>
+                <p id="note_err" style="color: var(--accent-red); font-size: 11px; margin-top: 8px;"></p>
+            </div>
+
+            <!-- Editor Wrapper (Hidden until unlocked) -->
+            <div id="note_editor_screen" style="display: none;">
+                <p style="color: var(--text-muted); font-size: 11px; margin-bottom: 8px;">আপনার জিপিজি কোড বা টোকেন এখানে সেভ করুন (AES এনক্রিপ্টেড থাকবে):</p>
+                <div class="form-group">
+                    <textarea id="notepad_content" rows="10" placeholder="Paste your GPG codes or tokens here..."></textarea>
+                </div>
+                <button class="action-btn" onclick="saveNotepadData()">Encrypt & Save Locally</button>
+                
+                <!-- পাসওয়ার্ড পরিবর্তনের সেকশন -->
+                <div style="margin-top: 15px; border-top: 1px solid rgba(138,43,226,0.2); padding-top: 10px;">
+                    <details style="background: #131022; padding: 8px; border-radius: 8px; border: 1px solid rgba(138,43,226,0.3);">
+                        <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 11px;">⚙️ Change Password</summary>
+                        <div style="margin-top: 8px;">
+                            <div class="form-group" style="margin-bottom:8px;"><label>New Password:</label><input type="password" id="new_pass_input" placeholder="New secret password"></div>
+                            <button class="action-btn" onclick="changeNotepadPassword()" style="padding: 8px; font-size: 12px;">Update Password</button>
+                        </div>
+                    </details>
+                </div>
+
+                <button class="action-btn" onclick="lockNotepadAgain()" style="background: #332559; margin-top: 6px;">Lock Again</button>
+            </div>
+        </div>
+
+        <div id="status_msg"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-item" onclick="switchTab('ui', this)"><svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19h3.53c1.23 1.23 2.87 2 4.12 2 4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>UI</button>
+        <button class="nav-item" onclick="switchTab('keys', this)"><svg viewBox="0 0 24 24"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65z"/></svg>Keys</button>
+        <button class="nav-item active" onclick="switchTab('users', this)"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3z"/></svg>Users</button>
+        <button class="nav-item" onclick="switchTab('system', this)"><svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.03 2.18 13.84 2 13.6 2h-4c-.24 0-.43.18-.47.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65z"/></svg>System</button>
+        <button class="nav-item" onclick="switchTab('admin', this)"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>Admin</button>
+        <button class="nav-item" onclick="switchTab('notepad', this)"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>Notepad</button>
+    </div>
+</div>
+
+<script>
+let repoFiles = {
+    'Key_verify.json': { data: [], sha: '' },
+    'user-pass_verify.json': { data: [], sha: '' },
+    'Update_V1.js': { data: [], sha: '' },
+    'pacage-version.json': { data: {}, sha: '' }
+};
+
+let activeNotePassword = ""; // সেশনের জন্য পাসওয়ার্ড মেমোরিতে রাখা
+
+function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+}
+
+function setExp(prefix, days) {
+    let field = document.getElementById(prefix + '_exp');
+    if(days === 'life') { field.value = '2099-12-31'; return; }
+    let d = new Date(); d.setDate(d.getDate() + days);
+    field.value = d.toISOString().split('T')[0];
+}
+
+// --- Encrypted Notepad Logic ---
+function unlockNotepad() {
+    let passInput = document.getElementById('note_pass_input').value.trim();
+    if(!passInput) { document.getElementById('note_err').innerText = 'পাসওয়ার্ড দিন!'; return; }
+    
+    let encryptedData = localStorage.getItem('secure_encrypted_notes');
+    
+    if(!encryptedData) {
+        // যদি লোকাল স্টোরেজে আগে থেকে কিছু না থাকে, এই পাসওয়ার্ড দিয়েই সেট হয়ে যাবে
+        activeNotePassword = passInput;
+        document.getElementById('note_lock_screen').style.display = 'none';
+        document.getElementById('note_editor_screen').style.display = 'block';
+        document.getElementById('note_pass_input').value = '';
+        document.getElementById('note_err').innerText = '';
+        document.getElementById('notepad_content').value = '';
+        return;
+    }
+
+    try {
+        let bytes = CryptoJS.AES.decrypt(encryptedData, passInput);
+        let decryptedText = bytes.toString(CryptoJS.enc.Utf8);
+        
+        if(!decryptedText) {
+            throw new Error('Invalid Password');
+        }
+
+        activeNotePassword = passInput;
+        document.getElementById('note_lock_screen').style.display = 'none';
+        document.getElementById('note_editor_screen').style.display = 'block';
+        document.getElementById('note_pass_input').value = '';
+        document.getElementById('note_err').innerText = '';
+        document.getElementById('notepad_content').value = decryptedText;
+    } catch(e) {
+        document.getElementById('note_err').innerText = '❌ ভুল পাসওয়ার্ড! ডেটা ডিক্রিপ্ট করা যায়নি।';
+    }
+}
+
+function saveNotepadData() {
+    let content = document.getElementById('notepad_content').value;
+    if(!activeNotePassword) { alert('পাসওয়ার্ড সেট করা নেই!'); return; }
+
+    let encryptedContent = CryptoJS.AES.encrypt(content, activeNotePassword).toString();
+    localStorage.setItem('secure_encrypted_notes', encryptedContent);
+    alert('✅ নোট সফলভাবে এনক্রিপ্ট হয়ে এই ডিভাইসে সেভ হয়েছে!');
+}
+
+function changeNotepadPassword() {
+    let newPass = document.getElementById('new_pass_input').value.trim();
+    if(!newPass) { alert('নতুন পাসওয়ার্ড দিন!'); return; }
+
+    let content = document.getElementById('notepad_content').value;
+    
+    // নতুন পাসওয়ার্ড দিয়ে এনক্রিপ্ট করে সেভ করা
+    let encryptedContent = CryptoJS.AES.encrypt(content, newPass).toString();
+    localStorage.setItem('secure_encrypted_notes', encryptedContent);
+    
+    activeNotePassword = newPass; // বর্তমান সেশনের পাসওয়ার্ড আপডেট করা
+    document.getElementById('new_pass_input').value = '';
+    alert('🔑 নোটপ্যাডের পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!');
+}
+
+function lockNotepadAgain() {
+    activeNotePassword = "";
+    document.getElementById('notepad_content').value = '';
+    document.getElementById('note_editor_screen').style.display = 'none';
+    document.getElementById('note_lock_screen').style.display = 'block';
+}
+// -----------------------------
+
+async function fetchGitHubFile(filename, token, repo) {
+    try {
+        const res = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'vnd.github+json' }
+        });
+        if(!res.ok) return false;
+        const file = await res.json();
+        let decodedText = new TextDecoder().decode(Uint8Array.from(atob(file.content), c => c.charCodeAt(0)));
+        let decoded = JSON.parse(decodedText);
+        
+        if(filename === 'Update_V1.js' && !Array.isArray(decoded)) {
+            decoded = decoded && Object.keys(decoded).length > 0 ? [decoded] : [];
+        }
+        if(filename === 'pacage-version.json' && Array.isArray(decoded)) {
+            let tempObj = {};
+            decoded.forEach(item => {
+                if(item.name) {
+                    tempObj[item.name] = { latest_version: item.latest_version, download_url: item.download_url };
+                }
+            });
+            decoded = tempObj;
+        }
+
+        repoFiles[filename] = { data: decoded, sha: file.sha };
+        return true;
+    } catch(e) {
+        return false;
+    }
+}
+
+async function loadAllData() {
+    const token = document.getElementById('token').value.trim();
+    const repo = document.getElementById('repo').value.trim();
+    const msg = document.getElementById('status_msg');
+    if(!token || !repo) { alert('টোকেন ও রিপো নাম দিন'); return; }
+
+    msg.style.color = '#c084fc'; msg.innerText = '⏳ ডেটা ফেচ করা হচ্ছে...';
+    
+    await fetchGitHubFile('Key_verify.json', token, repo);
+    await fetchGitHubFile('user-pass_verify.json', token, repo);
+    await fetchGitHubFile('Update_V1.js', token, repo);
+    await fetchGitHubFile('pacage-version.json', token, repo);
+
+    renderKeysList();
+    renderUsersList();
+    renderSystemList();
+    renderPkgList();
+
+    msg.style.color = 'var(--accent-green)';
+    msg.innerText = '✅ ড্যাশবোর্ড সিঙ্ক সম্পন্ন!';
+}
+
+function renderKeysList() {
+    let container = document.getElementById('keys_list_container');
+    let list = repoFiles['Key_verify.json'].data;
+    document.getElementById('keys_count').innerText = list.length + ' Keys';
+    if(!list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি অথবা নতুন যোগ করুন</p>`; return; }
+
+    let html = '';
+    list.forEach((item, index) => {
+        html += `
+        <div class="item-card">
+            <div class="item-info">
+                <h4>🔑 ${item.key || 'No Key'}</h4>
+                <p>HWID: ${item.device_id || 'N/A'}</p>
+                <p style="font-size:10px; color:#64748b;">Offline: ${item.Allowoffline} | Exp: ${item.expirydate || 'N/A'}</p>
+            </div>
+            <div class="card-actions">
+                <button class="del-btn" onclick="deleteItem('Key_verify.json', ${index})">Delete</button>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderUsersList() {
+    let container = document.getElementById('users_list_container');
+    let list = repoFiles['user-pass_verify.json'].data;
+    document.getElementById('users_count').innerText = list.length + ' Users';
+    if(!list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি অথবা নতুন যোগ করুন</p>`; return; }
+
+    let html = '';
+    list.forEach((item, index) => {
+        html += `
+        <div class="item-card">
+            <div class="item-info">
+                <h4>👤 ${item.username || 'User'}</h4>
+                <p>HWID: ${item.device_id || 'N/A'}</p>
+                <p style="font-size:10px; color:#64748b;">Pass: ${item.password} | Offline: ${item.Allowoffline} | Exp: ${item.expirydate}</p>
+            </div>
+            <div class="card-actions">
+                <button class="del-btn" onclick="deleteItem('user-pass_verify.json', ${index})">Delete</button>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderSystemList() {
+    let container = document.getElementById('sys_list_container');
+    let list = repoFiles['Update_V1.js'].data;
+    if(!Array.isArray(list)) list = [];
+    document.getElementById('sys_count').innerText = list.length + ' Updates';
+    
+    if(!list.length) { 
+        container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">কোনো আপডেট তথ্য নেই</p>`; 
+        return; 
+    }
+
+    let html = '';
+    list.forEach((item, index) => {
+        html += `
+        <div class="item-card">
+            <div class="item-info">
+                <h4>🚀 Ver: ${item.version || 'N/A'} - ${item.title || ''}</h4>
+                <p>${item.subtitle || ''}</p>
+                <p style="font-size:10px; color:#64748b; word-break:break-all;">URL: ${item.update_url || 'N/A'}</p>
+            </div>
+            <div class="card-actions">
+                <button class="del-btn" onclick="deleteSystemUpdate(${index})">Delete</button>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderPkgList() {
+    let container = document.getElementById('pkg_list_container');
+    let data = repoFiles['pacage-version.json'].data;
+    if(!data || typeof data !== 'object') data = {};
+    
+    let keys = Object.keys(data);
+    document.getElementById('pkg_count').innerText = keys.length + ' Packages';
+
+    if(!keys.length) { 
+        container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">কোনো প্যাকেজ নেই</p>`; 
+        return; 
+    }
+
+    let html = '';
+    keys.forEach(pkgName => {
+        let info = data[pkgName];
+        html += `
+        <div class="item-card">
+            <div class="item-info">
+                <h4>📦 ${pkgName}</h4>
+                <p>Ver: ${info.latest_version || 'N/A'}</p>
+            </div>
+            <div class="card-actions">
+                <button class="del-btn" onclick="deletePackage('${pkgName}')">Delete</button>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+async function commitToServer(filename, newData, commitMsg) {
+    const token = document.getElementById('token').value.trim();
+    const repo = document.getElementById('repo').value.trim();
+    const msg = document.getElementById('status_msg');
+    if(!token || !repo) { alert('আগে UI ট্যাবে কানেক্ট করুন'); return; }
+
+    msg.style.color = '#c084fc'; msg.innerText = '⏳ গিটহাবে আপডেট হচ্ছে...';
+
+    try {
+        const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'vnd.github+json' }
+        });
+        
+        let sha = null;
+        if(getRes.ok) {
+            let fileInfo = await getRes.json();
+            sha = fileInfo.sha;
+        }
+        
+        let bodyData = { message: commitMsg, content: btoa(unescape(encodeURIComponent(JSON.stringify(newData, null, 4)))) };
+        if(sha) bodyData.sha = sha;
+
+        const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'vnd.github+json' },
+            body: JSON.stringify(bodyData)
+        });
+
+        if(!putRes.ok) throw new Error('গিটহাব পুশ ফেইল করেছে');
+
+        repoFiles[filename].data = newData;
+        repoFiles[filename].sha = (await putRes.json()).content.sha;
+
+        msg.style.color = 'var(--accent-green)';
+        msg.innerText = `✅ ${filename} সফলভাবে সেভ হয়েছে!`;
+
+        if(filename === 'Key_verify.json') renderKeysList();
+        if(filename === 'user-pass_verify.json') renderUsersList();
+        if(filename === 'Update_V1.js') renderSystemList();
+        if(filename === 'pacage-version.json') renderPkgList();
+    } catch(err) {
+        msg.style.color = '#ff4d4d'; msg.innerText = '❌ ত্রুটি: ' + err.message;
+    }
+}
+
+function formatDate(raw) {
+    if(!raw) return '31-12-2026';
+    let p = raw.split('-');
+    return `${p[2]}-${p[1]}-${p[0]}`;
+}
+
+function addItem(filename) {
+    let list = repoFiles[filename].data;
+    let offlineVal = document.getElementById(filename === 'Key_verify.json' ? 'key_offline' : 'up_offline').value === 'true';
+
+    if(filename === 'Key_verify.json') {
+        list.push({
+            device_id: document.getElementById('key_hwid').value.trim(),
+            key: document.getElementById('key_str').value.trim(),
+            Allowoffline: offlineVal,
+            expirydate: formatDate(document.getElementById('key_exp').value)
+        });
+    } else if(filename === 'user-pass_verify.json') {
+        list.push({
+            device_id: document.getElementById('up_hwid').value.trim(),
+            username: document.getElementById('up_username').value.trim(),
+            password: document.getElementById('up_password').value.trim(),
+            Allowoffline: offlineVal,
+            expirydate: formatDate(document.getElementById('up_exp').value)
+        });
+    }
+    commitToServer(filename, list, `Add item to ${filename}`);
+}
+
+function deleteItem(filename, index) {
+    if(!confirm('সত্যিই এটি ডিলিট করতে চান?')) return;
+    let list = repoFiles[filename].data;
+    list.splice(index, 1);
+    commitToServer(filename, list, `Delete item from ${filename}`);
+}
+
+function updateSystemFile() {
+    let list = repoFiles['Update_V1.js'].data;
+    if(!Array.isArray(list)) list = [];
+
+    let newItem = {
+        version: document.getElementById('uv_version').value.trim(),
+        title: document.getElementById('uv_title').value.trim(),
+        subtitle: document.getElementById('uv_subtitle').value.trim(),
+        update_url: document.getElementById('uv_url').value.trim()
+    };
+
+    list.unshift(newItem);
+    commitToServer('Update_V1.js', list, 'Add system update info');
+}
+
+function deleteSystemUpdate(index) {
+    if(!confirm('এই আপডেট রেকর্ডটি ডিলিট করতে চান?')) return;
+    let list = repoFiles['Update_V1.js'].data;
+    list.splice(index, 1);
+    commitToServer('Update_V1.js', list, 'Delete system update');
+}
+
+function addPackageData() {
+    let data = repoFiles['pacage-version.json'].data;
+    if(!data || typeof data !== 'object') data = {};
+
+    let pkgName = document.getElementById('pv_name').value.trim();
+    if(!pkgName) { alert('প্যাকেজ নাম দিন'); return; }
+
+    data[pkgName] = {
+        latest_version: document.getElementById('pv_ver').value.trim(),
+        download_url: document.getElementById('pv_dl').value.trim()
+    };
+
+    commitToServer('pacage-version.json', data, 'Add package version');
+}
+
+function deletePackage(pkgName) {
+    if(!confirm('এই প্যাকেজটি ডিলিট করতে চান?')) return;
+    let data = repoFiles['pacage-version.json'].data;
+    if(data && data[pkgName]) {
+        delete data[pkgName];
+    }
+    commitToServer('pacage-version.json', data, 'Delete package');
+}
+</script>
+
+</body>
+</html>

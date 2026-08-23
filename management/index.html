@@ -276,10 +276,10 @@
     <div class="app-header">Firebase Apps Controlor</div>
 
     <div class="content-area">
-        <!-- ১. UI / Config Tab (এখানে এখন কাস্টম ফাইলের নাম দেওয়ার অপশনও আছে) -->
+        <!-- ১. UI / Config Tab -->
         <div id="tab-ui" class="tab-content active">
             <div class="section-title" style="margin-bottom:8px;">⚙️ GitHub & Files Config</div>
-            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">আপনার গিটহাব ক্রেডেন্শাল এবং নিজস্ব ফাইলগুলোর নাম সেট করুন।</p>
+            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">আপনার গিটহাব ক্রেডেন্শাল এবং সঠিক ফাইল নামগুলো দিন।</p>
             
             <div class="form-group"><label>GitHub PAT Token:</label><input type="password" id="token" placeholder="ghp_xxxxxxxx"></div>
             <div class="form-group"><label>Repository Name:</label><input type="text" id="repo" value="mdarif76769/api"></div>
@@ -292,7 +292,7 @@
             <div class="form-group"><label>System Update File Name:</label><input type="text" id="file_system" value="Update_V1.js"></div>
             <div class="form-group"><label>Package Version File Name:</label><input type="text" id="file_pkg" value="pacage-version.json"></div>
 
-            <button class="action-btn" onclick="loadAllData()">Connect & Load All Files</button>
+            <button class="action-btn" onclick="checkAndLoadAllData()">Connect & Load All Files</button>
         </div>
 
         <!-- ২. Keys Tab -->
@@ -456,10 +456,10 @@
 
 <script>
 let repoFiles = {
-    'keys': { data: [], sha: '' },
-    'users': { data: [], sha: '' },
-    'system': { data: [], sha: '' },
-    'pkg': { data: {}, sha: '' }
+    'keys': { data: null, sha: '' },
+    'users': { data: null, sha: '' },
+    'system': { data: null, sha: '' },
+    'pkg': { data: null, sha: '' }
 };
 
 let activeNotePassword = "";
@@ -550,7 +550,7 @@ function lockNotepadAgain() {
 }
 // -----------------------------
 
-async function fetchGitHubFile(fileKey, token, repo) {
+async function checkGitHubFileStatus(fileKey, token, repo) {
     let filename = getFileName(fileKey);
     if(!filename) return false;
     
@@ -558,7 +558,9 @@ async function fetchGitHubFile(fileKey, token, repo) {
         const res = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'vnd.github+json' }
         });
+        
         if(!res.ok) return false;
+
         const file = await res.json();
         let decodedText = new TextDecoder().decode(Uint8Array.from(atob(file.content), c => c.charCodeAt(0)));
         let decoded = JSON.parse(decodedText);
@@ -583,18 +585,49 @@ async function fetchGitHubFile(fileKey, token, repo) {
     }
 }
 
-async function loadAllData() {
+async function checkAndLoadAllData() {
     const token = document.getElementById('token').value.trim();
     const repo = document.getElementById('repo').value.trim();
     const msg = document.getElementById('status_msg');
     if(!token || !repo) { alert('টোকেন ও রিপো নাম দিন'); return; }
 
-    msg.style.color = '#c084fc'; msg.innerText = '⏳ ডেটা ফেচ করা হচ্ছে...';
+    msg.style.color = '#c084fc'; msg.innerText = '⏳ গিটহাবে ফাইলগুলো চেকিং করা হচ্ছে...';
     
-    await fetchGitHubFile('keys', token, repo);
-    await fetchGitHubFile('users', token, repo);
-    await fetchGitHubFile('system', token, repo);
-    await fetchGitHubFile('pkg', token, repo);
+    let keysExists = await checkGitHubFileStatus('keys', token, repo);
+    let usersExists = await checkGitHubFileStatus('users', token, repo);
+    let systemExists = await checkGitHubFileStatus('system', token, repo);
+    let pkgExists = await checkGitHubFileStatus('pkg', token, repo);
+
+    let missingFiles = [];
+    if(!keysExists) missingFiles.push(getFileName('keys'));
+    if(!usersExists) missingFiles.push(getFileName('users'));
+    if(!systemExists) missingFiles.push(getFileName('system'));
+    if(!pkgExists) missingFiles.push(getFileName('pkg'));
+
+    // যদি কোনো ফাইল গিটহাবে না পাওয়া যায়, তবে ইউজারের কাছে কনফার্মেশন ফর্ম বা পপআপ চাওয়া হবে
+    if(missingFiles.length > 0) {
+        msg.style.color = '#ffaa00';
+        msg.innerText = '⚠️ কিছু ফাইল গিটহাবে পাওয়া যায়নি!';
+        
+        let confirmCreate = confirm(
+            `সতর্কবার্তা: নিচের ফাইলগুলো গিটহাবে পাওয়া যায়নি বা নাম ভুল আছে:\n\n• ${missingFiles.join('\n• ')}\n\nআপনি কি এই ফাইলগুলো নতুন করে গিটহাবে জেনারেট/তৈরি করতে চান?\n\n[OK] দিলে নতুন ফাইল তৈরি হবে।\n[Cancel] দিলে আপনি ফাইলের নাম চেক বা সংশোধন করতে পারবেন।`
+        );
+
+        if(!confirmCreate) {
+            msg.style.color = '#ff4d4d';
+            msg.innerText = '❌ অপারেশন বাতিল করা হয়েছে। দয়া করে ফাইলের নাম ঠিক করে আবার কানেক্ট করুন।';
+            return;
+        }
+
+        // ইউজার ইয়েস (OK) করলে মিসিং ফাইলগুলোর জন্য ডিফল্ট ডাটা ইনিশিয়ালাইজ করে গিটহাবে পুশ করে ফাইল বানিয়ে নেওয়া হবে
+        msg.style.color = '#c084fc';
+        msg.innerText = '⏳ নতুন ফাইলগুলো গিটহাবে তৈরি করা হচ্ছে...';
+
+        if(!keysExists) { repoFiles['keys'].data = []; await commitToServerSilent('keys', [], 'Create initial keys file'); }
+        if(!usersExists) { repoFiles['users'].data = []; await commitToServerSilent('users', [], 'Create initial users file'); }
+        if(!systemExists) { repoFiles['system'].data = []; await commitToServerSilent('system', [], 'Create initial system file'); }
+        if(!pkgExists) { repoFiles['pkg'].data = {}; await commitToServerSilent('pkg', {}, 'Create initial package file'); }
+    }
 
     renderKeysList();
     renderUsersList();
@@ -602,12 +635,13 @@ async function loadAllData() {
     renderPkgList();
 
     msg.style.color = 'var(--accent-green)';
-    msg.innerText = '✅ ড্যাশবোর্ড সিঙ্ক সম্পন্ন!';
+    msg.innerText = '✅ ড্যাশবোর্ড সফলভাবে সিঙ্ক সম্পন্ন!';
 }
 
 function renderKeysList() {
     let container = document.getElementById('keys_list_container');
     let list = repoFiles['keys'].data;
+    
     document.getElementById('keys_count').innerText = (Array.isArray(list) ? list.length : 0) + ' Keys';
     if(!Array.isArray(list) || !list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি অথবা নতুন যোগ করুন</p>`; return; }
 
@@ -631,6 +665,7 @@ function renderKeysList() {
 function renderUsersList() {
     let container = document.getElementById('users_list_container');
     let list = repoFiles['users'].data;
+
     document.getElementById('users_count').innerText = (Array.isArray(list) ? list.length : 0) + ' Users';
     if(!Array.isArray(list) || !list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি অথবা নতুন যোগ করুন</p>`; return; }
 
@@ -654,6 +689,7 @@ function renderUsersList() {
 function renderSystemList() {
     let container = document.getElementById('sys_list_container');
     let list = repoFiles['system'].data;
+
     if(!Array.isArray(list)) list = [];
     document.getElementById('sys_count').innerText = list.length + ' Updates';
     
@@ -682,6 +718,7 @@ function renderSystemList() {
 function renderPkgList() {
     let container = document.getElementById('pkg_list_container');
     let data = repoFiles['pkg'].data;
+
     if(!data || typeof data !== 'object') data = {};
     
     let keys = Object.keys(data);
@@ -707,6 +744,40 @@ function renderPkgList() {
         </div>`;
     });
     container.innerHTML = html;
+}
+
+async function commitToServerSilent(fileKey, newData, commitMsg) {
+    const token = document.getElementById('token').value.trim();
+    const repo = document.getElementById('repo').value.trim();
+    const filename = getFileName(fileKey);
+    
+    try {
+        const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'vnd.github+json' }
+        });
+        
+        let sha = null;
+        if(getRes.ok) {
+            let fileInfo = await getRes.json();
+            sha = fileInfo.sha;
+        }
+        
+        let bodyData = { message: commitMsg, content: btoa(unescape(encodeURIComponent(JSON.stringify(newData, null, 4)))) };
+        if(sha) bodyData.sha = sha;
+
+        const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'vnd.github+json' },
+            body: JSON.stringify(bodyData)
+        });
+
+        if(putRes.ok) {
+            let resJson = await putRes.json();
+            repoFiles[fileKey].sha = resJson.content.sha;
+        }
+    } catch(err) {
+        console.error(err);
+    }
 }
 
 async function commitToServer(fileKey, newData, commitMsg) {
@@ -791,6 +862,7 @@ function addItem(fileKey) {
 function deleteItem(fileKey, index) {
     if(!confirm('সত্যিই এটি ডিলিট করতে চান?')) return;
     let list = repoFiles[fileKey].data;
+    if(!Array.isArray(list)) return;
     list.splice(index, 1);
     commitToServer(fileKey, list, `Delete item from ${getFileName(fileKey)}`);
 }
@@ -813,6 +885,7 @@ function updateSystemFile() {
 function deleteSystemUpdate(index) {
     if(!confirm('এই আপডেট রেকর্ডটি ডিলিট করতে চান?')) return;
     let list = repoFiles['system'].data;
+    if(!Array.isArray(list)) return;
     list.splice(index, 1);
     commitToServer('system', list, 'Delete system update');
 }

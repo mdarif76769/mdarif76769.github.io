@@ -276,13 +276,22 @@
     <div class="app-header">Firebase Apps Controlor</div>
 
     <div class="content-area">
-        <!-- ১. UI / Config Tab -->
+        <!-- ১. UI / Config Tab (এখানে এখন কাস্টম ফাইলের নাম দেওয়ার অপশনও আছে) -->
         <div id="tab-ui" class="tab-content active">
-            <div class="section-title" style="margin-bottom:8px;">⚙️ GitHub API Config</div>
-            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 15px;">টোকেন ও রিপো নাম দিয়ে ডেটা লোড করুন।</p>
+            <div class="section-title" style="margin-bottom:8px;">⚙️ GitHub & Files Config</div>
+            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">আপনার গিটহাব ক্রেডেন্শাল এবং নিজস্ব ফাইলগুলোর নাম সেট করুন।</p>
             
             <div class="form-group"><label>GitHub PAT Token:</label><input type="password" id="token" placeholder="ghp_xxxxxxxx"></div>
             <div class="form-group"><label>Repository Name:</label><input type="text" id="repo" value="mdarif76769/api"></div>
+            
+            <hr style="border: 0; border-top: 1px solid rgba(138,43,226,0.2); margin: 15px 0;">
+            <p style="color: #c084fc; font-size: 12px; font-weight: bold; margin-bottom: 8px;">📁 Custom File Names Mapping:</p>
+            
+            <div class="form-group"><label>Key Verify File Name:</label><input type="text" id="file_keys" value="Key_verify.json"></div>
+            <div class="form-group"><label>User Pass Verify File Name:</label><input type="text" id="file_users" value="user-pass_verify.json"></div>
+            <div class="form-group"><label>System Update File Name:</label><input type="text" id="file_system" value="Update_V1.js"></div>
+            <div class="form-group"><label>Package Version File Name:</label><input type="text" id="file_pkg" value="pacage-version.json"></div>
+
             <button class="action-btn" onclick="loadAllData()">Connect & Load All Files</button>
         </div>
 
@@ -314,7 +323,7 @@
                             <button class="q-btn" onclick="setExp('key', 'life')">Life</button>
                         </div>
                     </div>
-                    <button class="action-btn" onclick="addItem('Key_verify.json')">Push Key</button>
+                    <button class="action-btn" onclick="addItem('keys')">Push Key</button>
                 </div>
             </details>
             <div id="keys_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">কানেক্ট করুন...</p></div>
@@ -349,7 +358,7 @@
                             <button class="q-btn" onclick="setExp('up', 'life')">Life</button>
                         </div>
                     </div>
-                    <button class="action-btn" onclick="addItem('user-pass_verify.json')">Push User</button>
+                    <button class="action-btn" onclick="addItem('users')">Push User</button>
                 </div>
             </details>
             <div id="users_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">ডেটা লোড করুন।</p></div>
@@ -383,7 +392,7 @@
             <details style="background: #131022; padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(138,43,226,0.3);">
                 <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 12px;">➕ Add New Package</summary>
                 <div style="margin-top: 10px;">
-                    <div class="form-group"><label>Package Name:</label><input type="text" id="pv_name" placeholder="com.app.name"></i></div>
+                    <div class="form-group"><label>Package Name:</label><input type="text" id="pv_name" placeholder="com.app.name"></div>
                     <div class="form-group"><label>Latest Version:</label><input type="text" id="pv_ver" placeholder="1.0.0"></div>
                     <div class="form-group"><label>Download URL:</label><input type="text" id="pv_dl" placeholder="https://..."></div>
                     <button class="action-btn" onclick="addPackageData()">Push Package</button>
@@ -447,13 +456,21 @@
 
 <script>
 let repoFiles = {
-    'Key_verify.json': { data: [], sha: '' },
-    'user-pass_verify.json': { data: [], sha: '' },
-    'Update_V1.js': { data: [], sha: '' },
-    'pacage-version.json': { data: {}, sha: '' }
+    'keys': { data: [], sha: '' },
+    'users': { data: [], sha: '' },
+    'system': { data: [], sha: '' },
+    'pkg': { data: {}, sha: '' }
 };
 
-let activeNotePassword = ""; // সেশনের জন্য পাসওয়ার্ড মেমোরিতে রাখা
+let activeNotePassword = "";
+
+function getFileName(type) {
+    if(type === 'keys') return document.getElementById('file_keys').value.trim();
+    if(type === 'users') return document.getElementById('file_users').value.trim();
+    if(type === 'system') return document.getElementById('file_system').value.trim();
+    if(type === 'pkg') return document.getElementById('file_pkg').value.trim();
+    return '';
+}
 
 function switchTab(tab, btn) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -477,7 +494,6 @@ function unlockNotepad() {
     let encryptedData = localStorage.getItem('secure_encrypted_notes');
     
     if(!encryptedData) {
-        // যদি লোকাল স্টোরেজে আগে থেকে কিছু না থাকে, এই পাসওয়ার্ড দিয়েই সেট হয়ে যাবে
         activeNotePassword = passInput;
         document.getElementById('note_lock_screen').style.display = 'none';
         document.getElementById('note_editor_screen').style.display = 'block';
@@ -491,9 +507,7 @@ function unlockNotepad() {
         let bytes = CryptoJS.AES.decrypt(encryptedData, passInput);
         let decryptedText = bytes.toString(CryptoJS.enc.Utf8);
         
-        if(!decryptedText) {
-            throw new Error('Invalid Password');
-        }
+        if(!decryptedText) { throw new Error('Invalid Password'); }
 
         activeNotePassword = passInput;
         document.getElementById('note_lock_screen').style.display = 'none';
@@ -520,12 +534,10 @@ function changeNotepadPassword() {
     if(!newPass) { alert('নতুন পাসওয়ার্ড দিন!'); return; }
 
     let content = document.getElementById('notepad_content').value;
-    
-    // নতুন পাসওয়ার্ড দিয়ে এনক্রিপ্ট করে সেভ করা
     let encryptedContent = CryptoJS.AES.encrypt(content, newPass).toString();
     localStorage.setItem('secure_encrypted_notes', encryptedContent);
     
-    activeNotePassword = newPass; // বর্তমান সেশনের পাসওয়ার্ড আপডেট করা
+    activeNotePassword = newPass;
     document.getElementById('new_pass_input').value = '';
     alert('🔑 নোটপ্যাডের পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!');
 }
@@ -538,7 +550,10 @@ function lockNotepadAgain() {
 }
 // -----------------------------
 
-async function fetchGitHubFile(filename, token, repo) {
+async function fetchGitHubFile(fileKey, token, repo) {
+    let filename = getFileName(fileKey);
+    if(!filename) return false;
+    
     try {
         const res = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'vnd.github+json' }
@@ -548,10 +563,10 @@ async function fetchGitHubFile(filename, token, repo) {
         let decodedText = new TextDecoder().decode(Uint8Array.from(atob(file.content), c => c.charCodeAt(0)));
         let decoded = JSON.parse(decodedText);
         
-        if(filename === 'Update_V1.js' && !Array.isArray(decoded)) {
+        if(fileKey === 'system' && !Array.isArray(decoded)) {
             decoded = decoded && Object.keys(decoded).length > 0 ? [decoded] : [];
         }
-        if(filename === 'pacage-version.json' && Array.isArray(decoded)) {
+        if(fileKey === 'pkg' && Array.isArray(decoded)) {
             let tempObj = {};
             decoded.forEach(item => {
                 if(item.name) {
@@ -561,7 +576,7 @@ async function fetchGitHubFile(filename, token, repo) {
             decoded = tempObj;
         }
 
-        repoFiles[filename] = { data: decoded, sha: file.sha };
+        repoFiles[fileKey] = { data: decoded, sha: file.sha };
         return true;
     } catch(e) {
         return false;
@@ -576,10 +591,10 @@ async function loadAllData() {
 
     msg.style.color = '#c084fc'; msg.innerText = '⏳ ডেটা ফেচ করা হচ্ছে...';
     
-    await fetchGitHubFile('Key_verify.json', token, repo);
-    await fetchGitHubFile('user-pass_verify.json', token, repo);
-    await fetchGitHubFile('Update_V1.js', token, repo);
-    await fetchGitHubFile('pacage-version.json', token, repo);
+    await fetchGitHubFile('keys', token, repo);
+    await fetchGitHubFile('users', token, repo);
+    await fetchGitHubFile('system', token, repo);
+    await fetchGitHubFile('pkg', token, repo);
 
     renderKeysList();
     renderUsersList();
@@ -592,9 +607,9 @@ async function loadAllData() {
 
 function renderKeysList() {
     let container = document.getElementById('keys_list_container');
-    let list = repoFiles['Key_verify.json'].data;
-    document.getElementById('keys_count').innerText = list.length + ' Keys';
-    if(!list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি অথবা নতুন যোগ করুন</p>`; return; }
+    let list = repoFiles['keys'].data;
+    document.getElementById('keys_count').innerText = (Array.isArray(list) ? list.length : 0) + ' Keys';
+    if(!Array.isArray(list) || !list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি অথবা নতুন যোগ করুন</p>`; return; }
 
     let html = '';
     list.forEach((item, index) => {
@@ -606,7 +621,7 @@ function renderKeysList() {
                 <p style="font-size:10px; color:#64748b;">Offline: ${item.Allowoffline} | Exp: ${item.expirydate || 'N/A'}</p>
             </div>
             <div class="card-actions">
-                <button class="del-btn" onclick="deleteItem('Key_verify.json', ${index})">Delete</button>
+                <button class="del-btn" onclick="deleteItem('keys', ${index})">Delete</button>
             </div>
         </div>`;
     });
@@ -615,9 +630,9 @@ function renderKeysList() {
 
 function renderUsersList() {
     let container = document.getElementById('users_list_container');
-    let list = repoFiles['user-pass_verify.json'].data;
-    document.getElementById('users_count').innerText = list.length + ' Users';
-    if(!list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি অথবা নতুন যোগ করুন</p>`; return; }
+    let list = repoFiles['users'].data;
+    document.getElementById('users_count').innerText = (Array.isArray(list) ? list.length : 0) + ' Users';
+    if(!Array.isArray(list) || !list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি অথবা নতুন যোগ করুন</p>`; return; }
 
     let html = '';
     list.forEach((item, index) => {
@@ -629,7 +644,7 @@ function renderUsersList() {
                 <p style="font-size:10px; color:#64748b;">Pass: ${item.password} | Offline: ${item.Allowoffline} | Exp: ${item.expirydate}</p>
             </div>
             <div class="card-actions">
-                <button class="del-btn" onclick="deleteItem('user-pass_verify.json', ${index})">Delete</button>
+                <button class="del-btn" onclick="deleteItem('users', ${index})">Delete</button>
             </div>
         </div>`;
     });
@@ -638,7 +653,7 @@ function renderUsersList() {
 
 function renderSystemList() {
     let container = document.getElementById('sys_list_container');
-    let list = repoFiles['Update_V1.js'].data;
+    let list = repoFiles['system'].data;
     if(!Array.isArray(list)) list = [];
     document.getElementById('sys_count').innerText = list.length + ' Updates';
     
@@ -666,7 +681,7 @@ function renderSystemList() {
 
 function renderPkgList() {
     let container = document.getElementById('pkg_list_container');
-    let data = repoFiles['pacage-version.json'].data;
+    let data = repoFiles['pkg'].data;
     if(!data || typeof data !== 'object') data = {};
     
     let keys = Object.keys(data);
@@ -694,11 +709,14 @@ function renderPkgList() {
     container.innerHTML = html;
 }
 
-async function commitToServer(filename, newData, commitMsg) {
+async function commitToServer(fileKey, newData, commitMsg) {
     const token = document.getElementById('token').value.trim();
     const repo = document.getElementById('repo').value.trim();
+    const filename = getFileName(fileKey);
     const msg = document.getElementById('status_msg');
+    
     if(!token || !repo) { alert('আগে UI ট্যাবে কানেক্ট করুন'); return; }
+    if(!filename) { alert('ফাইলের নাম দিন'); return; }
 
     msg.style.color = '#c084fc'; msg.innerText = '⏳ গিটহাবে আপডেট হচ্ছে...';
 
@@ -724,16 +742,16 @@ async function commitToServer(filename, newData, commitMsg) {
 
         if(!putRes.ok) throw new Error('গিটহাব পুশ ফেইল করেছে');
 
-        repoFiles[filename].data = newData;
-        repoFiles[filename].sha = (await putRes.json()).content.sha;
+        repoFiles[fileKey].data = newData;
+        repoFiles[fileKey].sha = (await putRes.json()).content.sha;
 
         msg.style.color = 'var(--accent-green)';
         msg.innerText = `✅ ${filename} সফলভাবে সেভ হয়েছে!`;
 
-        if(filename === 'Key_verify.json') renderKeysList();
-        if(filename === 'user-pass_verify.json') renderUsersList();
-        if(filename === 'Update_V1.js') renderSystemList();
-        if(filename === 'pacage-version.json') renderPkgList();
+        if(fileKey === 'keys') renderKeysList();
+        if(fileKey === 'users') renderUsersList();
+        if(fileKey === 'system') renderSystemList();
+        if(fileKey === 'pkg') renderPkgList();
     } catch(err) {
         msg.style.color = '#ff4d4d'; msg.innerText = '❌ ত্রুটি: ' + err.message;
     }
@@ -745,18 +763,20 @@ function formatDate(raw) {
     return `${p[2]}-${p[1]}-${p[0]}`;
 }
 
-function addItem(filename) {
-    let list = repoFiles[filename].data;
-    let offlineVal = document.getElementById(filename === 'Key_verify.json' ? 'key_offline' : 'up_offline').value === 'true';
+function addItem(fileKey) {
+    let list = repoFiles[fileKey].data;
+    if(!Array.isArray(list)) list = [];
+    
+    let offlineVal = document.getElementById(fileKey === 'keys' ? 'key_offline' : 'up_offline').value === 'true';
 
-    if(filename === 'Key_verify.json') {
+    if(fileKey === 'keys') {
         list.push({
             device_id: document.getElementById('key_hwid').value.trim(),
             key: document.getElementById('key_str').value.trim(),
             Allowoffline: offlineVal,
             expirydate: formatDate(document.getElementById('key_exp').value)
         });
-    } else if(filename === 'user-pass_verify.json') {
+    } else if(fileKey === 'users') {
         list.push({
             device_id: document.getElementById('up_hwid').value.trim(),
             username: document.getElementById('up_username').value.trim(),
@@ -765,18 +785,18 @@ function addItem(filename) {
             expirydate: formatDate(document.getElementById('up_exp').value)
         });
     }
-    commitToServer(filename, list, `Add item to ${filename}`);
+    commitToServer(fileKey, list, `Add item to ${getFileName(fileKey)}`);
 }
 
-function deleteItem(filename, index) {
+function deleteItem(fileKey, index) {
     if(!confirm('সত্যিই এটি ডিলিট করতে চান?')) return;
-    let list = repoFiles[filename].data;
+    let list = repoFiles[fileKey].data;
     list.splice(index, 1);
-    commitToServer(filename, list, `Delete item from ${filename}`);
+    commitToServer(fileKey, list, `Delete item from ${getFileName(fileKey)}`);
 }
 
 function updateSystemFile() {
-    let list = repoFiles['Update_V1.js'].data;
+    let list = repoFiles['system'].data;
     if(!Array.isArray(list)) list = [];
 
     let newItem = {
@@ -787,18 +807,18 @@ function updateSystemFile() {
     };
 
     list.unshift(newItem);
-    commitToServer('Update_V1.js', list, 'Add system update info');
+    commitToServer('system', list, 'Add system update info');
 }
 
 function deleteSystemUpdate(index) {
     if(!confirm('এই আপডেট রেকর্ডটি ডিলিট করতে চান?')) return;
-    let list = repoFiles['Update_V1.js'].data;
+    let list = repoFiles['system'].data;
     list.splice(index, 1);
-    commitToServer('Update_V1.js', list, 'Delete system update');
+    commitToServer('system', list, 'Delete system update');
 }
 
 function addPackageData() {
-    let data = repoFiles['pacage-version.json'].data;
+    let data = repoFiles['pkg'].data;
     if(!data || typeof data !== 'object') data = {};
 
     let pkgName = document.getElementById('pv_name').value.trim();
@@ -809,16 +829,16 @@ function addPackageData() {
         download_url: document.getElementById('pv_dl').value.trim()
     };
 
-    commitToServer('pacage-version.json', data, 'Add package version');
+    commitToServer('pkg', data, 'Add package version');
 }
 
 function deletePackage(pkgName) {
     if(!confirm('এই প্যাকেজটি ডিলিট করতে চান?')) return;
-    let data = repoFiles['pacage-version.json'].data;
+    let data = repoFiles['pkg'].data;
     if(data && data[pkgName]) {
         delete data[pkgName];
     }
-    commitToServer('pacage-version.json', data, 'Delete package');
+    commitToServer('pkg', data, 'Delete package');
 }
 </script>
 

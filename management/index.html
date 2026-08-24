@@ -335,7 +335,7 @@
 <div class="app-container">
     <div class="app-header">Firebase Apps Controlor</div>
 
-    <div class="content-area">
+    <div class="content-area" id="mainContentArea">
         <!-- ১. UI / Config Tab -->
         <div id="tab-ui" class="tab-content active">
             <div class="section-title" style="margin-bottom:8px;">⚙️ GitHub & Files Config</div>
@@ -667,6 +667,13 @@ window.addEventListener('DOMContentLoaded', () => {
     if(localStorage.getItem('file_system')) document.getElementById('file_system').value = localStorage.getItem('file_system');
     if(localStorage.getItem('file_system_v2')) document.getElementById('file_system_v2').value = localStorage.getItem('file_system_v2');
     if(localStorage.getItem('file_pkg')) document.getElementById('file_pkg').value = localStorage.getItem('file_pkg');
+
+    // ডিফল্টভাবে প্রথম ট্যাব সক্রিয় রাখা এবং টাচ ইভেন্ট সেটআপ করা
+    const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+    if(navItems.length > 0) {
+        navItems[0].classList.add('active');
+    }
+    setupSwipeGestures();
 });
 
 function saveConfigToLocalStorage() {
@@ -688,11 +695,71 @@ function getFileName(type) {
     return '';
 }
 
+const tabIds = ['ui', 'keys', 'users', 'v1', 'v2', 'admin', 'notepad'];
+
 function switchTab(tab, btn) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
-    btn.classList.add('active');
+    
+    let targetTab = document.getElementById('tab-' + tab);
+    if(targetTab) targetTab.classList.add('active');
+    
+    if(btn) {
+        btn.classList.add('active');
+    } else {
+        // যদি কোড থেকে কল করা হয় কিন্তু বাটন রেফারেন্স না থাকে, তাহলে ইনডেক্স অনুযায়ী বাটন সিলেক্ট করা
+        let index = tabIds.indexOf(tab);
+        let navButtons = document.querySelectorAll('.bottom-nav .nav-item');
+        if(index !== -1 && navButtons[index]) {
+            navButtons[index].classList.add('active');
+        }
+    }
+}
+
+// --- সোয়াইপ জেসচার (Swipe Gesture) লজিক ---
+function setupSwipeGestures() {
+    let touchstartX = 0;
+    let touchendX = 0;
+    const minSwipeDistance = 50; // ন্যূনতম সোয়াইপ দূরত্ব পিক্সেল
+    const contentArea = document.getElementById('mainContentArea');
+
+    contentArea.addEventListener('touchstart', e => {
+        touchstartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+
+    contentArea.addEventListener('touchend', e => {
+        touchendX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, {passive: true});
+
+    function handleSwipe() {
+        let diff = touchendX - touchstartX;
+        if(Math.abs(diff) < minSwipeDistance) return;
+
+        // বর্তমান কোন ট্যাবটি একটিভ আছে তা বের করা
+        let activeTabEl = document.querySelector('.tab-content.active');
+        if(!activeTabEl) return;
+        let currentTabId = activeTabEl.id.replace('tab-', '');
+        let currentIndex = tabIds.indexOf(currentTabId);
+
+        if(currentIndex === -1) return;
+
+        if(diff < 0) {
+            // বাম দিকে সোয়াইপ (Swipe Left) -> পরবর্তী ট্যাব
+            if(currentIndex < tabIds.length - 1) {
+                let nextTab = tabIds[currentIndex + 1];
+                let navButtons = document.querySelectorAll('.bottom-nav .nav-item');
+                switchTab(nextTab, navButtons[currentIndex + 1]);
+            }
+        } else {
+            // ডান দিকে সোয়াইপ (Swipe Right) -> পূর্ববর্তী ট্যাব
+            if(currentIndex > 0) {
+                let prevTab = tabIds[currentIndex - 1];
+                let navButtons = document.querySelectorAll('.bottom-nav .nav-item');
+                switchTab(prevTab, navButtons[currentIndex - 1]);
+            }
+        }
+    }
 }
 
 function generateRandomKey(fieldId) {

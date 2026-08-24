@@ -218,7 +218,6 @@
         .form-group textarea { resize: vertical; }
         .form-group input[type="date"] { color-scheme: dark; }
 
-        /* কি অটো-জেনারেটর বাটন স্টাইল */
         .input-with-gen {
             display: flex;
             gap: 6px;
@@ -236,7 +235,6 @@
         }
         .gen-btn:hover { opacity: 0.9; }
 
-        /* ৭টি শর্টকাট গ্রিড লেআউট */
         .quick-btn-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -310,7 +308,6 @@
         .nav-item svg { width: 16px; height: 16px; fill: currentColor; }
         .nav-item.active { color: #c084fc; }
 
-        /* মোডাল উইন্ডো স্টাইল */
         .modal {
             display: none;
             position: fixed;
@@ -403,7 +400,7 @@
             <div id="keys_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">কানেক্ট করুন...</p></div>
         </div>
 
-        <!-- ৩. Users Tab (ইউজারনেম ম্যানুয়াল এবং পাসওয়ার্ড অটো-জেনারেটর সহ) -->
+        <!-- ৩. Users Tab -->
         <div id="tab-users" class="tab-content">
             <div class="section-header">
                 <div class="section-title">👥 User Accounts</div>
@@ -614,13 +611,6 @@
                 <label>Expiry Date:</label>
                 <input type="date" id="editExp">
             </div>
-            <div class="form-group" id="editStatusWrapper">
-                <label>Status:</label>
-                <select id="editStatus">
-                    <option value="active">Active (Unblocked)</option>
-                    <option value="blocked">Blocked</option>
-                </select>
-            </div>
 
             <button class="action-btn" onclick="saveEditedItem()">Update & Save</button>
             <button class="action-btn" onclick="closeEditModal()" style="background: #332559; margin-top: 6px;">Cancel</button>
@@ -705,7 +695,6 @@ function switchTab(tab, btn) {
     btn.classList.add('active');
 }
 
-// কি অটো জেনারেটর ফাংশন (RS5- + A-Z, 0-9 দিয়ে ৭ ক্যারেক্টার)
 function generateRandomKey(fieldId) {
     let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let randomPart = "";
@@ -715,7 +704,6 @@ function generateRandomKey(fieldId) {
     document.getElementById(fieldId).value = "RS5-" + randomPart;
 }
 
-// ৭টি শর্টকাট ডেট ক্যালকুলেটর ফাংশন
 function setExp(prefix, days) {
     let field = document.getElementById(prefix + '_exp');
     if(days === 'life') { field.value = '2099-12-31'; return; }
@@ -723,7 +711,6 @@ function setExp(prefix, days) {
     field.value = d.toISOString().split('T')[0];
 }
 
-// --- Encrypted Notepad Logic ---
 function unlockNotepad() {
     let passInput = document.getElementById('note_pass_input').value.trim();
     if(!passInput) { document.getElementById('note_err').innerText = 'পাসওয়ার্ড দিন!'; return; }
@@ -854,16 +841,14 @@ function renderKeysList() {
 
     let html = '';
     list.forEach((item, index) => {
-        let isBlocked = item.status === 'blocked';
         html += `
-        <div class="item-card ${isBlocked ? 'blocked' : ''}">
+        <div class="item-card">
             <div class="item-info">
-                <h4>🔑 ${item.key || 'No Key'} ${isBlocked ? '<span style="color:var(--accent-red); font-size:10px;">[BLOCKED]</span>' : ''}</h4>
+                <h4>🔑 ${item.key || 'No Key'}</h4>
                 <p>HWID: ${item.device_id || 'N/A'}</p>
                 <p style="font-size:10px; color:#64748b;">Exp: ${item.expirydate} | Offline: ${item.Allowoffline}</p>
             </div>
             <div class="card-actions">
-                <button class="block-btn" onclick="toggleBlock('keys', ${index})">${isBlocked ? 'Unblock' : 'Block'}</button>
                 <button class="edit-btn" onclick="openEditModal('keys', ${index})">Edit</button>
                 <button class="del-btn" onclick="deleteItem('keys', ${index})">Del</button>
             </div>
@@ -880,16 +865,14 @@ function renderUsersList() {
 
     let html = '';
     list.forEach((item, index) => {
-        let isBlocked = item.status === 'blocked';
         html += `
-        <div class="item-card ${isBlocked ? 'blocked' : ''}">
+        <div class="item-card">
             <div class="item-info">
-                <h4>👤 ${item.username || 'User'} ${isBlocked ? '<span style="color:var(--accent-red); font-size:10px;">[BLOCKED]</span>' : ''}</h4>
+                <h4>👤 ${item.username || 'User'}</h4>
                 <p>HWID: ${item.device_id || 'N/A'}</p>
                 <p style="font-size:10px; color:#64748b;">Pass: ${item.password} | Exp: ${item.expirydate}</p>
             </div>
             <div class="card-actions">
-                <button class="block-btn" onclick="toggleBlock('users', ${index})">${isBlocked ? 'Unblock' : 'Block'}</button>
                 <button class="edit-btn" onclick="openEditModal('users', ${index})">Edit</button>
                 <button class="del-btn" onclick="deleteItem('users', ${index})">Del</button>
             </div>
@@ -1078,8 +1061,7 @@ function addItem(fileKey) {
             device_id: document.getElementById('key_hwid').value.trim(),
             key: document.getElementById('key_str').value.trim(),
             expirydate: formatDate(document.getElementById('key_exp').value),
-            Allowoffline: offlineVal,
-            status: 'active'
+            Allowoffline: offlineVal
         });
     } else if(fileKey === 'users') {
         list.push({
@@ -1087,8 +1069,7 @@ function addItem(fileKey) {
             username: document.getElementById('up_username').value.trim(),
             password: document.getElementById('up_password').value.trim(),
             expirydate: formatDate(document.getElementById('up_exp').value),
-            Allowoffline: offlineVal,
-            status: 'active'
+            Allowoffline: offlineVal
         });
     }
     commitToServer(fileKey, list, `Add item to ${getFileName(fileKey)}`);
@@ -1102,29 +1083,18 @@ function deleteItem(fileKey, index) {
     commitToServer(fileKey, list, `Delete item from ${getFileName(fileKey)}`);
 }
 
-function toggleBlock(fileKey, index) {
-    let list = repoFiles[fileKey].data;
-    if(!Array.isArray(list) || !list[index]) return;
-    let currentStatus = list[index].status || 'active';
-    list[index].status = (currentStatus === 'blocked') ? 'active' : 'blocked';
-    commitToServer(fileKey, list, `Toggle block status for item ${index}`);
-}
-
-// এডিট মোডাল ওপেন করা (সব ট্যাবের জন্য ডাইনামিক)
 function openEditModal(fileKey, indexOrKey) {
     let data = repoFiles[fileKey].data;
     document.getElementById('editType').value = fileKey;
     document.getElementById('editIndex').value = indexOrKey;
     document.getElementById('editModal').style.display = 'flex';
 
-    // হাইড বা রিসেট ফিল্ডস
     document.getElementById('groupEditField1').style.display = 'block';
     document.getElementById('groupEditField2').style.display = 'block';
     document.getElementById('groupEditField3').style.display = 'none';
     document.getElementById('groupEditField4').style.display = 'none';
     document.getElementById('groupEditSelect1').style.display = 'none';
     document.getElementById('editDateWrapper').style.display = 'none';
-    document.getElementById('editStatusWrapper').style.display = 'none';
 
     if(fileKey === 'keys') {
         let item = data[indexOrKey];
@@ -1135,8 +1105,6 @@ function openEditModal(fileKey, indexOrKey) {
         document.getElementById('editField2').value = item.device_id || '';
         document.getElementById('editDateWrapper').style.display = 'block';
         document.getElementById('editExp').value = unformatDate(item.expirydate);
-        document.getElementById('editStatusWrapper').style.display = 'block';
-        document.getElementById('editStatus').value = item.status || 'active';
     } 
     else if(fileKey === 'users') {
         let item = data[indexOrKey];
@@ -1147,8 +1115,6 @@ function openEditModal(fileKey, indexOrKey) {
         document.getElementById('editField2').value = item.password || '';
         document.getElementById('editDateWrapper').style.display = 'block';
         document.getElementById('editExp').value = unformatDate(item.expirydate);
-        document.getElementById('editStatusWrapper').style.display = 'block';
-        document.getElementById('editStatus').value = item.status || 'active';
     }
     else if(fileKey === 'system') {
         let list = Array.isArray(data) ? data : [data];
@@ -1212,7 +1178,6 @@ function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
 }
 
-// এডিট করা ডেটা সেভ করা
 function saveEditedItem() {
     let fileKey = document.getElementById('editType').value;
     let data = repoFiles[fileKey].data;
@@ -1228,13 +1193,11 @@ function saveEditedItem() {
         data[index].key = val1;
         data[index].device_id = val2;
         data[index].expirydate = formatDate(document.getElementById('editExp').value);
-        data[index].status = document.getElementById('editStatus').value;
     } else if(fileKey === 'users') {
         let index = parseInt(document.getElementById('editIndex').value);
         data[index].username = val1;
         data[index].password = val2;
         data[index].expirydate = formatDate(document.getElementById('editExp').value);
-        data[index].status = document.getElementById('editStatus').value;
     } else if(fileKey === 'system') {
         let index = parseInt(document.getElementById('editIndex').value);
         let list = Array.isArray(data) ? data : [data];

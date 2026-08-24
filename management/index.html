@@ -133,6 +133,11 @@
             box-shadow: 0 0 12px rgba(138, 43, 226, 0.15);
         }
 
+        .item-card.blocked {
+            border-color: var(--accent-red);
+            background: rgba(255, 77, 77, 0.05);
+        }
+
         .item-info h4 {
             margin: 0 0 4px 0;
             font-size: 14px;
@@ -144,29 +149,46 @@
             font-size: 11px;
             color: var(--text-muted);
             font-family: monospace;
+            white-space: pre-line;
         }
 
         .card-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+        }
+
+        .edit-btn {
+            background: rgba(255, 170, 0, 0.15);
+            color: var(--accent-orange);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .block-btn {
+            background: rgba(138, 43, 226, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
         }
 
         .del-btn {
             background: rgba(255, 77, 77, 0.15);
             color: var(--accent-red);
             border: 1px solid rgba(255, 77, 77, 0.3);
-            padding: 6px 10px;
+            padding: 6px 8px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 11px;
             font-weight: bold;
-            transition: 0.2s;
-        }
-
-        .del-btn:hover {
-            background: var(--accent-red);
-            color: white;
         }
 
         .form-group {
@@ -193,16 +215,31 @@
             outline: none;
         }
 
-        .form-group textarea {
-            resize: vertical;
-            font-family: monospace;
-        }
-
+        .form-group textarea { resize: vertical; }
         .form-group input[type="date"] { color-scheme: dark; }
 
+        /* কি অটো-জেনারেটর বাটন স্টাইল */
+        .input-with-gen {
+            display: flex;
+            gap: 6px;
+        }
+        .gen-btn {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+            border: none;
+            padding: 0 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .gen-btn:hover { opacity: 0.9; }
+
+        /* ৭টি শর্টকাট গ্রিড লেআউট */
         .quick-btn-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 5px;
             margin-top: 5px;
         }
@@ -211,11 +248,12 @@
             background: #1a1530;
             border: 1px solid rgba(138, 43, 226, 0.3);
             color: #d8b4fe;
-            padding: 6px;
+            padding: 6px 4px;
             border-radius: 5px;
             cursor: pointer;
             font-size: 10px;
             font-weight: bold;
+            text-align: center;
         }
 
         .q-btn:hover { background: var(--accent-purple); color: white; }
@@ -250,8 +288,9 @@
             border-top: 1px solid rgba(138, 43, 226, 0.2);
             display: flex;
             justify-content: space-around;
-            padding: 8px 0;
+            padding: 6px 2px;
             z-index: 100;
+            overflow-x: auto;
         }
 
         .nav-item {
@@ -262,12 +301,36 @@
             flex-direction: column;
             align-items: center;
             cursor: pointer;
-            font-size: 9px;
-            gap: 3px;
+            font-size: 8.5px;
+            gap: 2px;
+            white-space: nowrap;
+            flex: 1;
         }
 
-        .nav-item svg { width: 18px; height: 18px; fill: currentColor; }
+        .nav-item svg { width: 16px; height: 16px; fill: currentColor; }
         .nav-item.active { color: #c084fc; }
+
+        /* মোডাল উইন্ডো স্টাইল */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #161326;
+            border: 1px solid var(--border-glow);
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -289,7 +352,8 @@
             
             <div class="form-group"><label>Key Verify File Name:</label><input type="text" id="file_keys" value="Key_verify.json"></div>
             <div class="form-group"><label>User Pass Verify File Name:</label><input type="text" id="file_users" value="user-pass_verify.json"></div>
-            <div class="form-group"><label>System Update File Name:</label><input type="text" id="file_system" value="Update_V1.js"></div>
+            <div class="form-group"><label>System Update File Name (V1):</label><input type="text" id="file_system" value="Update_V1.js"></div>
+            <div class="form-group"><label>System Update File Name (V2):</label><input type="text" id="file_system_v2" value="update_v2.json"></div>
             <div class="form-group"><label>Package Version File Name:</label><input type="text" id="file_pkg" value="pacage-version.json"></div>
 
             <button class="action-btn" onclick="checkAndLoadAllData()">Connect & Load All Files</button>
@@ -306,7 +370,26 @@
                 <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 12px;">➕ Add New Key</summary>
                 <div style="margin-top: 10px;">
                     <div class="form-group"><label>HWID:</label><input type="text" id="key_hwid" placeholder="Device HWID"></div>
-                    <div class="form-group"><label>Key String:</label><input type="text" id="key_str" placeholder="Secret Key"></div>
+                    <div class="form-group">
+                        <label>Key String (Auto Generate):</label>
+                        <div class="input-with-gen">
+                            <input type="text" id="key_str" placeholder="RS5-XXXXXXX">
+                            <button class="gen-btn" onclick="generateRandomKey('key_str')">⚡ Generate</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date (৭টি শর্টকাট):</label>
+                        <input type="date" id="key_exp">
+                        <div class="quick-btn-grid">
+                            <button class="q-btn" onclick="setExp('key', 1)">1 Day</button>
+                            <button class="q-btn" onclick="setExp('key', 7)">7 Days</button>
+                            <button class="q-btn" onclick="setExp('key', 30)">1 Month</button>
+                            <button class="q-btn" onclick="setExp('key', 90)">3 Months</button>
+                            <button class="q-btn" onclick="setExp('key', 180)">6 Months</button>
+                            <button class="q-btn" onclick="setExp('key', 365)">1 Year</button>
+                            <button class="q-btn" onclick="setExp('key', 'life')" style="grid-column: span 2;">Lifetime</button>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Allow Offline:</label>
                         <select id="key_offline">
@@ -314,22 +397,13 @@
                             <option value="false">False</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Expiry Date:</label>
-                        <input type="date" id="key_exp">
-                        <div class="quick-btn-grid">
-                            <button class="q-btn" onclick="setExp('key', 1)">1D</button>
-                            <button class="q-btn" onclick="setExp('key', 30)">1M</button>
-                            <button class="q-btn" onclick="setExp('key', 'life')">Life</button>
-                        </div>
-                    </div>
                     <button class="action-btn" onclick="addItem('keys')">Push Key</button>
                 </div>
             </details>
             <div id="keys_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">কানেক্ট করুন...</p></div>
         </div>
 
-        <!-- ৩. Users Tab -->
+        <!-- ৩. Users Tab (ইউজারনেম ম্যানুয়াল এবং পাসওয়ার্ড অটো-জেনারেটর সহ) -->
         <div id="tab-users" class="tab-content">
             <div class="section-header">
                 <div class="section-title">👥 User Accounts</div>
@@ -340,8 +414,30 @@
                 <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 12px;">➕ Add New User</summary>
                 <div style="margin-top: 10px;">
                     <div class="form-group"><label>HWID:</label><input type="text" id="up_hwid" placeholder="HWID"></div>
-                    <div class="form-group"><label>Username:</label><input type="text" id="up_username" placeholder="Username"></div>
-                    <div class="form-group"><label>Password:</label><input type="text" id="up_password" placeholder="Password"></div>
+                    <div class="form-group">
+                        <label>Username (Manual Input):</label>
+                        <input type="text" id="up_username" placeholder="Enter username">
+                    </div>
+                    <div class="form-group">
+                        <label>Password (Auto Generate):</label>
+                        <div class="input-with-gen">
+                            <input type="text" id="up_password" placeholder="Password">
+                            <button class="gen-btn" onclick="generateRandomKey('up_password')">⚡ Generate</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date (৭টি শর্টকাট):</label>
+                        <input type="date" id="up_exp">
+                        <div class="quick-btn-grid">
+                            <button class="q-btn" onclick="setExp('up', 1)">1 Day</button>
+                            <button class="q-btn" onclick="setExp('up', 7)">7 Days</button>
+                            <button class="q-btn" onclick="setExp('up', 30)">1 Month</button>
+                            <button class="q-btn" onclick="setExp('up', 90)">3 Months</button>
+                            <button class="q-btn" onclick="setExp('up', 180)">6 Months</button>
+                            <button class="q-btn" onclick="setExp('up', 365)">1 Year</button>
+                            <button class="q-btn" onclick="setExp('up', 'life')" style="grid-column: span 2;">Lifetime</button>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Allow Offline:</label>
                         <select id="up_offline">
@@ -349,41 +445,83 @@
                             <option value="false">False</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Expiry Date:</label>
-                        <input type="date" id="up_exp">
-                        <div class="quick-btn-grid">
-                            <button class="q-btn" onclick="setExp('up', 1)">1D</button>
-                            <button class="q-btn" onclick="setExp('up', 30)">1M</button>
-                            <button class="q-btn" onclick="setExp('up', 'life')">Life</button>
-                        </div>
-                    </div>
                     <button class="action-btn" onclick="addItem('users')">Push User</button>
                 </div>
             </details>
             <div id="users_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">ডেটা লোড করুন।</p></div>
         </div>
 
-        <!-- ৪. System Tab -->
-        <div id="tab-system" class="tab-content">
+        <!-- ৪. Update V1 Tab -->
+        <div id="tab-v1" class="tab-content">
             <div class="section-header">
-                <div class="section-title">🚀 Update Info Config</div>
-                <div id="sys_count" class="live-badge">0 Updates</div>
+                <div class="section-title">🚀 Update V1 Config</div>
+                <div class="live-badge">Update_V1.js</div>
             </div>
-            <details style="background: #131022; padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(138,43,226,0.3);" open>
-                <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 12px;">➕ Add / Edit Update</summary>
+
+            <details style="background: #131022; padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(138,43,226,0.3);">
+                <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 12px;">✍️ Edit / Push Update V1</summary>
                 <div style="margin-top: 10px;">
-                    <div class="form-group"><label>Version:</label><input type="text" id="uv_version" placeholder="4.0.1"></div>
-                    <div class="form-group"><label>Title:</label><input type="text" id="uv_title" placeholder="Update"></div>
-                    <div class="form-group"><label>Subtitle:</label><input type="text" id="uv_subtitle" placeholder="New update available"></div>
-                    <div class="form-group"><label>Update URL:</label><input type="text" id="uv_url" placeholder="https://..."></div>
-                    <button class="action-btn" onclick="updateSystemFile()">Save Update Info</button>
+                    <div class="form-group"><label>Version:</label><input type="text" id="v1_version" value="2.0"></div>
+                    <div class="form-group"><label>Title:</label><input type="text" id="v1_title" value="Dialogo"></div>
+                    <div class="form-group"><label>Subtitle / Description:</label><textarea id="v1_subtitle" rows="6">⚡ Funciones Pro Desbloqueadas
+
+✅ Respuestas sin límites e instantáneas
+✅ Modelo GPT-4o e Claude 3.5 fully unlocked
+✅ Historial en la nube corregido
+
+¡Gracias por usar este Mod! 🚀</textarea></div>
+                    <div class="form-group"><label>Update URL / Telegram Link:</label><input type="text" id="v1_url" value="https://t.me/RS5ARIF"></div>
+                    <div class="form-group">
+                        <label>Show Close Button:</label>
+                        <select id="v1_close">
+                            <option value="true" selected>True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </div>
+                    <button class="action-btn" onclick="saveUpdateV1()">Save & Push Update V1</button>
                 </div>
             </details>
-            <div id="sys_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">কোনো আপডেট নেই</p></div>
+
+            <div style="font-size: 13px; font-weight: bold; color: #c084fc; margin-bottom: 8px;">📋 Current Live V1 Card:</div>
+            <div id="v1_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">ডেটা লোড করুন...</p></div>
         </div>
 
-        <!-- ৫. Admin Tab -->
+        <!-- ৫. Update V2 Tab -->
+        <div id="tab-v2" class="tab-content">
+            <div class="section-header">
+                <div class="section-title">🚀 Update V2 Config</div>
+                <div class="live-badge">update_v2.json</div>
+            </div>
+
+            <details style="background: #131022; padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(138,43,226,0.3);">
+                <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 12px;">✍️ Edit / Push Update V2</summary>
+                <div style="margin-top: 10px;">
+                    <div class="form-group"><label>Credit:</label><input type="text" id="v2_credit" value="RS5ARIF"></div>
+                    <div class="form-group">
+                        <label>Show Dialog:</label>
+                        <select id="v2_dialog">
+                            <option value="true" selected>True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Title:</label><input type="text" id="v2_title" value="🚀 Update Available"></div>
+                    <div class="form-group"><label>Subtitle:</label><input type="text" id="v2_subtitle" value="✨ New Version Release ✨"></div>
+                    <div class="form-group"><label>Whats New (Changelog):</label><textarea id="v2_whatsnew" rows="5">• Improved app performance
+• Fixed major bugs
+• Enhanced security layers
+• Polished UI with smooth animations </textarea></div>
+                    <div class="form-group"><label>Button Update Text:</label><input type="text" id="v2_btn_up" value="Update Now"></div>
+                    <div class="form-group"><label>Button Exit Text:</label><input type="text" id="v2_btn_ex" value="Exit"></div>
+                    <div class="form-group"><label>Link / URL:</label><input type="text" id="v2_link" value="https://t.me/RS5ARIF"></div>
+                    <button class="action-btn" onclick="saveUpdateV2()">Save & Push Update V2</button>
+                </div>
+            </details>
+
+            <div style="font-size: 13px; font-weight: bold; color: #c084fc; margin-bottom: 8px;">📋 Current Live V2 Card:</div>
+            <div id="v2_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">ডেটা লোড করুন...</p></div>
+        </div>
+
+        <!-- ৬. Admin / Package Tab -->
         <div id="tab-admin" class="tab-content">
             <div class="section-header">
                 <div class="section-title">📦 Package Management</div>
@@ -401,14 +539,13 @@
             <div id="pkg_list_container"><p style="text-align: center; color: var(--text-muted); font-size: 12px;">ডেটা লোড করুন।</p></div>
         </div>
 
-        <!-- ৬. Encrypted Notepad Tab -->
+        <!-- ৭. Encrypted Notepad Tab -->
         <div id="tab-notepad" class="tab-content">
             <div class="section-header">
                 <div class="section-title">📝 Secure Encrypted Notepad</div>
-                <div class="live-badge" style="background: rgba(255,170,0,0.15); color: var(--accent-orange); border-color: var(--accent-orange);">AES-256 Encrypted</div>
+                <div class="live-badge" style="background: rgba(255,170,0,0.15); color: var(--accent-orange); border-color: var(--accent-orange);">AES-256</div>
             </div>
 
-            <!-- Lock Screen Wrapper -->
             <div id="note_lock_screen" style="background: var(--card-bg); border: 1px solid var(--border-glow); padding: 20px; border-radius: 12px; text-align: center; margin-top: 20px;">
                 <p style="font-size: 14px; color: #c084fc; font-weight: bold; margin-bottom: 15px;">🔒 Enter Your Custom Password</p>
                 <div class="form-group">
@@ -418,25 +555,22 @@
                 <p id="note_err" style="color: var(--accent-red); font-size: 11px; margin-top: 8px;"></p>
             </div>
 
-            <!-- Editor Wrapper (Hidden until unlocked) -->
             <div id="note_editor_screen" style="display: none;">
-                <p style="color: var(--text-muted); font-size: 11px; margin-bottom: 8px;">আপনার জিপিজি কোড বা টোকেন এখানে সেভ করুন (AES এনক্রিপ্টেড থাকবে):</p>
+                <p style="color: var(--text-muted); font-size: 11px; margin-bottom: 8px;">আপনার কোড বা নোট এখানে সেভ করুন:</p>
                 <div class="form-group">
-                    <textarea id="notepad_content" rows="10" placeholder="Paste your GPG codes or tokens here..."></textarea>
+                    <textarea id="notepad_content" rows="10" placeholder="Paste your codes here..."></textarea>
                 </div>
                 <button class="action-btn" onclick="saveNotepadData()">Encrypt & Save Locally</button>
                 
-                <!-- পাসওয়ার্ড পরিবর্তনের সেকশন -->
                 <div style="margin-top: 15px; border-top: 1px solid rgba(138,43,226,0.2); padding-top: 10px;">
                     <details style="background: #131022; padding: 8px; border-radius: 8px; border: 1px solid rgba(138,43,226,0.3);">
                         <summary style="cursor: pointer; color: #c084fc; font-weight: bold; font-size: 11px;">⚙️ Change Password</summary>
                         <div style="margin-top: 8px;">
-                            <div class="form-group" style="margin-bottom:8px;"><label>New Password:</label><input type="password" id="new_pass_input" placeholder="New secret password"></div>
+                            <div class="form-group" style="margin-bottom:8px;"><label>New Password:</label><input type="password" id="new_pass_input" placeholder="New password"></div>
                             <button class="action-btn" onclick="changeNotepadPassword()" style="padding: 8px; font-size: 12px;">Update Password</button>
                         </div>
                     </details>
                 </div>
-
                 <button class="action-btn" onclick="lockNotepadAgain()" style="background: #332559; margin-top: 6px;">Lock Again</button>
             </div>
         </div>
@@ -444,13 +578,64 @@
         <div id="status_msg"></div>
     </div>
 
+    <!-- এডিট করার পপআপ মোডাল -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="section-title" id="editModalTitle" style="margin-bottom: 12px;">✏️ Edit Item</div>
+            <input type="hidden" id="editType">
+            <input type="hidden" id="editIndex">
+            <input type="hidden" id="editPkgOriginalKey">
+            
+            <div class="form-group" id="groupEditField1">
+                <label id="labelEditField1">Field 1:</label>
+                <input type="text" id="editField1">
+            </div>
+            <div class="form-group" id="groupEditField2">
+                <label id="labelEditField2">Field 2:</label>
+                <input type="text" id="editField2">
+            </div>
+            <div class="form-group" id="groupEditField3">
+                <label id="labelEditField3">Field 3:</label>
+                <textarea id="editField3" rows="4"></textarea>
+            </div>
+            <div class="form-group" id="groupEditField4">
+                <label id="labelEditField4">Field 4:</label>
+                <input type="text" id="editField4">
+            </div>
+            <div class="form-group" id="groupEditSelect1">
+                <label id="labelEditSelect1">Select option:</label>
+                <select id="editSelect1">
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="editDateWrapper">
+                <label>Expiry Date:</label>
+                <input type="date" id="editExp">
+            </div>
+            <div class="form-group" id="editStatusWrapper">
+                <label>Status:</label>
+                <select id="editStatus">
+                    <option value="active">Active (Unblocked)</option>
+                    <option value="blocked">Blocked</option>
+                </select>
+            </div>
+
+            <button class="action-btn" onclick="saveEditedItem()">Update & Save</button>
+            <button class="action-btn" onclick="closeEditModal()" style="background: #332559; margin-top: 6px;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- বটম নেভিগেশন বার -->
     <div class="bottom-nav">
         <button class="nav-item" onclick="switchTab('ui', this)"><svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19h3.53c1.23 1.23 2.87 2 4.12 2 4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>UI</button>
         <button class="nav-item" onclick="switchTab('keys', this)"><svg viewBox="0 0 24 24"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65z"/></svg>Keys</button>
-        <button class="nav-item active" onclick="switchTab('users', this)"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3z"/></svg>Users</button>
-        <button class="nav-item" onclick="switchTab('system', this)"><svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.03 2.18 13.84 2 13.6 2h-4c-.24 0-.43.18-.47.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65z"/></svg>System</button>
+        <button class="nav-item" onclick="switchTab('users', this)"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3z"/></svg>Users</button>
+        <button class="nav-item" onclick="switchTab('v1', this)"><svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.03 2.18 13.84 2 13.6 2h-4c-.24 0-.43.18-.47.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65z"/></svg>Upd V1</button>
+        <button class="nav-item" onclick="switchTab('v2', this)"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>Upd V2</button>
         <button class="nav-item" onclick="switchTab('admin', this)"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>Admin</button>
-        <button class="nav-item" onclick="switchTab('notepad', this)"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>Notepad</button>
+        <button class="nav-item" onclick="switchTab('notepad', this)"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>Notes</button>
     </div>
 </div>
 
@@ -459,15 +644,56 @@ let repoFiles = {
     'keys': { data: null, sha: '' },
     'users': { data: null, sha: '' },
     'system': { data: null, sha: '' },
+    'system_v2': { data: null, sha: '' },
     'pkg': { data: null, sha: '' }
 };
 
 let activeNotePassword = "";
 
+const defaultV1Data = [{
+    "version": "2.0",
+    "title": "Dialogo",
+    "subtitle": "⚡ Funciones Pro Desbloqueadas\n\n✅ Respuestas sin límites e instantáneas\n✅ Modelo GPT-4o e Claude 3.5 fully unlocked\n✅ Historial en la nube corregido\n\n¡Gracias por usar este Mod! 🚀",
+    "update_url": "https://t.me/RS5ARIF",
+    "show_close_button": true
+}];
+
+const defaultV2Data = [{
+    "credit": "RS5ARIF",
+    "show_dialog": true,
+    "title": "🚀 Update Available",
+    "subtitle": "✨ New Version Release ✨",
+    "whatsnew": "• Improved app performance\n• Fixed major bugs\n• Enhanced security layers\n• Polished UI with smooth animations ",
+    "btn_update": "Update Now",
+    "btn_exit": "Exit",
+    "link": "https://t.me/RS5ARIF"
+}];
+
+window.addEventListener('DOMContentLoaded', () => {
+    if(localStorage.getItem('gh_token')) document.getElementById('token').value = localStorage.getItem('gh_token');
+    if(localStorage.getItem('gh_repo')) document.getElementById('repo').value = localStorage.getItem('gh_repo');
+    if(localStorage.getItem('file_keys')) document.getElementById('file_keys').value = localStorage.getItem('file_keys');
+    if(localStorage.getItem('file_users')) document.getElementById('file_users').value = localStorage.getItem('file_users');
+    if(localStorage.getItem('file_system')) document.getElementById('file_system').value = localStorage.getItem('file_system');
+    if(localStorage.getItem('file_system_v2')) document.getElementById('file_system_v2').value = localStorage.getItem('file_system_v2');
+    if(localStorage.getItem('file_pkg')) document.getElementById('file_pkg').value = localStorage.getItem('file_pkg');
+});
+
+function saveConfigToLocalStorage() {
+    localStorage.setItem('gh_token', document.getElementById('token').value.trim());
+    localStorage.setItem('gh_repo', document.getElementById('repo').value.trim());
+    localStorage.setItem('file_keys', document.getElementById('file_keys').value.trim());
+    localStorage.setItem('file_users', document.getElementById('file_users').value.trim());
+    localStorage.setItem('file_system', document.getElementById('file_system').value.trim());
+    localStorage.setItem('file_system_v2', document.getElementById('file_system_v2').value.trim());
+    localStorage.setItem('file_pkg', document.getElementById('file_pkg').value.trim());
+}
+
 function getFileName(type) {
     if(type === 'keys') return document.getElementById('file_keys').value.trim();
     if(type === 'users') return document.getElementById('file_users').value.trim();
     if(type === 'system') return document.getElementById('file_system').value.trim();
+    if(type === 'system_v2') return document.getElementById('file_system_v2').value.trim();
     if(type === 'pkg') return document.getElementById('file_pkg').value.trim();
     return '';
 }
@@ -479,6 +705,17 @@ function switchTab(tab, btn) {
     btn.classList.add('active');
 }
 
+// কি অটো জেনারেটর ফাংশন (RS5- + A-Z, 0-9 দিয়ে ৭ ক্যারেক্টার)
+function generateRandomKey(fieldId) {
+    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let randomPart = "";
+    for (let i = 0; i < 7; i++) {
+        randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById(fieldId).value = "RS5-" + randomPart;
+}
+
+// ৭টি শর্টকাট ডেট ক্যালকুলেটর ফাংশন
 function setExp(prefix, days) {
     let field = document.getElementById(prefix + '_exp');
     if(days === 'life') { field.value = '2099-12-31'; return; }
@@ -492,7 +729,6 @@ function unlockNotepad() {
     if(!passInput) { document.getElementById('note_err').innerText = 'পাসওয়ার্ড দিন!'; return; }
     
     let encryptedData = localStorage.getItem('secure_encrypted_notes');
-    
     if(!encryptedData) {
         activeNotePassword = passInput;
         document.getElementById('note_lock_screen').style.display = 'none';
@@ -506,7 +742,6 @@ function unlockNotepad() {
     try {
         let bytes = CryptoJS.AES.decrypt(encryptedData, passInput);
         let decryptedText = bytes.toString(CryptoJS.enc.Utf8);
-        
         if(!decryptedText) { throw new Error('Invalid Password'); }
 
         activeNotePassword = passInput;
@@ -516,30 +751,27 @@ function unlockNotepad() {
         document.getElementById('note_err').innerText = '';
         document.getElementById('notepad_content').value = decryptedText;
     } catch(e) {
-        document.getElementById('note_err').innerText = '❌ ভুল পাসওয়ার্ড! ডেটা ডিক্রিপ্ট করা যায়নি।';
+        document.getElementById('note_err').innerText = '❌ ভুল পাসওয়ার্ড!';
     }
 }
 
 function saveNotepadData() {
     let content = document.getElementById('notepad_content').value;
     if(!activeNotePassword) { alert('পাসওয়ার্ড সেট করা নেই!'); return; }
-
     let encryptedContent = CryptoJS.AES.encrypt(content, activeNotePassword).toString();
     localStorage.setItem('secure_encrypted_notes', encryptedContent);
-    alert('✅ নোট সফলভাবে এনক্রিপ্ট হয়ে এই ডিভাইসে সেভ হয়েছে!');
+    alert('✅ নোট এনক্রিপ্ট হয়ে সেভ হয়েছে!');
 }
 
 function changeNotepadPassword() {
     let newPass = document.getElementById('new_pass_input').value.trim();
     if(!newPass) { alert('নতুন পাসওয়ার্ড দিন!'); return; }
-
     let content = document.getElementById('notepad_content').value;
     let encryptedContent = CryptoJS.AES.encrypt(content, newPass).toString();
     localStorage.setItem('secure_encrypted_notes', encryptedContent);
-    
     activeNotePassword = newPass;
     document.getElementById('new_pass_input').value = '';
-    alert('🔑 নোটপ্যাডের পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!');
+    alert('🔑 পাসওয়ার্ড পরিবর্তন করা হয়েছে!');
 }
 
 function lockNotepadAgain() {
@@ -548,7 +780,6 @@ function lockNotepadAgain() {
     document.getElementById('note_editor_screen').style.display = 'none';
     document.getElementById('note_lock_screen').style.display = 'block';
 }
-// -----------------------------
 
 async function checkGitHubFileStatus(fileKey, token, repo) {
     let filename = getFileName(fileKey);
@@ -558,26 +789,13 @@ async function checkGitHubFileStatus(fileKey, token, repo) {
         const res = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'vnd.github+json' }
         });
-        
         if(!res.ok) return false;
 
         const file = await res.json();
         let decodedText = new TextDecoder().decode(Uint8Array.from(atob(file.content), c => c.charCodeAt(0)));
-        let decoded = JSON.parse(decodedText);
+        let decoded;
+        try { decoded = JSON.parse(decodedText); } catch(err) { decoded = decodedText; }
         
-        if(fileKey === 'system' && !Array.isArray(decoded)) {
-            decoded = decoded && Object.keys(decoded).length > 0 ? [decoded] : [];
-        }
-        if(fileKey === 'pkg' && Array.isArray(decoded)) {
-            let tempObj = {};
-            decoded.forEach(item => {
-                if(item.name) {
-                    tempObj[item.name] = { latest_version: item.latest_version, download_url: item.download_url };
-                }
-            });
-            decoded = tempObj;
-        }
-
         repoFiles[fileKey] = { data: decoded, sha: file.sha };
         return true;
     } catch(e) {
@@ -591,47 +809,37 @@ async function checkAndLoadAllData() {
     const msg = document.getElementById('status_msg');
     if(!token || !repo) { alert('টোকেন ও রিপো নাম দিন'); return; }
 
-    msg.style.color = '#c084fc'; msg.innerText = '⏳ গিটহাবে ফাইলগুলো চেকিং করা হচ্ছে...';
+    saveConfigToLocalStorage();
+    msg.style.color = '#c084fc'; msg.innerText = '⏳ ফাইলগুলো চেকিং হচ্ছে...';
     
     let keysExists = await checkGitHubFileStatus('keys', token, repo);
     let usersExists = await checkGitHubFileStatus('users', token, repo);
     let systemExists = await checkGitHubFileStatus('system', token, repo);
+    let systemV2Exists = await checkGitHubFileStatus('system_v2', token, repo);
     let pkgExists = await checkGitHubFileStatus('pkg', token, repo);
 
     let missingFiles = [];
     if(!keysExists) missingFiles.push(getFileName('keys'));
     if(!usersExists) missingFiles.push(getFileName('users'));
     if(!systemExists) missingFiles.push(getFileName('system'));
+    if(!systemV2Exists) missingFiles.push(getFileName('system_v2'));
     if(!pkgExists) missingFiles.push(getFileName('pkg'));
 
-    // যদি কোনো ফাইল গিটহাবে না পাওয়া যায়, তবে ইউজারের কাছে কনফার্মেশন ফর্ম বা পপআপ চাওয়া হবে
     if(missingFiles.length > 0) {
-        msg.style.color = '#ffaa00';
-        msg.innerText = '⚠️ কিছু ফাইল গিটহাবে পাওয়া যায়নি!';
-        
-        let confirmCreate = confirm(
-            `সতর্কবার্তা: নিচের ফাইলগুলো গিটহাবে পাওয়া যায়নি বা নাম ভুল আছে:\n\n• ${missingFiles.join('\n• ')}\n\nআপনি কি এই ফাইলগুলো নতুন করে গিটহাবে জেনারেট/তৈরি করতে চান?\n\n[OK] দিলে নতুন ফাইল তৈরি হবে।\n[Cancel] দিলে আপনি ফাইলের নাম চেক বা সংশোধন করতে পারবেন।`
-        );
+        let confirmCreate = confirm(`নিচের ফাইলগুলো গিটহাবে পাওয়া যায়নি:\n• ${missingFiles.join('\n• ')}\n\nআপনি কি নতুন তৈরি করতে চান?`);
+        if(!confirmCreate) { msg.style.color = '#ff4d4d'; msg.innerText = '❌ বাতিল করা হয়েছে।'; return; }
 
-        if(!confirmCreate) {
-            msg.style.color = '#ff4d4d';
-            msg.innerText = '❌ অপারেশন বাতিল করা হয়েছে। দয়া করে ফাইলের নাম ঠিক করে আবার কানেক্ট করুন।';
-            return;
-        }
-
-        // ইউজার ইয়েস (OK) করলে মিসিং ফাইলগুলোর জন্য ডিফল্ট ডাটা ইনিশিয়ালাইজ করে গিটহাবে পুশ করে ফাইল বানিয়ে নেওয়া হবে
-        msg.style.color = '#c084fc';
-        msg.innerText = '⏳ নতুন ফাইলগুলো গিটহাবে তৈরি করা হচ্ছে...';
-
-        if(!keysExists) { repoFiles['keys'].data = []; await commitToServerSilent('keys', [], 'Create initial keys file'); }
-        if(!usersExists) { repoFiles['users'].data = []; await commitToServerSilent('users', [], 'Create initial users file'); }
-        if(!systemExists) { repoFiles['system'].data = []; await commitToServerSilent('system', [], 'Create initial system file'); }
-        if(!pkgExists) { repoFiles['pkg'].data = {}; await commitToServerSilent('pkg', {}, 'Create initial package file'); }
+        if(!keysExists) await commitToServerSilent('keys', [], 'Init keys');
+        if(!usersExists) await commitToServerSilent('users', [], 'Init users');
+        if(!systemExists) await commitToServerSilent('system', defaultV1Data, 'Init V1');
+        if(!systemV2Exists) await commitToServerSilent('system_v2', defaultV2Data, 'Init V2');
+        if(!pkgExists) await commitToServerSilent('pkg', {}, 'Init pkg');
     }
 
     renderKeysList();
     renderUsersList();
-    renderSystemList();
+    renderSystemV1List();
+    renderSystemV2List();
     renderPkgList();
 
     msg.style.color = 'var(--accent-green)';
@@ -641,21 +849,23 @@ async function checkAndLoadAllData() {
 function renderKeysList() {
     let container = document.getElementById('keys_list_container');
     let list = repoFiles['keys'].data;
-    
     document.getElementById('keys_count').innerText = (Array.isArray(list) ? list.length : 0) + ' Keys';
-    if(!Array.isArray(list) || !list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি অথবা নতুন যোগ করুন</p>`; return; }
+    if(!Array.isArray(list) || !list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি</p>`; return; }
 
     let html = '';
     list.forEach((item, index) => {
+        let isBlocked = item.status === 'blocked';
         html += `
-        <div class="item-card">
+        <div class="item-card ${isBlocked ? 'blocked' : ''}">
             <div class="item-info">
-                <h4>🔑 ${item.key || 'No Key'}</h4>
+                <h4>🔑 ${item.key || 'No Key'} ${isBlocked ? '<span style="color:var(--accent-red); font-size:10px;">[BLOCKED]</span>' : ''}</h4>
                 <p>HWID: ${item.device_id || 'N/A'}</p>
-                <p style="font-size:10px; color:#64748b;">Offline: ${item.Allowoffline} | Exp: ${item.expirydate || 'N/A'}</p>
+                <p style="font-size:10px; color:#64748b;">Exp: ${item.expirydate} | Offline: ${item.Allowoffline}</p>
             </div>
             <div class="card-actions">
-                <button class="del-btn" onclick="deleteItem('keys', ${index})">Delete</button>
+                <button class="block-btn" onclick="toggleBlock('keys', ${index})">${isBlocked ? 'Unblock' : 'Block'}</button>
+                <button class="edit-btn" onclick="openEditModal('keys', ${index})">Edit</button>
+                <button class="del-btn" onclick="deleteItem('keys', ${index})">Del</button>
             </div>
         </div>`;
     });
@@ -665,50 +875,89 @@ function renderKeysList() {
 function renderUsersList() {
     let container = document.getElementById('users_list_container');
     let list = repoFiles['users'].data;
-
     document.getElementById('users_count').innerText = (Array.isArray(list) ? list.length : 0) + ' Users';
-    if(!Array.isArray(list) || !list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি অথবা নতুন যোগ করুন</p>`; return; }
+    if(!Array.isArray(list) || !list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">ফাইল খালি</p>`; return; }
 
     let html = '';
     list.forEach((item, index) => {
+        let isBlocked = item.status === 'blocked';
         html += `
-        <div class="item-card">
+        <div class="item-card ${isBlocked ? 'blocked' : ''}">
             <div class="item-info">
-                <h4>👤 ${item.username || 'User'}</h4>
+                <h4>👤 ${item.username || 'User'} ${isBlocked ? '<span style="color:var(--accent-red); font-size:10px;">[BLOCKED]</span>' : ''}</h4>
                 <p>HWID: ${item.device_id || 'N/A'}</p>
-                <p style="font-size:10px; color:#64748b;">Pass: ${item.password} | Offline: ${item.Allowoffline} | Exp: ${item.expirydate}</p>
+                <p style="font-size:10px; color:#64748b;">Pass: ${item.password} | Exp: ${item.expirydate}</p>
             </div>
             <div class="card-actions">
-                <button class="del-btn" onclick="deleteItem('users', ${index})">Delete</button>
+                <button class="block-btn" onclick="toggleBlock('users', ${index})">${isBlocked ? 'Unblock' : 'Block'}</button>
+                <button class="edit-btn" onclick="openEditModal('users', ${index})">Edit</button>
+                <button class="del-btn" onclick="deleteItem('users', ${index})">Del</button>
             </div>
         </div>`;
     });
     container.innerHTML = html;
 }
 
-function renderSystemList() {
-    let container = document.getElementById('sys_list_container');
-    let list = repoFiles['system'].data;
-
-    if(!Array.isArray(list)) list = [];
-    document.getElementById('sys_count').innerText = list.length + ' Updates';
-    
-    if(!list.length) { 
-        container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">কোনো আপডেট তথ্য নেই</p>`; 
-        return; 
-    }
+function renderSystemV1List() {
+    let container = document.getElementById('v1_list_container');
+    let data = repoFiles['system'].data;
+    let list = Array.isArray(data) ? data : (data ? [data] : []);
+    if(!list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">কোনো ডেটা নেই</p>`; return; }
 
     let html = '';
     list.forEach((item, index) => {
+        if(index === 0) {
+            if(item.version) document.getElementById('v1_version').value = item.version;
+            if(item.title) document.getElementById('v1_title').value = item.title;
+            if(item.subtitle) document.getElementById('v1_subtitle').value = item.subtitle;
+            if(item.update_url) document.getElementById('v1_url').value = item.update_url;
+            if(item.show_close_button !== undefined) document.getElementById('v1_close').value = item.show_close_button ? 'true' : 'false';
+        }
+
         html += `
         <div class="item-card">
             <div class="item-info">
-                <h4>🚀 Ver: ${item.version || 'N/A'} - ${item.title || ''}</h4>
+                <h4>🚀 Version: ${item.version || 'N/A'} - ${item.title || ''}</h4>
                 <p>${item.subtitle || ''}</p>
-                <p style="font-size:10px; color:#64748b; word-break:break-all;">URL: ${item.update_url || 'N/A'}</p>
+                <p style="font-size:10px; color:#c084fc; margin-top:4px;">URL: ${item.update_url || 'N/A'} | CloseBtn: ${item.show_close_button}</p>
             </div>
             <div class="card-actions">
-                <button class="del-btn" onclick="deleteSystemUpdate(${index})">Delete</button>
+                <button class="edit-btn" onclick="openEditModal('system', ${index})">Edit</button>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderSystemV2List() {
+    let container = document.getElementById('v2_list_container');
+    let data = repoFiles['system_v2'].data;
+    let list = Array.isArray(data) ? data : (data ? [data] : []);
+    if(!list.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">কোনো ডেটা নেই</p>`; return; }
+
+    let html = '';
+    list.forEach((item, index) => {
+        if(index === 0) {
+            if(item.credit) document.getElementById('v2_credit').value = item.credit;
+            if(item.show_dialog !== undefined) document.getElementById('v2_dialog').value = item.show_dialog ? 'true' : 'false';
+            if(item.title) document.getElementById('v2_title').value = item.title;
+            if(item.subtitle) document.getElementById('v2_subtitle').value = item.subtitle;
+            if(item.whatsnew) document.getElementById('v2_whatsnew').value = item.whatsnew;
+            if(item.btn_update) document.getElementById('v2_btn_up').value = item.btn_update;
+            if(item.btn_exit) document.getElementById('v2_btn_ex').value = item.btn_exit;
+            if(item.link) document.getElementById('v2_link').value = item.link;
+        }
+
+        html += `
+        <div class="item-card">
+            <div class="item-info">
+                <h4>✨ ${item.title || 'Update'} (Credit: ${item.credit || 'N/A'})</h4>
+                <p><b>Subtitle:</b> ${item.subtitle || ''}</p>
+                <p><b>WhatsNew:</b><br>${item.whatsnew || ''}</p>
+                <p style="font-size:10px; color:#c084fc; margin-top:4px;">Link: ${item.link || 'N/A'}</p>
+            </div>
+            <div class="card-actions">
+                <button class="edit-btn" onclick="openEditModal('system_v2', ${index})">Edit</button>
             </div>
         </div>`;
     });
@@ -718,16 +967,10 @@ function renderSystemList() {
 function renderPkgList() {
     let container = document.getElementById('pkg_list_container');
     let data = repoFiles['pkg'].data;
-
     if(!data || typeof data !== 'object') data = {};
-    
     let keys = Object.keys(data);
     document.getElementById('pkg_count').innerText = keys.length + ' Packages';
-
-    if(!keys.length) { 
-        container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">কোনো প্যাকেজ নেই</p>`; 
-        return; 
-    }
+    if(!keys.length) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:12px;">কোনো প্যাকেজ নেই</p>`; return; }
 
     let html = '';
     keys.forEach(pkgName => {
@@ -737,8 +980,10 @@ function renderPkgList() {
             <div class="item-info">
                 <h4>📦 ${pkgName}</h4>
                 <p>Ver: ${info.latest_version || 'N/A'}</p>
+                <p style="font-size:9px; color:#64748b;">URL: ${info.download_url || 'N/A'}</p>
             </div>
             <div class="card-actions">
+                <button class="edit-btn" onclick="openEditModal('pkg', '${pkgName}')">Edit</button>
                 <button class="del-btn" onclick="deletePackage('${pkgName}')">Delete</button>
             </div>
         </div>`;
@@ -750,19 +995,13 @@ async function commitToServerSilent(fileKey, newData, commitMsg) {
     const token = document.getElementById('token').value.trim();
     const repo = document.getElementById('repo').value.trim();
     const filename = getFileName(fileKey);
-    
     try {
         const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'vnd.github+json' }
         });
-        
-        let sha = null;
-        if(getRes.ok) {
-            let fileInfo = await getRes.json();
-            sha = fileInfo.sha;
-        }
-        
-        let bodyData = { message: commitMsg, content: btoa(unescape(encodeURIComponent(JSON.stringify(newData, null, 4)))) };
+        let sha = getRes.ok ? (await getRes.json()).sha : null;
+        let contentStr = typeof newData === 'object' ? JSON.stringify(newData, null, 4) : newData;
+        let bodyData = { message: commitMsg, content: btoa(unescape(encodeURIComponent(contentStr))) };
         if(sha) bodyData.sha = sha;
 
         const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
@@ -770,14 +1009,8 @@ async function commitToServerSilent(fileKey, newData, commitMsg) {
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'vnd.github+json' },
             body: JSON.stringify(bodyData)
         });
-
-        if(putRes.ok) {
-            let resJson = await putRes.json();
-            repoFiles[fileKey].sha = resJson.content.sha;
-        }
-    } catch(err) {
-        console.error(err);
-    }
+        if(putRes.ok) repoFiles[fileKey].sha = (await putRes.json()).content.sha;
+    } catch(err) { console.error(err); }
 }
 
 async function commitToServer(fileKey, newData, commitMsg) {
@@ -787,22 +1020,16 @@ async function commitToServer(fileKey, newData, commitMsg) {
     const msg = document.getElementById('status_msg');
     
     if(!token || !repo) { alert('আগে UI ট্যাবে কানেক্ট করুন'); return; }
-    if(!filename) { alert('ফাইলের নাম দিন'); return; }
-
     msg.style.color = '#c084fc'; msg.innerText = '⏳ গিটহাবে আপডেট হচ্ছে...';
 
     try {
         const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'vnd.github+json' }
         });
+        let sha = getRes.ok ? (await getRes.json()).sha : null;
         
-        let sha = null;
-        if(getRes.ok) {
-            let fileInfo = await getRes.json();
-            sha = fileInfo.sha;
-        }
-        
-        let bodyData = { message: commitMsg, content: btoa(unescape(encodeURIComponent(JSON.stringify(newData, null, 4)))) };
+        let contentStr = typeof newData === 'object' ? JSON.stringify(newData, null, 4) : newData;
+        let bodyData = { message: commitMsg, content: btoa(unescape(encodeURIComponent(contentStr))) };
         if(sha) bodyData.sha = sha;
 
         const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
@@ -818,10 +1045,10 @@ async function commitToServer(fileKey, newData, commitMsg) {
 
         msg.style.color = 'var(--accent-green)';
         msg.innerText = `✅ ${filename} সফলভাবে সেভ হয়েছে!`;
-
         if(fileKey === 'keys') renderKeysList();
         if(fileKey === 'users') renderUsersList();
-        if(fileKey === 'system') renderSystemList();
+        if(fileKey === 'system') renderSystemV1List();
+        if(fileKey === 'system_v2') renderSystemV2List();
         if(fileKey === 'pkg') renderPkgList();
     } catch(err) {
         msg.style.color = '#ff4d4d'; msg.innerText = '❌ ত্রুটি: ' + err.message;
@@ -834,26 +1061,34 @@ function formatDate(raw) {
     return `${p[2]}-${p[1]}-${p[0]}`;
 }
 
+function unformatDate(str) {
+    if(!str || str.includes('-') && str.split('-')[0].length === 4) return str || '';
+    let p = str.split('-');
+    if(p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`;
+    return '';
+}
+
 function addItem(fileKey) {
     let list = repoFiles[fileKey].data;
     if(!Array.isArray(list)) list = [];
-    
     let offlineVal = document.getElementById(fileKey === 'keys' ? 'key_offline' : 'up_offline').value === 'true';
 
     if(fileKey === 'keys') {
         list.push({
             device_id: document.getElementById('key_hwid').value.trim(),
             key: document.getElementById('key_str').value.trim(),
+            expirydate: formatDate(document.getElementById('key_exp').value),
             Allowoffline: offlineVal,
-            expirydate: formatDate(document.getElementById('key_exp').value)
+            status: 'active'
         });
     } else if(fileKey === 'users') {
         list.push({
             device_id: document.getElementById('up_hwid').value.trim(),
             username: document.getElementById('up_username').value.trim(),
             password: document.getElementById('up_password').value.trim(),
+            expirydate: formatDate(document.getElementById('up_exp').value),
             Allowoffline: offlineVal,
-            expirydate: formatDate(document.getElementById('up_exp').value)
+            status: 'active'
         });
     }
     commitToServer(fileKey, list, `Add item to ${getFileName(fileKey)}`);
@@ -867,50 +1102,221 @@ function deleteItem(fileKey, index) {
     commitToServer(fileKey, list, `Delete item from ${getFileName(fileKey)}`);
 }
 
-function updateSystemFile() {
-    let list = repoFiles['system'].data;
-    if(!Array.isArray(list)) list = [];
-
-    let newItem = {
-        version: document.getElementById('uv_version').value.trim(),
-        title: document.getElementById('uv_title').value.trim(),
-        subtitle: document.getElementById('uv_subtitle').value.trim(),
-        update_url: document.getElementById('uv_url').value.trim()
-    };
-
-    list.unshift(newItem);
-    commitToServer('system', list, 'Add system update info');
+function toggleBlock(fileKey, index) {
+    let list = repoFiles[fileKey].data;
+    if(!Array.isArray(list) || !list[index]) return;
+    let currentStatus = list[index].status || 'active';
+    list[index].status = (currentStatus === 'blocked') ? 'active' : 'blocked';
+    commitToServer(fileKey, list, `Toggle block status for item ${index}`);
 }
 
-function deleteSystemUpdate(index) {
-    if(!confirm('এই আপডেট রেকর্ডটি ডিলিট করতে চান?')) return;
-    let list = repoFiles['system'].data;
-    if(!Array.isArray(list)) return;
-    list.splice(index, 1);
-    commitToServer('system', list, 'Delete system update');
+// এডিট মোডাল ওপেন করা (সব ট্যাবের জন্য ডাইনামিক)
+function openEditModal(fileKey, indexOrKey) {
+    let data = repoFiles[fileKey].data;
+    document.getElementById('editType').value = fileKey;
+    document.getElementById('editIndex').value = indexOrKey;
+    document.getElementById('editModal').style.display = 'flex';
+
+    // হাইড বা রিসেট ফিল্ডস
+    document.getElementById('groupEditField1').style.display = 'block';
+    document.getElementById('groupEditField2').style.display = 'block';
+    document.getElementById('groupEditField3').style.display = 'none';
+    document.getElementById('groupEditField4').style.display = 'none';
+    document.getElementById('groupEditSelect1').style.display = 'none';
+    document.getElementById('editDateWrapper').style.display = 'none';
+    document.getElementById('editStatusWrapper').style.display = 'none';
+
+    if(fileKey === 'keys') {
+        let item = data[indexOrKey];
+        document.getElementById('editModalTitle').innerText = '✏️ Edit Key Details';
+        document.getElementById('labelEditField1').innerText = 'Key String:';
+        document.getElementById('editField1').value = item.key || '';
+        document.getElementById('labelEditField2').innerText = 'Device HWID:';
+        document.getElementById('editField2').value = item.device_id || '';
+        document.getElementById('editDateWrapper').style.display = 'block';
+        document.getElementById('editExp').value = unformatDate(item.expirydate);
+        document.getElementById('editStatusWrapper').style.display = 'block';
+        document.getElementById('editStatus').value = item.status || 'active';
+    } 
+    else if(fileKey === 'users') {
+        let item = data[indexOrKey];
+        document.getElementById('editModalTitle').innerText = '✏️ Edit User Details';
+        document.getElementById('labelEditField1').innerText = 'Username:';
+        document.getElementById('editField1').value = item.username || '';
+        document.getElementById('labelEditField2').innerText = 'Password:';
+        document.getElementById('editField2').value = item.password || '';
+        document.getElementById('editDateWrapper').style.display = 'block';
+        document.getElementById('editExp').value = unformatDate(item.expirydate);
+        document.getElementById('editStatusWrapper').style.display = 'block';
+        document.getElementById('editStatus').value = item.status || 'active';
+    }
+    else if(fileKey === 'system') {
+        let list = Array.isArray(data) ? data : [data];
+        let item = list[indexOrKey] || {};
+        document.getElementById('editModalTitle').innerText = '✏️ Edit Update V1';
+        document.getElementById('labelEditField1').innerText = 'Version:';
+        document.getElementById('editField1').value = item.version || '';
+        document.getElementById('labelEditField2').innerText = 'Title:';
+        document.getElementById('editField2').value = item.title || '';
+        
+        document.getElementById('groupEditField3').style.display = 'block';
+        document.getElementById('labelEditField3').innerText = 'Subtitle / Description:';
+        document.getElementById('editField3').value = item.subtitle || '';
+
+        document.getElementById('groupEditField4').style.display = 'block';
+        document.getElementById('labelEditField4').innerText = 'Update URL:';
+        document.getElementById('editField4').value = item.update_url || '';
+
+        document.getElementById('groupEditSelect1').style.display = 'block';
+        document.getElementById('labelEditSelect1').innerText = 'Show Close Button:';
+        document.getElementById('editSelect1').value = item.show_close_button ? 'true' : 'false';
+    }
+    else if(fileKey === 'system_v2') {
+        let list = Array.isArray(data) ? data : [data];
+        let item = list[indexOrKey] || {};
+        document.getElementById('editModalTitle').innerText = '✏️ Edit Update V2';
+        document.getElementById('labelEditField1').innerText = 'Credit:';
+        document.getElementById('editField1').value = item.credit || '';
+        document.getElementById('labelEditField2').innerText = 'Title:';
+        document.getElementById('editField2').value = item.title || '';
+        
+        document.getElementById('groupEditField3').style.display = 'block';
+        document.getElementById('labelEditField3').innerText = 'Whats New / Changelog:';
+        document.getElementById('editField3').value = item.whatsnew || '';
+
+        document.getElementById('groupEditField4').style.display = 'block';
+        document.getElementById('labelEditField4').innerText = 'Link / URL:';
+        document.getElementById('editField4').value = item.link || '';
+
+        document.getElementById('groupEditSelect1').style.display = 'block';
+        document.getElementById('labelEditSelect1').innerText = 'Show Dialog:';
+        document.getElementById('editSelect1').value = item.show_dialog ? 'true' : 'false';
+    }
+    else if(fileKey === 'pkg') {
+        let pkgName = indexOrKey;
+        document.getElementById('editPkgOriginalKey').value = pkgName;
+        let info = data[pkgName] || {};
+        document.getElementById('editModalTitle').innerText = '✏️ Edit Package';
+        document.getElementById('labelEditField1').innerText = 'Package Name:';
+        document.getElementById('editField1').value = pkgName;
+        document.getElementById('labelEditField2').innerText = 'Latest Version:';
+        document.getElementById('editField2').value = info.latest_version || '';
+        
+        document.getElementById('groupEditField3').style.display = 'block';
+        document.getElementById('labelEditField3').innerText = 'Download URL:';
+        document.getElementById('editField3').value = info.download_url || '';
+    }
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+// এডিট করা ডেটা সেভ করা
+function saveEditedItem() {
+    let fileKey = document.getElementById('editType').value;
+    let data = repoFiles[fileKey].data;
+
+    let val1 = document.getElementById('editField1').value.trim();
+    let val2 = document.getElementById('editField2').value.trim();
+    let val3 = document.getElementById('editField3').value;
+    let val4 = document.getElementById('editField4').value.trim();
+    let sel1 = document.getElementById('editSelect1').value === 'true';
+
+    if(fileKey === 'keys') {
+        let index = parseInt(document.getElementById('editIndex').value);
+        data[index].key = val1;
+        data[index].device_id = val2;
+        data[index].expirydate = formatDate(document.getElementById('editExp').value);
+        data[index].status = document.getElementById('editStatus').value;
+    } else if(fileKey === 'users') {
+        let index = parseInt(document.getElementById('editIndex').value);
+        data[index].username = val1;
+        data[index].password = val2;
+        data[index].expirydate = formatDate(document.getElementById('editExp').value);
+        data[index].status = document.getElementById('editStatus').value;
+    } else if(fileKey === 'system') {
+        let index = parseInt(document.getElementById('editIndex').value);
+        let list = Array.isArray(data) ? data : [data];
+        list[index] = {
+            version: val1,
+            title: val2,
+            subtitle: val3,
+            update_url: val4,
+            show_close_button: sel1
+        };
+        data = list;
+    } else if(fileKey === 'system_v2') {
+        let index = parseInt(document.getElementById('editIndex').value);
+        let list = Array.isArray(data) ? data : [data];
+        let oldItem = list[index] || {};
+        list[index] = {
+            credit: val1,
+            show_dialog: sel1,
+            title: val2,
+            subtitle: oldItem.subtitle || '✨ New Version Release ✨',
+            whatsnew: val3,
+            btn_update: oldItem.btn_update || 'Update Now',
+            btn_exit: oldItem.btn_exit || 'Exit',
+            link: val4
+        };
+        data = list;
+    } else if(fileKey === 'pkg') {
+        let originalKey = document.getElementById('editPkgOriginalKey').value;
+        if(originalKey !== val1) {
+            delete data[originalKey];
+        }
+        data[val1] = {
+            latest_version: val2,
+            download_url: val3.trim()
+        };
+    }
+
+    closeEditModal();
+    commitToServer(fileKey, data, `Update details`);
+}
+
+function saveUpdateV1() {
+    let newData = [{
+        "version": document.getElementById('v1_version').value.trim(),
+        "title": document.getElementById('v1_title').value.trim(),
+        "subtitle": document.getElementById('v1_subtitle').value,
+        "update_url": document.getElementById('v1_url').value.trim(),
+        "show_close_button": document.getElementById('v1_close').value === 'true'
+    }];
+    commitToServer('system', newData, 'Update Update_V1.js configuration');
+}
+
+function saveUpdateV2() {
+    let newData = [{
+        "credit": document.getElementById('v2_credit').value.trim(),
+        "show_dialog": document.getElementById('v2_dialog').value === 'true',
+        "title": document.getElementById('v2_title').value.trim(),
+        "subtitle": document.getElementById('v2_subtitle').value.trim(),
+        "whatsnew": document.getElementById('v2_whatsnew').value,
+        "btn_update": document.getElementById('v2_btn_up').value.trim(),
+        "btn_exit": document.getElementById('v2_btn_ex').value.trim(),
+        "link": document.getElementById('v2_link').value.trim()
+    }];
+    commitToServer('system_v2', newData, 'Update update_v2.json configuration');
 }
 
 function addPackageData() {
     let data = repoFiles['pkg'].data;
     if(!data || typeof data !== 'object') data = {};
-
     let pkgName = document.getElementById('pv_name').value.trim();
     if(!pkgName) { alert('প্যাকেজ নাম দিন'); return; }
-
     data[pkgName] = {
         latest_version: document.getElementById('pv_ver').value.trim(),
         download_url: document.getElementById('pv_dl').value.trim()
     };
-
     commitToServer('pkg', data, 'Add package version');
 }
 
 function deletePackage(pkgName) {
-    if(!confirm('এই প্যাকেজটি ডিলিট করতে চান?')) return;
+    if(!confirm('প্যাকেজ ডিলিট করতে চান?')) return;
     let data = repoFiles['pkg'].data;
-    if(data && data[pkgName]) {
-        delete data[pkgName];
-    }
+    if(data && data[pkgName]) delete data[pkgName];
     commitToServer('pkg', data, 'Delete package');
 }
 </script>

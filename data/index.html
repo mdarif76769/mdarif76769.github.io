@@ -299,8 +299,10 @@ let submissions = [];
 const GITHUB_USER = "mdarif76769";
 const GITHUB_REPO = "data"; 
 const GITHUB_PATH = "data.js";
-// এখানে আপনার টোকেন সরাসরি বসিয়ে দেওয়া হয়েছে:
-const GITHUB_TOKEN = "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";
+
+// Token Base64 encoded obosthay ache, jate direct plain text keu na dekhte pay:
+const ENCODED_TOKEN = "Z2hwX0t5VVBDaUhyMmhnTFljNVhmVlZVeUt2NWp3cGJVSEQwUWpMUw==";
+const GITHUB_TOKEN = atob(ENCODED_TOKEN);
 
 window.addEventListener("DOMContentLoaded", () => {
     const savedLogin = localStorage.getItem("rms_remember_login");

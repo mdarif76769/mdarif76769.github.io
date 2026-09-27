@@ -299,8 +299,8 @@ let submissions = [];
 const GITHUB_USER = "mdarif76769";
 const GITHUB_REPO = "data"; 
 const GITHUB_PATH = "data.js";
-// GitHub Actions workflow build er shomoy ei placeholder-ti secret token diye replace kore nibe:
-const GITHUB_TOKEN = "APNAR_SECRET_TOKEN_HOLDER";
+// এখানে আপনার টোকেন সরাসরি বসিয়ে দেওয়া হয়েছে:
+const GITHUB_TOKEN = "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";
 
 window.addEventListener("DOMContentLoaded", () => {
     const savedLogin = localStorage.getItem("rms_remember_login");
@@ -527,7 +527,7 @@ function renderTable() {
 }
 
 async function syncToGitHub() {
-    if (!GITHUB_TOKEN || GITHUB_TOKEN.includes("APNAR_SECRET")) return;
+    if (!GITHUB_TOKEN) return;
 
     try {
         const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`;

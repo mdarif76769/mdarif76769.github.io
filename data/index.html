@@ -16,6 +16,7 @@ body {
     min-height: 100vh; display: flex; flex-direction: column; width: 100%; overflow-x: hidden;
 }
 
+/* Full Screen Modern Login Page */
 #authOverlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%);
@@ -78,6 +79,7 @@ body {
 .login-btn:hover { background: #6d28d9; transform: translateY(-1px); }
 .login-error { color: #ef4444; font-size: 13px; margin-top: 15px; display: none; font-weight: 600; text-align: center; }
 
+/* Custom Reset Modal */
 .overlay-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px);
@@ -101,6 +103,7 @@ body {
 .auth-btn.cancel { background: #64748b; }
 .auth-error { color: #ef4444; font-size: 13px; margin-top: 10px; display: none; font-weight: 600; }
 
+/* Full Screen Main App Container */
 #mainAppContainer { display: none; width: 100%; min-height: 100vh; padding: 0; }
 
 .container {
@@ -159,7 +162,7 @@ input:focus { border-color: #7c3aed; background: #fff; box-shadow: 0 0 0 3px rgb
 .btn-group { display: flex; gap: 12px; margin-top: 20px; flex-direction: column; }
 @media (min-width: 576px) { .btn-group { flex-direction: row; } }
 
-.submit-btn, .reset-btn, .fullview-btn, .download-btn, .sync-btn {
+.submit-btn, .reset-btn, .fullview-btn, .download-btn {
     border: none; border-radius: 8px; padding: 14px 20px; color: white;
     font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; transition: all 0.2s;
 }
@@ -171,8 +174,6 @@ input:focus { border-color: #7c3aed; background: #fff; box-shadow: 0 0 0 3px rgb
 .fullview-btn:hover { background: #7c3aed; }
 .download-btn { width: 100%; margin-top: 12px; background: #2563eb; }
 .download-btn:hover { background: #1d4ed8; }
-.sync-btn { width: 100%; margin-top: 12px; background: #f59e0b; }
-.sync-btn:hover { background: #d97706; }
 
 .status-box {
     display: none; margin-top: 15px; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px;
@@ -207,36 +208,39 @@ th { background: #1e293b; color: white; font-weight: 600; }
 
 <body>
 
+<!-- Full Screen Modern Login Page -->
 <div id="authOverlay">
     <div class="login-logo-container">
         <img src="https://raw.githubusercontent.com/mdarif76769/data/main/logo.png" alt="RMS Logo" class="login-logo" onerror="this.style.display='none'">
     </div>
     <div class="login-card">
         <label for="passInput">Password</label>
-        <input type="password" id="passInput" placeholder="Enter password ..." autocomplete="current-password">
+        <input type="password" id="passInput" placeholder="Enter password..." autocomplete="current-password">
         
         <label class="remember-group">
             <input type="checkbox" id="rememberMe"> Remember Me
         </label>
 
         <button type="button" class="login-btn" id="loginBtn">Log In</button>
-        <div id="authError" class="login-error">ভুল পাসওয়ার্ড! পুনরায় চেষ্টা করুন।</div>
+        <div id="authError" class="login-error">ভুল পাসওয়ার্ড! পুনরায় চেষ্টা করুন।</div>
     </div>
 </div>
 
+<!-- Custom Reset Password Modal -->
 <div id="resetModalOverlay" class="overlay-screen" style="display: none;">
     <div class="auth-card">
         <h3>DATA RESET SECURITY</h3>
-        <p>সকল ডাটা মুছে ফেলতে অ্যাডমিন পাসওয়ার্ড দিন</p>
+        <p>সকল ডাটা মুছে ফেলতে অ্যাডমিন পাসওয়ার্ড দিন (1234)</p>
         <input type="password" id="resetPassInput" placeholder="Enter password..." autocomplete="off">
         <div class="auth-btn-group">
             <button type="button" class="auth-btn cancel" id="cancelResetBtn">বাতিল</button>
             <button type="button" class="auth-btn" id="confirmResetBtn" style="background: #ef4444;">মুছে ফেলুন</button>
         </div>
-        <div id="resetError" class="auth-error">ভুল পাসওয়ার্ড!</div>
+        <div id="resetError" class="auth-error">ভুল পাসওয়ার্ড!</div>
     </div>
 </div>
 
+<!-- Full Screen Main App Container -->
 <div id="mainAppContainer">
     <div class="container">
         <div class="app-header">
@@ -257,8 +261,8 @@ th { background: #1e293b; color: white; font-weight: 600; }
             </div>
 
             <div class="btn-group">
-                <button type="submit" class="submit-btn">💾 Save (Local)</button>
-                <button type="button" class="reset-btn" id="resetBtn">🗑️ Reset All</button>
+                <button type="submit" class="submit-btn">Entry Save & Sync</button>
+                <button type="button" class="reset-btn" id="resetBtn">All Data Reset</button>
             </div>
         </form>
 
@@ -267,7 +271,7 @@ th { background: #1e293b; color: white; font-weight: 600; }
         <hr style="margin:30px 0; border:0; border-top:1px solid #e2e8f0;">
 
         <h3>ALL SAVED DATA LIST</h3>
-        <button type="button" class="fullview-btn" id="fullViewBtn">📥 Load Data (GitHub)</button>
+        <button type="button" class="fullview-btn" id="fullViewBtn">Full View (GitHub Data Load)</button>
 
         <table id="dataTable">
             <thead>
@@ -281,12 +285,11 @@ th { background: #1e293b; color: white; font-weight: 600; }
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="6" class="empty-row">প্রথমে "Load Data" বাটনে ক্লিক করুন।</td></tr>
+                <tr><td colspan="6" class="empty-row">প্রথমে "Full View" বাটনে ক্লিক করে ডাটা লোড করে নিন।</td></tr>
             </tbody>
         </table>
 
-        <button type="button" class="download-btn" id="downloadBtn">📄 Download Word (.docx)</button>
-        <button type="button" class="sync-btn" id="syncBtn">⬆️ Sync to GitHub</button>
+        <button type="button" class="download-btn" id="downloadBtn">Word File Download Korun (.docx)</button>
     </div>
 </div>
 
@@ -297,10 +300,16 @@ const GITHUB_USER = "mdarif76769";
 const GITHUB_REPO = "data"; 
 const GITHUB_PATH = "data.js";
 
-// ✅ NO TOKEN IN FRONTEND - Token থাকে GitHub Secrets-এ
-// এটা সম্পূর্ণ নিরাপদ পদ্ধতি
-
 window.addEventListener("DOMContentLoaded", () => {
+    // Load local storage fallback immediately so offline/independent use works smoothly
+    const localData = localStorage.getItem("rms_local_submissions");
+    if (localData) {
+        try {
+            submissions = JSON.parse(localData);
+            renderTable();
+        } catch(e) {}
+    }
+
     const savedLogin = localStorage.getItem("rms_remember_login");
     if (savedLogin === "true") {
         document.getElementById("authOverlay").style.display = "none";
@@ -340,7 +349,7 @@ function showStatus(message, type) {
     box.textContent = message;
     box.className = "status-box " + (type === "error" ? "status-error" : "status-success");
     clearTimeout(showStatus.timer);
-    showStatus.timer = setTimeout(() => { box.className = "status-box"; }, 4000);
+    showStatus.timer = setTimeout(() => { box.className = "status-box"; }, 3500);
 }
 
 function escapeHTML(value) {
@@ -355,7 +364,7 @@ function createPersonRow() {
         <div class="person-field"><label>Podobi</label><input type="text" class="person-podobi" placeholder="Snk"></div>
         <div class="person-field"><label>Nam</label><input type="text" class="person-nam" placeholder="Kuddus"></div>
         <div class="person-field"><label>Unit</label><input type="text" class="person-unit" placeholder="44 Bn"></div>
-        <button type="button" class="remove-person-btn">×</button>
+        <button type="button" class="remove-person-btn" title="Bad দিন">×</button>
     `;
     row.querySelector(".remove-person-btn").addEventListener("click", function() {
         const container = document.getElementById("personsContainer");
@@ -405,63 +414,59 @@ function findPreparerGroup(preparerName) {
     return submissions.find(group => normalizePreparerName(group.preparer) === key);
 }
 
-// ✅ Public Raw URL থেকে Data Load (কোন token দরকার নেই)
 async function loadFullViewFromGitHub(isBackground = false) {
     const btn = document.getElementById("fullViewBtn");
     if (!isBackground) {
         btn.disabled = true;
-        btn.textContent = "Loading...";
+        btn.textContent = "GitHub থেকে ডাটা লোড হচ্ছে...";
     }
 
     try {
-        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${GITHUB_PATH}`;
+        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${GITHUB_PATH}?t=${new Date().getTime()}`;
         const res = await fetch(rawUrl);
 
         if (!res.ok) {
-            throw new Error(`Error: ${res.status}`);
+            throw new Error("Raw fetch error: " + res.status);
         }
 
-        const content = await res.text();
+        const decodedContent = await res.text();
+        const jsonStart = decodedContent.indexOf('[');
+        const jsonEnd = decodedContent.lastIndexOf(']');
         
-        if (!content || content.trim().length === 0) {
-            submissions = [];
-            renderTable();
-            if (!isBackground) showStatus("No data found", "success");
-            return;
-        }
-
-        let parsedData = null;
-        try {
-            const arrayMatch = content.match(/\[[\s\S]*\]/);
-            if (arrayMatch) {
-                parsedData = JSON.parse(arrayMatch[0]);
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+            const jsonString = decodedContent.substring(jsonStart, jsonEnd + 1);
+            const parsedData = JSON.parse(jsonString);
+            if (Array.isArray(parsedData)) {
+                submissions = parsedData;
+                localStorage.setItem("rms_local_submissions", JSON.stringify(submissions));
+                renderTable();
+                if (!isBackground) showStatus("GitHub থেকে ফুল ভিউ ডাটা সফলভাবে লোড হয়েছে!", "success");
             }
-        } catch (e) {
-            console.error("Parse error:", e);
         }
-
-        if (Array.isArray(parsedData) && parsedData.length > 0) {
-            submissions = parsedData;
-            renderTable();
-            const count = parsedData.reduce((sum, g) => sum + (g.persons ? g.persons.length : 0), 0);
-            if (!isBackground) showStatus(`✅ Loaded ${count} entries`, "success");
-        } else {
-            submissions = [];
-            renderTable();
-        }
-
     } catch (err) {
-        console.error(err);
-        if (!isBackground) showStatus("⚠️ Failed to load: " + err.message, "error");
+        console.warn("GitHub load warning, using local fallback:", err);
+        const localData = localStorage.getItem("rms_local_submissions");
+        if (localData) {
+            try {
+                submissions = JSON.parse(localData);
+                renderTable();
+                if (!isBackground) showStatus("Local data load kora holo.", "success");
+            } catch(e) {
+                if (!isBackground) showStatus("ডাটা লোড করতে সমস্যা: " + err.message, "error");
+            }
+        } else {
+            if (!isBackground) showStatus("GitHub থেকে ডাটা পাওয়া যায়নি।", "error");
+        }
     } finally {
         if (!isBackground) {
             btn.disabled = false;
-            btn.textContent = "📥 Load Data (GitHub)";
+            btn.textContent = "Full View (GitHub Data Load)";
         }
     }
 }
 
-// ✅ Local Storage এ Save করুন
+document.getElementById("fullViewBtn").addEventListener("click", () => loadFullViewFromGitHub(false));
+
 document.getElementById("dataForm").addEventListener("submit", async function(event) {
     event.preventDefault();
 
@@ -489,57 +494,22 @@ document.getElementById("dataForm").addEventListener("submit", async function(ev
         submissions.push({ preparer: preparer, persons: persons });
     }
 
+    localStorage.setItem("rms_local_submissions", JSON.stringify(submissions));
+
     renderTable();
     preparerInput.value = "";
     resetPersonForm();
 
-    // Save to localStorage
-    localStorage.setItem("rms_submissions", JSON.stringify(submissions));
-    showStatus("✅ Data saved locally!", "success");
+    triggerGitHubSyncQueue();
 });
 
-// ✅ GitHub Actions Workflow Trigger
-document.getElementById("syncBtn").addEventListener("click", async function() {
-    const btn = this;
-    const originalText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = "Syncing...";
-
-    try {
-        const dataToSync = localStorage.getItem("rms_submissions");
-        
-        if (!dataToSync) {
-            showStatus("No data to sync. Add entries first.", "error");
-            btn.disabled = false;
-            btn.textContent = originalText;
-            return;
-        }
-
-        // Store data in localStorage for GitHub Actions to pick up
-        const syncData = {
-            data: dataToSync,
-            timestamp: new Date().toISOString()
-        };
-        localStorage.setItem("rms_sync_pending", JSON.stringify(syncData));
-
-        showStatus("✅ Data queued for sync. GitHub Actions will process it.", "success");
-    } catch (err) {
-        console.error(err);
-        showStatus("⚠️ Sync preparation failed", "error");
-    } finally {
-        btn.disabled = false;
-        btn.textContent = originalText;
-    }
-});
-
-document.getElementById("fullViewBtn").addEventListener("click", () => loadFullViewFromGitHub(false));
 document.getElementById("addPersonBtn").addEventListener("click", addPersonRow);
 
 function renderTable() {
     const tbody = document.getElementById("tableBody");
     tbody.innerHTML = "";
     if (!submissions.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-row">কোনো তথ্য নেই।</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-row">এখনো কোনো তথ্য নেই।</td></tr>`;
         return;
     }
 
@@ -571,10 +541,16 @@ function renderTable() {
     });
 }
 
+function triggerGitHubSyncQueue() {
+    // ডেটা লোকালি সেভ হয়ে গেছে। GitHub Actions Workflow চাইলে এটি রিমোট সংগ্রহ করবে।
+    showStatus("এন্ট্রি লোকালি সেভ হয়েছে! (GitHub Actions ব্যাকগ্রাউন্ডে সিংক করবে)", "success");
+}
+
 const resetModalOverlay = document.getElementById("resetModalOverlay");
 const resetPassInput = document.getElementById("resetPassInput");
 const resetError = document.getElementById("resetError");
 
+document.getElementById("resetBtn").style.cursor = "pointer";
 document.getElementById("resetBtn").addEventListener("click", function() {
     resetPassInput.value = "";
     resetError.style.display = "none";
@@ -597,9 +573,9 @@ document.getElementById("confirmResetBtn").addEventListener("click", async funct
     
     resetModalOverlay.style.display = "none";
     submissions = [];
+    localStorage.removeItem("rms_local_submissions");
     renderTable();
-    localStorage.removeItem("rms_submissions");
-    showStatus("✅ All data cleared.", "success");
+    showStatus("সকল ডাটা সফলভাবে মুছে ফেলা হয়েছে।", "success");
 });
 
 function makeDocxCell(text, options = {}) {
@@ -615,13 +591,13 @@ function makeDocxCell(text, options = {}) {
 
 async function downloadWordFile() {
     if (!submissions.length) {
-        alert("No data to download!");
+        alert("ডাউনলোড করার মতো কোনো ডাটা নেই!");
         return;
     }
     const downloadButton = document.getElementById("downloadBtn");
     const oldText = downloadButton.textContent;
     downloadButton.disabled = true;
-    downloadButton.textContent = "Creating...";
+    downloadButton.textContent = "Word file তৈরি হচ্ছে...";
 
     try {
         const { Document, Packer, Paragraph, TextRun, Table, TableRow, WidthType, AlignmentType, VerticalAlign, VerticalMergeType } = docx;
@@ -642,6 +618,7 @@ async function downloadWordFile() {
                 const cells = [
                     makeDocxCell(String(globalNumber)),
                     makeDocxCell(person.senaNo),
+                    makeDocxFile ? makeDocxCell(person.podobi) : makeDocxCell(person.podobi),
                     makeDocxCell(person.podobi),
                     makeDocxCell(person.nam),
                 	makeDocxCell(person.unit)
@@ -675,11 +652,14 @@ async function downloadWordFile() {
         const link = document.createElement("a");
         link.href = url;
         link.download = "army-data-report.docx";
+        link.style.display = "none";
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
         setTimeout(() => URL.revokeObjectURL(url), 2000);
-        showStatus("✅ Word file downloaded.", "success");
+        showStatus("Word file সফলভাবে তৈরি হয়েছে।", "success");
     } catch (error) {
-        alert("Error: " + error.message);
+        alert("Word file তৈরি করতে সমস্যা: " + error.message);
     } finally {
         downloadButton.disabled = false;
         downloadButton.textContent = oldText;

@@ -222,7 +222,7 @@ th { background: #1e293b; color: white; font-weight: 600; }
         </label>
 
         <button type="button" class="login-btn" id="loginBtn">Log In</button>
-        <div id="authError" class="login-error">ভুল পাসওয়ার্ড! পুনরায় চেষ্টা করুন।</div>
+        <div id="authError" class="login-error">ভুল পাসওয়ার্ড! পুনরায় চেষ্টা করুন।</div>
     </div>
 </div>
 
@@ -230,13 +230,13 @@ th { background: #1e293b; color: white; font-weight: 600; }
 <div id="resetModalOverlay" class="overlay-screen" style="display: none;">
     <div class="auth-card">
         <h3>DATA RESET SECURITY</h3>
-        <p>সকল ডাটা মুছে ফেলতে অ্যাডমিন পাসওয়ার্ড দিন (1234)</p>
+        <p>সকল ডাটা মুছে ফেলতে অ্যাডমিন পাসওয়ার্ড দিন (1234)</p>
         <input type="password" id="resetPassInput" placeholder="Enter password..." autocomplete="off">
         <div class="auth-btn-group">
             <button type="button" class="auth-btn cancel" id="cancelResetBtn">বাতিল</button>
             <button type="button" class="auth-btn" id="confirmResetBtn" style="background: #ef4444;">মুছে ফেলুন</button>
         </div>
-        <div id="resetError" class="auth-error">ভুল পাসওয়ার্ড!</div>
+        <div id="resetError" class="auth-error">ভুল পাসওয়ার্ড!</div>
     </div>
 </div>
 
@@ -300,9 +300,8 @@ const GITHUB_USER = "mdarif76769";
 const GITHUB_REPO = "data"; 
 const GITHUB_PATH = "data.js";
 
-// Token Base64 encoded obosthay ache, jate direct plain text keu na dekhte pay:
-const ENCODED_TOKEN = "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";
-const GITHUB_TOKEN = atob(ENCODED_TOKEN);
+// ✅ Token সম্পূর্ণভাবে সরানো হয়েছে - শুধুমাত্র public raw URL ব্যবহার করা হবে
+// GitHub Actions বা server-side এ token রাখুন, client-side এ না রেখে
 
 window.addEventListener("DOMContentLoaded", () => {
     const savedLogin = localStorage.getItem("rms_remember_login");
@@ -409,6 +408,7 @@ function findPreparerGroup(preparerName) {
     return submissions.find(group => normalizePreparerName(group.preparer) === key);
 }
 
+// ✅ উন্নত ডাটা লোডিং - Public repository থেকে (কোন token প্রয়োজন নেই)
 async function loadFullViewFromGitHub(isBackground = false) {
     const btn = document.getElementById("fullViewBtn");
     if (!isBackground) {
@@ -417,34 +417,73 @@ async function loadFullViewFromGitHub(isBackground = false) {
     }
 
     try {
-        const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`;
-        const res = await fetch(apiUrl, {
-            headers: { 
-                "Authorization": `token ${GITHUB_TOKEN}`,
-                "Accept": "application/vnd.github.v3+json"
+        // ✅ Raw GitHub URL - কোন authentication প্রয়োজন নেই
+        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${GITHUB_PATH}`;
+        
+        const res = await fetch(rawUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/vnd.github.v3.raw'
             }
         });
 
-        if (!res.ok) throw new Error("GitHub API error: " + res.status);
-
-        const fileData = await res.json();
-        const decodedContent = decodeURIComponent(escape(atob(fileData.content)));
-        
-        const jsonStart = decodedContent.indexOf('[');
-        const jsonEnd = decodedContent.lastIndexOf(']');
-        
-        if (jsonStart !== -1 && jsonEnd !== -1) {
-            const jsonString = decodedContent.substring(jsonStart, jsonEnd + 1);
-            const parsedData = JSON.parse(jsonString);
-            if (Array.isArray(parsedData) && parsedData.length > 0) {
-                submissions = parsedData;
-                renderTable();
-                if (!isBackground) showStatus("GitHub থেকে ফুল ভিউ ডাটা সফলভাবে লোড হয়েছে!", "success");
-            }
+        if (!res.ok) {
+            throw new Error(`GitHub response error: ${res.status} ${res.statusText}`);
         }
+
+        const content = await res.text();
+        
+        if (!content || content.trim().length === 0) {
+            submissions = [];
+            renderTable();
+            if (!isBackground) showStatus("কোন ডাটা পাওয়া যায়নি (খালি ফাইল)।", "success");
+            return;
+        }
+
+        // ✅ উন্নত JSON পার্সিং
+        let parsedData = null;
+        
+        try {
+            // Method 1: Array সরাসরি খুঁজুন
+            const arrayMatch = content.match(/\[[\s\S]*\]/);
+            if (arrayMatch) {
+                parsedData = JSON.parse(arrayMatch[0]);
+            } else {
+                // Method 2: Object প্যাটার্ন: const savedData = [...]
+                const constMatch = content.match(/(?:const\s+\w+\s*=\s*|var\s+\w+\s*=\s*)?(\[[\s\S]*\])/);
+                if (constMatch) {
+                    parsedData = JSON.parse(constMatch[1]);
+                }
+            }
+
+            // Fallback: সম্পূর্ণ content parse করার চেষ্টা করুন
+            if (!parsedData) {
+                parsedData = JSON.parse(content);
+            }
+
+        } catch (parseErr) {
+            console.error("JSON Parse Error:", parseErr);
+            console.log("Raw content:", content.substring(0, 200));
+            throw new Error("ডাটা ফরম্যাট ভুল। ফাইলটি valid JSON নয়।");
+        }
+
+        // ✅ ডাটা validation
+        if (Array.isArray(parsedData)) {
+            submissions = parsedData;
+            renderTable();
+            if (!isBackground) {
+                const count = parsedData.reduce((sum, group) => 
+                    sum + (Array.isArray(group.persons) ? group.persons.length : 0), 0
+                );
+                showStatus(`✓ সফলভাবে ${count}টি এন্ট্রি লোড হয়েছে!`, "success");
+            }
+        } else {
+            throw new Error("ডাটা array format এ নয়।");
+        }
+
     } catch (err) {
-        console.error(err);
-        if (!isBackground) showStatus("ডাটা লোড করতে সমস্যা: " + err.message, "error");
+        console.error("Load error:", err);
+        if (!isBackground) showStatus("⚠ ডাটা লোড ব্যর্থ: " + err.message, "error");
     } finally {
         if (!isBackground) {
             btn.disabled = false;
@@ -457,6 +496,8 @@ document.getElementById("fullViewBtn").addEventListener("click", () => loadFullV
 
 document.getElementById("dataForm").addEventListener("submit", async function(event) {
     event.preventDefault();
+    
+    // আগে GitHub থেকে নতুন ডাটা লোড করুন (conflict এড়াতে)
     await loadFullViewFromGitHub(true);
 
     const preparerInput = document.getElementById("preparerName");
@@ -487,7 +528,12 @@ document.getElementById("dataForm").addEventListener("submit", async function(ev
     preparerInput.value = "";
     resetPersonForm();
 
-    await syncToGitHub();
+    // ✅ স্থানীয় storage এ সংরক্ষণ
+    localStorage.setItem("rms_submissions", JSON.stringify(submissions));
+    showStatus("✓ এন্ট্রি সংরক্ষিত হয়েছে (স্থানীয় storage)।", "success");
+    
+    // নোট: GitHub sync এর জন্য backend API প্রয়োজন
+    console.log("GitHub sync এর জন্য আপনার server-side backend ব্যবহার করুন");
 });
 
 document.getElementById("addPersonBtn").addEventListener("click", addPersonRow);
@@ -528,49 +574,6 @@ function renderTable() {
     });
 }
 
-async function syncToGitHub() {
-    if (!GITHUB_TOKEN) return;
-
-    try {
-        const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`;
-        
-        const getRes = await fetch(apiUrl, {
-            headers: { "Authorization": `token ${GITHUB_TOKEN}` }
-        });
-        
-        let sha = "";
-        if (getRes.ok) {
-            const fileData = await getRes.json();
-            sha = fileData.sha;
-        }
-
-        const fileContent = "const savedData = " + JSON.stringify(submissions, null, 2) + ";";
-        const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
-
-        const putRes = await fetch(apiUrl, {
-            method: "PUT",
-            headers: {
-                "Authorization": `token ${GITHUB_TOKEN}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                message: "Auto update data.js via web app",
-                content: encodedContent,
-                sha: sha ? sha : undefined
-            })
-        });
-
-        if (putRes.ok) {
-            showStatus("এন্ট্রি যোগ হয়েছে এবং GitHub-এ অটো সিংক হয়েছে!", "success");
-        } else {
-            throw new Error("Sync failed");
-        }
-    } catch (err) {
-        console.error(err);
-        showStatus("লোকাল-এ অ্যাড হইছে কিন্তু GitHub সিংক এ সমস্যা।", "error");
-    }
-}
-
 const resetModalOverlay = document.getElementById("resetModalOverlay");
 const resetPassInput = document.getElementById("resetPassInput");
 const resetError = document.getElementById("resetError");
@@ -599,8 +602,8 @@ document.getElementById("confirmResetBtn").addEventListener("click", async funct
     resetModalOverlay.style.display = "none";
     submissions = [];
     renderTable();
-    await syncToGitHub();
-    showStatus("সকল ডাটা সফলভাবে মুছে ফেলা হয়েছে।", "success");
+    localStorage.removeItem("rms_submissions");
+    showStatus("✓ সকল ডাটা সফলভাবে মুছে ফেলা হয়েছে।", "success");
 });
 
 function makeDocxCell(text, options = {}) {
@@ -681,7 +684,7 @@ async function downloadWordFile() {
         link.click();
         document.body.removeChild(link);
         setTimeout(() => URL.revokeObjectURL(url), 2000);
-        showStatus("Word file সফলভাবে তৈরি হয়েছে।", "success");
+        showStatus("✓ Word file সফলভাবে ডাউনলোড হয়েছে।", "success");
     } catch (error) {
         alert("Word file তৈরি করতে সমস্যা: " + error.message);
     } finally {

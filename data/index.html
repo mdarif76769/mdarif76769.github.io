@@ -1,29 +1,693 @@
-name: Sync Data
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMS DATA ENTRY REPORT GENERATOR</title>
 
-on:
-  workflow_dispatch:
+<!-- DOCX Library -->
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0; padding: 0; background: #0f172a;
+    font-family: Arial, "Noto Sans Bengali", sans-serif; color: #1e293b;
+    min-height: 100vh; display: flex; flex-direction: column; width: 100%; overflow-x: hidden;
+}
 
-      - name: Update data file
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          mkdir -p data
-          cat > data/data.js <<'EOF'
-          const savedData = [];
-          EOF
+#authOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%);
+    background-size: 400% 400%;
+    animation: gradientBG 10s ease infinite;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
+}
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
-      - name: Commit and push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/data.js
-          git diff --cached --quiet || git commit -m "Update RMS data"
-          git push
+.login-logo-container {
+    width: 90px; height: 90px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    animation: floatLogo 3s ease-in-out infinite;
+}
+@keyframes floatLogo {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+.login-logo {
+    width: 65px; height: 65px; border-radius: 50%; object-fit: cover;
+    animation: rotateLogo 8s linear infinite;
+}
+@keyframes rotateLogo {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.login-card {
+    background: #ffffff; padding: 40px 35px; border-radius: 20px;
+    width: 90%; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    text-align: left;
+}
+.login-card label {
+    display: block; font-weight: 600; color: #334155; font-size: 14px; margin-bottom: 8px;
+}
+.login-card input[type="password"] {
+    width: 100%; padding: 14px 16px; border: 1px solid #cbd5e1;
+    background: #f8fafc; color: #0f172a; border-radius: 10px; font-size: 16px;
+    margin-bottom: 20px; outline: none; transition: all 0.3s;
+}
+.login-card input[type="password"]:focus {
+    border-color: #7c3aed; background: #fff; box-shadow: 0 0 0 4px rgba(124,58,237,0.1);
+}
+.remember-group {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 25px; font-size: 14px; color: #475569; cursor: pointer;
+}
+.remember-group input { width: 18px; height: 18px; accent-color: #7c3aed; cursor: pointer; }
+.login-btn {
+    width: 100%; background: #7c3aed; color: white; border: none;
+    padding: 14px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer;
+    box-shadow: 0 10px 20px rgba(124,58,237,0.3); transition: all 0.3s;
+}
+.login-btn:hover { background: #6d28d9; transform: translateY(-1px); }
+.login-error { color: #ef4444; font-size: 13px; margin-top: 15px; display: none; font-weight: 600; text-align: center; }
+
+.overlay-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px);
+    display: flex; align-items: center; justify-content: center; z-index: 9999;
+}
+.auth-card {
+    background: #fff; padding: 30px; border-radius: 16px;
+    width: 90%; max-width: 400px; box-shadow: 0 20px 25px rgba(0,0,0,0.3); text-align: center;
+}
+.auth-card h3 { margin-top: 0; color: #0f172a; font-size: 20px; }
+.auth-card p { color: #64748b; font-size: 14px; margin-bottom: 20px; }
+.auth-card input {
+    width: 100%; padding: 12px; border: 1px solid #cbd5e1;
+    border-radius: 8px; font-size: 16px; text-align: center; margin-bottom: 15px; outline: none; background: #fff; color: #000;
+}
+.auth-btn-group { display: flex; gap: 10px; }
+.auth-btn {
+    flex: 1; background: #ef4444; color: white; border: none;
+    padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer;
+}
+.auth-btn.cancel { background: #64748b; }
+.auth-error { color: #ef4444; font-size: 13px; margin-top: 10px; display: none; font-weight: 600; }
+
+#mainAppContainer { display: none; width: 100%; min-height: 100vh; padding: 0; }
+
+.container {
+    width: 100%; margin: 0; background: #ffffff; padding: 15px 10px;
+    border-radius: 0; box-shadow: none; min-height: 100vh;
+}
+@media (min-width: 768px) {
+    .container { padding: 30px; }
+}
+
+.app-header {
+    display: flex; align-items: center; justify-content: center; gap: 15px;
+    margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;
+}
+.header-logo {
+    width: 45px; height: 45px; border-radius: 50%; object-fit: cover;
+    border: 2px solid #7c3aed; animation: rotateLogo 8s linear infinite;
+}
+h2 { margin: 0; color: #0f172a; font-size: 18px; font-weight: 800; text-align: center; }
+@media (min-width: 768px) { h2 { font-size: 26px; } }
+
+h3 { margin-top: 25px; font-size: 18px; color: #334155; }
+label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #475569; }
+input {
+    width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1;
+    border-radius: 8px; font-size: 14px; outline: none; background: #f8fafc; transition: all 0.2s;
+}
+input:focus { border-color: #7c3aed; background: #fff; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+
+.preparer-section { margin-bottom: 20px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; }
+.person-section { margin-top: 20px; }
+.person-section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #1e293b; }
+
+.person-row {
+    background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px;
+    padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; position: relative;
+}
+@media (min-width: 768px) {
+    .person-row {
+        display: grid; grid-template-columns: 1fr 0.8fr 1.2fr 1fr 45px; gap: 10px; align-items: end;
+    }
+}
+.remove-person-btn {
+    width: 100%; height: 40px; background: #ef4444; color: white; border: none;
+    border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: center;
+}
+@media (min-width: 768px) { .remove-person-btn { width: 45px; height: 40px; } }
+.remove-person-btn:hover { background: #dc2626; }
+
+.add-person-btn {
+    background: #0ea5e9; color: white; border: none; border-radius: 8px;
+    padding: 12px 20px; cursor: pointer; font-size: 14px; font-weight: bold; width: 100%;
+}
+.add-person-btn:hover { background: #0284c7; }
+
+.btn-group { display: flex; gap: 12px; margin-top: 20px; flex-direction: column; }
+@media (min-width: 576px) { .btn-group { flex-direction: row; } }
+
+.submit-btn, .reset-btn, .fullview-btn, .download-btn, .sync-btn {
+    border: none; border-radius: 8px; padding: 14px 20px; color: white;
+    font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; transition: all 0.2s;
+}
+.submit-btn { background: #10b981; flex: 1; }
+.submit-btn:hover { background: #059669; }
+.reset-btn { background: #ef4444; flex: 1; }
+.reset-btn:hover { background: #dc2626; }
+.fullview-btn { width: 100%; margin-top: 15px; background: #8b5cf6; }
+.fullview-btn:hover { background: #7c3aed; }
+.download-btn { width: 100%; margin-top: 12px; background: #2563eb; }
+.download-btn:hover { background: #1d4ed8; }
+.sync-btn { width: 100%; margin-top: 12px; background: #f59e0b; }
+.sync-btn:hover { background: #d97706; }
+
+.status-box {
+    display: none; margin-top: 15px; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px;
+}
+.status-success { display: block; background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.status-error { display: block; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    background: #fff;
+    margin-top: 15px;
+}
+th, td {
+    border: 1px solid #cbd5e1;
+    padding: 10px 4px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 12px;
+    word-break: break-word;
+}
+@media (min-width: 768px) {
+    th, td { padding: 12px 10px; font-size: 14px; }
+}
+th { background: #1e293b; color: white; font-weight: 600; }
+.preparer-cell { text-align: center; vertical-align: middle; font-weight: bold; background: #f8fafc; }
+.empty-row { padding: 25px; color: #64748b; font-style: italic; }
+.group-separator td { border-top: 3px solid #1e293b; }
+</style>
+</head>
+
+<body>
+
+<div id="authOverlay">
+    <div class="login-logo-container">
+        <img src="https://raw.githubusercontent.com/mdarif76769/data/main/logo.png" alt="RMS Logo" class="login-logo" onerror="this.style.display='none'">
+    </div>
+    <div class="login-card">
+        <label for="passInput">Password</label>
+        <input type="password" id="passInput" placeholder="Enter password ..." autocomplete="current-password">
+        
+        <label class="remember-group">
+            <input type="checkbox" id="rememberMe"> Remember Me
+        </label>
+
+        <button type="button" class="login-btn" id="loginBtn">Log In</button>
+        <div id="authError" class="login-error">ভুল পাসওয়ার্ড! পুনরায় চেষ্টা করুন।</div>
+    </div>
+</div>
+
+<div id="resetModalOverlay" class="overlay-screen" style="display: none;">
+    <div class="auth-card">
+        <h3>DATA RESET SECURITY</h3>
+        <p>সকল ডাটা মুছে ফেলতে অ্যাডমিন পাসওয়ার্ড দিন</p>
+        <input type="password" id="resetPassInput" placeholder="Enter password..." autocomplete="off">
+        <div class="auth-btn-group">
+            <button type="button" class="auth-btn cancel" id="cancelResetBtn">বাতিল</button>
+            <button type="button" class="auth-btn" id="confirmResetBtn" style="background: #ef4444;">মুছে ফেলুন</button>
+        </div>
+        <div id="resetError" class="auth-error">ভুল পাসওয়ার্ড!</div>
+    </div>
+</div>
+
+<div id="mainAppContainer">
+    <div class="container">
+        <div class="app-header">
+            <img src="https://raw.githubusercontent.com/mdarif76769/data/main/logo.png" alt="RMS Logo" class="header-logo" onerror="this.style.display='none'">
+            <h2>RMS DATA ENTRY REPORT GENERATOR</h2>
+        </div>
+
+        <form id="dataForm">
+            <div class="preparer-section">
+                <label for="preparerName">প্রস্তুত কারির নাম</label>
+                <input type="text" id="preparerName" class="preparer-input" placeholder="প্রস্তুতকারির নাম লিখুন..." autocomplete="off" required>
+            </div>
+
+            <div class="person-section">
+                <div class="person-section-title">ব্যাক্তির তথ্য</div>
+                <div id="personsContainer"></div>
+                <button type="button" class="add-person-btn" id="addPersonBtn">+ নতুন ব্যক্তি যোগ করুন</button>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="submit-btn">💾 Save (Local)</button>
+                <button type="button" class="reset-btn" id="resetBtn">🗑️ Reset All</button>
+            </div>
+        </form>
+
+        <div id="statusBox" class="status-box"></div>
+
+        <hr style="margin:30px 0; border:0; border-top:1px solid #e2e8f0;">
+
+        <h3>ALL SAVED DATA LIST</h3>
+        <button type="button" class="fullview-btn" id="fullViewBtn">📥 Load Data (GitHub)</button>
+
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">No</th>
+                    <th style="width: 20%;">Sena No</th>
+                    <th style="width: 15%;">Podobi</th>
+                    <th style="width: 25%;">Nam</th>
+                    <th style="width: 15%;">Unit</th>
+                    <th style="width: 15%;">Prostutkarir Nam</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr><td colspan="6" class="empty-row">প্রথমে "Load Data" বাটনে ক্লিক করুন।</td></tr>
+            </tbody>
+        </table>
+
+        <button type="button" class="download-btn" id="downloadBtn">📄 Download Word (.docx)</button>
+        <button type="button" class="sync-btn" id="syncBtn">⬆️ Sync to GitHub</button>
+    </div>
+</div>
+
+<script>
+let submissions = [];
+
+const GITHUB_USER = "mdarif76769";
+const GITHUB_REPO = "data"; 
+const GITHUB_PATH = "data.js";
+
+// ✅ NO TOKEN IN FRONTEND - Token থাকে GitHub Secrets-এ
+// এটা সম্পূর্ণ নিরাপদ পদ্ধতি
+
+window.addEventListener("DOMContentLoaded", () => {
+    const savedLogin = localStorage.getItem("rms_remember_login");
+    if (savedLogin === "true") {
+        document.getElementById("authOverlay").style.display = "none";
+        document.getElementById("mainAppContainer").style.display = "block";
+        resetPersonForm();
+        loadFullViewFromGitHub(true);
+    }
+});
+
+document.getElementById("loginBtn").addEventListener("click", checkPassword);
+document.getElementById("passInput").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") checkPassword();
+});
+
+async function checkPassword() {
+    const enteredPass = document.getElementById("passInput").value.trim();
+    const rememberMe = document.getElementById("rememberMe").checked;
+    const errorDiv = document.getElementById("authError");
+
+    if (enteredPass === "RMS2026") {
+        if (rememberMe) {
+            localStorage.setItem("rms_remember_login", "true");
+        }
+        document.getElementById("authOverlay").style.display = "none";
+        document.getElementById("mainAppContainer").style.display = "block";
+        resetPersonForm();
+        await loadFullViewFromGitHub(true);
+    } else {
+        errorDiv.style.display = "block";
+        document.getElementById("passInput").value = "";
+        document.getElementById("passInput").focus();
+    }
+}
+
+function showStatus(message, type) {
+    const box = document.getElementById("statusBox");
+    box.textContent = message;
+    box.className = "status-box " + (type === "error" ? "status-error" : "status-success");
+    clearTimeout(showStatus.timer);
+    showStatus.timer = setTimeout(() => { box.className = "status-box"; }, 4000);
+}
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function createPersonRow() {
+    const row = document.createElement("div");
+    row.className = "person-row";
+    row.innerHTML = `
+        <div class="person-field"><label>Sena No</label><input type="text" class="person-sena" placeholder="4501488"></div>
+        <div class="person-field"><label>Podobi</label><input type="text" class="person-podobi" placeholder="Snk"></div>
+        <div class="person-field"><label>Nam</label><input type="text" class="person-nam" placeholder="Kuddus"></div>
+        <div class="person-field"><label>Unit</label><input type="text" class="person-unit" placeholder="44 Bn"></div>
+        <button type="button" class="remove-person-btn">×</button>
+    `;
+    row.querySelector(".remove-person-btn").addEventListener("click", function() {
+        const container = document.getElementById("personsContainer");
+        if (container.querySelectorAll(".person-row").length <= 1) {
+            showStatus("কমপক্ষে একজন ব্যক্তির তথ্য রাখতে হবে।", "error");
+            return;
+        }
+        row.remove();
+    });
+    return row;
+}
+
+function addPersonRow() {
+    document.getElementById("personsContainer").appendChild(createPersonRow());
+}
+
+function resetPersonForm() {
+    const container = document.getElementById("personsContainer");
+    container.innerHTML = "";
+    container.appendChild(createPersonRow());
+}
+
+function getPersonsFromForm() {
+    const rows = document.querySelectorAll("#personsContainer .person-row");
+    const persons = [];
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const senaNo = row.querySelector(".person-sena").value.trim();
+        const podobi = row.querySelector(".person-podobi").value.trim();
+        const nam = row.querySelector(".person-nam").value.trim();
+        const unit = row.querySelector(".person-unit").value.trim();
+
+        if (!senaNo || !podobi || !nam || !unit) {
+            return { error: `ব্যক্তি নং ${i + 1}-এর সব তথ্য পূরণ করুন।` };
+        }
+        persons.push({ senaNo, podobi, nam, unit });
+    }
+    return { persons };
+}
+
+function normalizePreparerName(name) {
+    return String(name || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function findPreparerGroup(preparerName) {
+    const key = normalizePreparerName(preparerName);
+    return submissions.find(group => normalizePreparerName(group.preparer) === key);
+}
+
+// ✅ Public Raw URL থেকে Data Load (কোন token দরকার নেই)
+async function loadFullViewFromGitHub(isBackground = false) {
+    const btn = document.getElementById("fullViewBtn");
+    if (!isBackground) {
+        btn.disabled = true;
+        btn.textContent = "Loading...";
+    }
+
+    try {
+        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${GITHUB_PATH}`;
+        const res = await fetch(rawUrl);
+
+        if (!res.ok) {
+            throw new Error(`Error: ${res.status}`);
+        }
+
+        const content = await res.text();
+        
+        if (!content || content.trim().length === 0) {
+            submissions = [];
+            renderTable();
+            if (!isBackground) showStatus("No data found", "success");
+            return;
+        }
+
+        let parsedData = null;
+        try {
+            const arrayMatch = content.match(/\[[\s\S]*\]/);
+            if (arrayMatch) {
+                parsedData = JSON.parse(arrayMatch[0]);
+            }
+        } catch (e) {
+            console.error("Parse error:", e);
+        }
+
+        if (Array.isArray(parsedData) && parsedData.length > 0) {
+            submissions = parsedData;
+            renderTable();
+            const count = parsedData.reduce((sum, g) => sum + (g.persons ? g.persons.length : 0), 0);
+            if (!isBackground) showStatus(`✅ Loaded ${count} entries`, "success");
+        } else {
+            submissions = [];
+            renderTable();
+        }
+
+    } catch (err) {
+        console.error(err);
+        if (!isBackground) showStatus("⚠️ Failed to load: " + err.message, "error");
+    } finally {
+        if (!isBackground) {
+            btn.disabled = false;
+            btn.textContent = "📥 Load Data (GitHub)";
+        }
+    }
+}
+
+// ✅ Local Storage এ Save করুন
+document.getElementById("dataForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const preparerInput = document.getElementById("preparerName");
+    const preparer = preparerInput.value.trim();
+
+    if (!preparer) {
+        showStatus("প্রস্তুতকারির নাম লিখুন।", "error");
+        preparerInput.focus();
+        return;
+    }
+
+    const result = getPersonsFromForm();
+    if (result.error) {
+        showStatus(result.error, "error");
+        return;
+    }
+
+    const persons = result.persons;
+    const existingGroup = findPreparerGroup(preparer);
+
+    if (existingGroup) {
+        existingGroup.persons = existingGroup.persons.concat(persons);
+    } else {
+        submissions.push({ preparer: preparer, persons: persons });
+    }
+
+    renderTable();
+    preparerInput.value = "";
+    resetPersonForm();
+
+    // Save to localStorage
+    localStorage.setItem("rms_submissions", JSON.stringify(submissions));
+    showStatus("✅ Data saved locally!", "success");
+});
+
+// ✅ GitHub Actions Workflow Trigger
+document.getElementById("syncBtn").addEventListener("click", async function() {
+    const btn = this;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Syncing...";
+
+    try {
+        const dataToSync = localStorage.getItem("rms_submissions");
+        
+        if (!dataToSync) {
+            showStatus("No data to sync. Add entries first.", "error");
+            btn.disabled = false;
+            btn.textContent = originalText;
+            return;
+        }
+
+        // Store data in localStorage for GitHub Actions to pick up
+        const syncData = {
+            data: dataToSync,
+            timestamp: new Date().toISOString()
+        };
+        localStorage.setItem("rms_sync_pending", JSON.stringify(syncData));
+
+        showStatus("✅ Data queued for sync. GitHub Actions will process it.", "success");
+    } catch (err) {
+        console.error(err);
+        showStatus("⚠️ Sync preparation failed", "error");
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+});
+
+document.getElementById("fullViewBtn").addEventListener("click", () => loadFullViewFromGitHub(false));
+document.getElementById("addPersonBtn").addEventListener("click", addPersonRow);
+
+function renderTable() {
+    const tbody = document.getElementById("tableBody");
+    tbody.innerHTML = "";
+    if (!submissions.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-row">কোনো তথ্য নেই।</td></tr>`;
+        return;
+    }
+
+    let globalNumber = 1;
+    submissions.forEach((group, groupIndex) => {
+        const persons = Array.isArray(group.persons) ? group.persons : [];
+        persons.forEach((person, personIndex) => {
+            const row = document.createElement("tr");
+            if (groupIndex > 0 && personIndex === 0) {
+                row.classList.add("group-separator");
+            }
+            row.innerHTML = `
+                <td>${globalNumber}</td>
+                <td>${escapeHTML(person.senaNo)}</td>
+                <td>${escapeHTML(person.podobi)}</td>
+                <td>${escapeHTML(person.nam)}</td>
+                <td>${escapeHTML(person.unit)}</td>
+            `;
+            if (personIndex === 0) {
+                const preparerCell = document.createElement("td");
+                preparerCell.className = "preparer-cell";
+                preparerCell.rowSpan = persons.length;
+                preparerCell.textContent = group.preparer;
+                row.appendChild(preparerCell);
+            }
+            tbody.appendChild(row);
+            globalNumber++;
+        });
+    });
+}
+
+const resetModalOverlay = document.getElementById("resetModalOverlay");
+const resetPassInput = document.getElementById("resetPassInput");
+const resetError = document.getElementById("resetError");
+
+document.getElementById("resetBtn").addEventListener("click", function() {
+    resetPassInput.value = "";
+    resetError.style.display = "none";
+    resetModalOverlay.style.display = "flex";
+    resetPassInput.focus();
+});
+
+document.getElementById("cancelResetBtn").addEventListener("click", function() {
+    resetModalOverlay.style.display = "none";
+});
+
+document.getElementById("confirmResetBtn").addEventListener("click", async function() {
+    const password = resetPassInput.value.trim();
+    if (password !== "1234") {
+        resetError.style.display = "block";
+        resetPassInput.value = "";
+        resetPassInput.focus();
+        return;
+    }
+    
+    resetModalOverlay.style.display = "none";
+    submissions = [];
+    renderTable();
+    localStorage.removeItem("rms_submissions");
+    showStatus("✅ All data cleared.", "success");
+});
+
+function makeDocxCell(text, options = {}) {
+    const { AlignmentType, VerticalAlign } = docx;
+    const paragraph = new docx.Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new docx.TextRun({ text: String(text ?? ""), bold: options.bold || false, size: options.size || 20, font: { name: "Noto Sans Bengali" } })]
+    });
+    const cellOptions = { verticalAlign: options.verticalAlign || VerticalAlign.CENTER, children: [paragraph] };
+    if (options.verticalMerge) cellOptions.verticalMerge = options.verticalMerge;
+    return new docx.TableCell(cellOptions);
+}
+
+async function downloadWordFile() {
+    if (!submissions.length) {
+        alert("No data to download!");
+        return;
+    }
+    const downloadButton = document.getElementById("downloadBtn");
+    const oldText = downloadButton.textContent;
+    downloadButton.disabled = true;
+    downloadButton.textContent = "Creating...";
+
+    try {
+        const { Document, Packer, Paragraph, TextRun, Table, TableRow, WidthType, AlignmentType, VerticalAlign, VerticalMergeType } = docx;
+        const tableRows = [];
+        const headerNames = ["No", "Sena No", "Podobi", "Nam", "Unit", "Prostutkarir Nam"];
+        
+        const headerCells = headerNames.map(title => new docx.TableCell({
+            verticalAlign: VerticalAlign.CENTER,
+            shading: { fill: "1E293B" },
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: title, bold: true, color: "FFFFFF", size: 20, font: { name: "Noto Sans Bengali" } })] })]
+        }));
+        tableRows.push(new TableRow({ children: headerCells }));
+
+        let globalNumber = 1;
+        submissions.forEach(group => {
+            const persons = Array.isArray(group.persons) ? group.persons : [];
+            persons.forEach((person, personIndex) => {
+                const cells = [
+                    makeDocxCell(String(globalNumber)),
+                    makeDocxCell(person.senaNo),
+                    makeDocxCell(person.podobi),
+                    makeDocxCell(person.nam),
+                	makeDocxCell(person.unit)
+                ];
+                if (personIndex === 0) {
+                    if (persons.length > 1) {
+                        cells.push(makeDocxCell(group.preparer, { bold: true, verticalAlign: VerticalAlign.CENTER, verticalMerge: VerticalMergeType.RESTART }));
+                    } else {
+                        cells.push(makeDocxCell(group.preparer, { bold: true, verticalAlign: VerticalAlign.CENTER }));
+                    }
+                } else {
+                    cells.push(new docx.TableCell({ verticalAlign: VerticalAlign.CENTER, verticalMerge: VerticalMergeType.CONTINUE, children: [] }));
+                }
+                tableRows.push(new TableRow({ children: cells }));
+                globalNumber++;
+            });
+        });
+
+        const doc = new Document({
+            sections: [{
+                properties: { page: { margin: { top: 500, bottom: 500, left: 500, right: 500 } } },
+                children: [
+                    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 250 }, children: [new TextRun({ text: "Totho Biboroni Report", bold: true, size: 28, font: { name: "Noto Sans Bengali" } })] }),
+                    new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: tableRows })
+                ]
+            }]
+        });
+
+        const blob = await Packer.toBlob(doc);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "army-data-report.docx";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        showStatus("✅ Word file downloaded.", "success");
+    } catch (error) {
+        alert("Error: " + error.message);
+    } finally {
+        downloadButton.disabled = false;
+        downloadButton.textContent = oldText;
+    }
+}
+
+document.getElementById("downloadBtn").addEventListener("click", downloadWordFile);
+</script>
+
+</body>
+</html>
